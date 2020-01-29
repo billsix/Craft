@@ -1,4 +1,5 @@
-#include <GL/glew.h>
+#define GL3W_IMPLEMENTATION 1
+#include "gl3w.h"
 #include <GLFW/glfw3.h>
 #include <curl/curl.h>
 #include <math.h>
@@ -2371,6 +2372,10 @@ void create_window() {
         window_width = modes[mode_count - 1].width;
         window_height = modes[mode_count - 1].height;
     }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     g->window = glfwCreateWindow(
         window_width, window_height, "Craft", monitor, NULL);
 }
@@ -2607,10 +2612,15 @@ int main(int argc, char **argv) {
     glfwSetMouseButtonCallback(g->window, on_mouse_button);
     glfwSetScrollCallback(g->window, on_scroll);
 
-    if (glewInit() != GLEW_OK) {
+    if (gl3w_init()) {
         return -1;
     }
-
+    printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
+           glGetString(GL_SHADING_LANGUAGE_VERSION));
+    if (!gl3w_is_supported(3, 2)) {
+      fprintf(stderr, "OpenGL 3.2 not supported\n");
+      return -1;
+    }
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glLogicOp(GL_INVERT);

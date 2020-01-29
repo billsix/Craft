@@ -7,7 +7,6 @@ FILE(GLOB SOURCE_FILES src/*.c)
 add_executable(
     craft
     ${SOURCE_FILES}
-    deps/glew/src/glew.c
     deps/lodepng/lodepng.c
     deps/noise/noise.c
     deps/sqlite/sqlite3.c
@@ -16,8 +15,7 @@ add_executable(
 add_definitions(-std=c99 -O3)
 
 add_subdirectory(deps/glfw)
-include_directories(deps/glew/include)
-include_directories(deps/glfw/include)
+include_directories(deps/gl3w)
 include_directories(deps/lodepng)
 include_directories(deps/noise)
 include_directories(deps/sqlite)

@@ -36,7 +36,7 @@ the installation:
 
 #### Linux (Ubuntu)
 
-    sudo apt-get install cmake libglew-dev xorg-dev libcurl4-openssl-dev
+    sudo apt-get install cmake xorg-dev libcurl4-openssl-dev
     sudo apt-get build-dep glfw
 
 #### Windows
@@ -209,7 +209,7 @@ http://0fps.wordpress.com/2013/07/03/ambient-occlusion-for-minecraft-like-worlds
 
 #### Dependencies
 
-* GLEW is used for managing OpenGL extensions across platforms.
+* GL3W is used for managing OpenGL extensions across platforms.
 * GLFW is used for cross-platform window management.
 * CURL is used for HTTPS / SSL POST for the authentication process.
 * lodepng is used for loading PNG textures.
