@@ -51,6 +51,7 @@ void mat_rotate(float *matrix, float x, float y, float z, float angle) {
     float s = sinf(angle);
     float c = cosf(angle);
     float m = 1 - c;
+
     matrix[0] = m * x * x + c;
     matrix[1] = m * x * y - z * s;
     matrix[2] = m * z * x + y * s;

@@ -295,6 +295,11 @@ GLuint gen_text_buffer(float x, float y, float n, char *text) {
 }
 
 void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
+
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    glBindVertexArray(vertexArrayID );
+
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->normal);
@@ -310,9 +315,16 @@ void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
     glDisableVertexAttribArray(attrib->normal);
     glDisableVertexAttribArray(attrib->uv);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glDeleteVertexArrays(1, &vertexArrayID);
+
 }
 
 void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    glBindVertexArray(vertexArrayID );
+
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->uv);
@@ -324,9 +336,16 @@ void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
     glDisableVertexAttribArray(attrib->position);
     glDisableVertexAttribArray(attrib->uv);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glDeleteVertexArrays(1, &vertexArrayID);
 }
 
 void draw_triangles_3d(Attrib *attrib, GLuint buffer, int count) {
+
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    glBindVertexArray(vertexArrayID );
+
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->normal);
@@ -342,9 +361,16 @@ void draw_triangles_3d(Attrib *attrib, GLuint buffer, int count) {
     glDisableVertexAttribArray(attrib->normal);
     glDisableVertexAttribArray(attrib->uv);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glDeleteVertexArrays(1, &vertexArrayID);
 }
 
 void draw_triangles_2d(Attrib *attrib, GLuint buffer, int count) {
+
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    glBindVertexArray(vertexArrayID );
+
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glEnableVertexAttribArray(attrib->uv);
@@ -356,9 +382,17 @@ void draw_triangles_2d(Attrib *attrib, GLuint buffer, int count) {
     glDisableVertexAttribArray(attrib->position);
     glDisableVertexAttribArray(attrib->uv);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glDeleteVertexArrays(1, &vertexArrayID);
+
 }
 
 void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
+
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    glBindVertexArray(vertexArrayID );
+
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glEnableVertexAttribArray(attrib->position);
     glVertexAttribPointer(
@@ -366,6 +400,8 @@ void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
     glDrawArrays(GL_LINES, 0, count);
     glDisableVertexAttribArray(attrib->position);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glDeleteVertexArrays(1, &vertexArrayID);
 }
 
 void draw_chunk(Attrib *attrib, Chunk *chunk) {
