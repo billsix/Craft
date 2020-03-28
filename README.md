@@ -2,7 +2,7 @@
 
 Minecraft clone for Windows, Mac OS X and Linux. Just a few thousand lines of C using modern OpenGL (shaders). Online multiplayer support is included using a Python-based server.
 
-http://www.michaelfogleman.com/craft/
+Based off of : http://www.michaelfogleman.com/craft/, https://github.com/fogleman/Craft
 
 ![Screenshot](http://i.imgur.com/SH7wcas.png)
 
@@ -16,15 +16,14 @@ http://www.michaelfogleman.com/craft/
 * World changes persisted in a sqlite3 database.
 * Multiplayer support!
 
-### Download
-
-Mac and Windows binaries are available on the website.
-
-http://www.michaelfogleman.com/craft/
-
-See below to run from source.
 
 ### Install Dependencies
+
+#### Windows
+
+Download and install [CMake](http://www.cmake.org/cmake/resources/software.html).
+
+CMake will handle the dependencies for you.
 
 #### Mac OS X
 
@@ -39,20 +38,29 @@ the installation:
     sudo apt-get install cmake xorg-dev libcurl4-openssl-dev
     sudo apt-get build-dep glfw
 
-#### Windows
-
-Download and install [CMake](http://www.cmake.org/cmake/resources/software.html)
-and [MinGW](http://www.mingw.org/). Add `C:\MinGW\bin` to your `PATH`.
-
-Download and install [cURL](http://curl.haxx.se/download.html) so that
-CURL/lib and CURL/include are in your Program Files directory.
-
-Use the following commands in place of the ones described in the next section.
-
-    cmake -G "MinGW Makefiles"
-    mingw32-make
-
 ### Compile and Run
+
+#### Windows
+    # check out the project
+    git clone https://github.com/billsix/Craft.git
+    # on the command line, (search in windows for cmd),
+    # use "dir" to see files in current directory, and "cd"
+    # to change directories to the folder above the Craft directory
+    # "mkdir build" makes a "out of source" build directory,
+    # this is common to have multiple builds (debug, release)
+    mkdir build
+    # cd into that directory
+    cd build
+    # create the visual studio solution and project files
+    cmake ..\Craft
+    # using Windows Explorer, double click on "craft.sln"
+    # within visual studio, build the solution.  It will build GLFW
+    # and curl (for network multiplayer) as well.
+    #
+    # run the solution by clicking on the play button within visual 
+    # studio.
+
+#### Linux/MacOS
 
 Once you have the dependencies (see above), run the following commands in your
 terminal.
