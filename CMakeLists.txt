@@ -62,3 +62,19 @@ if(MINGW)
     target_link_libraries(craft ws2_32.lib glfw
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
+
+if(WIN32)
+configure_file(craft.vcxproj.user.in ${CMAKE_BINARY_DIR}/craft.vcxproj.user @ONLY) 
+set(TEXTURES_DIR ${CMAKE_SOURCE_DIR}/textures)
+STRING(REGEX REPLACE "/" "\\\\" TEXTURES_DIR ${TEXTURES_DIR})
+set(SHADERS_DIR ${CMAKE_SOURCE_DIR}/shaders)
+STRING(REGEX REPLACE "/" "\\\\" SHADERS_DIR ${SHADERS_DIR})
+set(OUTPUT_COPY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+STRING(REGEX REPLACE "/" "\\\\" OUTPUT_COPY_DIR ${OUTPUT_COPY_DIR})
+add_custom_command(TARGET craft POST_BUILD
+    COMMAND xcopy /i /s /y "${TEXTURES_DIR}" "${OUTPUT_COPY_DIR}\\$<CONFIGURATION>\\textures"
+)
+add_custom_command(TARGET craft POST_BUILD
+    COMMAND xcopy /i /s /y "${SHADERS_DIR}" "${OUTPUT_COPY_DIR}\\$<CONFIGURATION>\\shaders"
+)
+endif()
