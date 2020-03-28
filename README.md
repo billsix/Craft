@@ -57,7 +57,7 @@ the installation:
     # within visual studio, build the solution.  It will build GLFW
     # and curl (for network multiplayer) as well.
     #
-    # run the solution by clicking on the play button within visual 
+    # run the solution by clicking on the play button within visual
     # studio.
 
 #### Linux/MacOS
@@ -65,9 +65,12 @@ the installation:
 Once you have the dependencies (see above), run the following commands in your
 terminal.
 
-    git clone https://github.com/fogleman/Craft.git
+    mkdir Craft
     cd Craft
-    cmake .
+    git clone https://github.com/fogleman/Craft.git
+    mkdir build
+    cd build
+    cmake ../Craft
     make
     ./craft
 
