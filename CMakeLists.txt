@@ -37,6 +37,7 @@ add_executable(
     deps/sqlite/sqlite3.c
     deps/tinycthread/tinycthread.c)
 
+set_property(TARGET craft PROPERTY C_STANDARD 99)
 
 include_directories(deps/gl3w)
 include_directories(deps/lodepng)
@@ -51,7 +52,6 @@ target_include_directories(craft PUBLIC "${GLFW_SOURCE_DIR}/include" "${CURL_SOU
 if(WIN32)
     target_link_libraries(craft libcurl glfw opengl32)
 else()
-    add_definitions(-std=c99)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GLFW REQUIRED glfw3)
     pkg_check_modules(CURL REQUIRED libcurl)
@@ -71,4 +71,4 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                        ${CMAKE_SOURCE_DIR}/textures $<TARGET_FILE_DIR:${PROJECT_NAME}>/textures)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders) 
+                       ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders)
