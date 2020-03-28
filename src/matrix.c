@@ -182,7 +182,8 @@ void mat_perspective(
     xmax = ymax * aspect;
     mat_frustum(matrix, -xmax, xmax, -ymax, ymax, znear, zfar);
 }
-
+#undef near
+#undef far
 void mat_ortho(
     float *matrix,
     float left, float right, float bottom, float top, float near, float far)

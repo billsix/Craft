@@ -1,6 +1,22 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 project(craft)
+
+include(FetchContent)
+FetchContent_Declare(
+  CURL
+  GIT_REPOSITORY https://github.com/curl/curl.git
+  GIT_TAG        curl-7_69_1
+)
+FetchContent_MakeAvailable(CURL)
+
+include(FetchContent)
+FetchContent_Declare(
+  GLFW
+  GIT_REPOSITORY https://github.com/glfw/glfw.git
+  GIT_TAG        3.3.2
+)
+FetchContent_MakeAvailable(GLFW)
 
 FILE(GLOB SOURCE_FILES src/*.c)
 
@@ -14,7 +30,7 @@ add_executable(
 
 add_definitions(-std=c99 -O3)
 
-add_subdirectory(deps/glfw)
+#add_subdirectory(deps/glfw)
 include_directories(deps/gl3w)
 include_directories(deps/lodepng)
 include_directories(deps/noise)
@@ -28,9 +44,10 @@ if(MINGW)
         "C:/Program Files/CURL/include" "C:/Program Files (x86)/CURL/include")
 endif()
 
-find_package(CURL REQUIRED)
-include_directories(${CURL_INCLUDE_DIR})
-
+if(WIN32)
+	target_include_directories(craft PUBLIC "${GLFW_SOURCE_DIR}/include" "${CURL_SOURCE_DIR}/include")
+    target_link_libraries(craft libcurl glfw opengl32)
+endif()
 if(APPLE)
     target_link_libraries(craft glfw
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
