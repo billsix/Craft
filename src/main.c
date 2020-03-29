@@ -531,6 +531,9 @@ void draw_signs(Attrib *attrib, Chunk *chunk) {
     GL_DEBUG_ASSERT();
     glPolygonOffset(-8, -1024);
     GL_DEBUG_ASSERT();
+    // TODO
+    //  figure out why sign_buffer can ever
+    //  be 0
     if(chunk->sign_buffer != 0){
       draw_triangles_3d_text(attrib, chunk->sign_buffer, chunk->sign_faces * 6);
     }
