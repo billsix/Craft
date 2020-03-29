@@ -34,11 +34,12 @@ GLuint gen_buffer(GLsizei size, GLfloat *data);
 void del_buffer(GLuint buffer);
 GLfloat *malloc_faces(int components, int faces);
 GLuint gen_faces(int components, int faces, GLfloat *data);
-GLuint make_shader(GLenum type, char *source);
-GLuint load_shader(GLenum type, char *png);
+GLuint make_shader(GLenum type, const unsigned char *source);
+GLuint load_shader(GLenum type, const unsigned char *png);
 GLuint make_program(GLuint shader1, GLuint shader2);
-GLuint load_program(char *vertex_shader, char *fragment_shader);
-void load_png_texture(const void *png, unsigned size);
+GLuint load_program(const unsigned char *vertex_shader,
+                    const unsigned char *fragment_shader);
+void load_png_texture(const unsigned char *png, unsigned size);
 char *tokenize(char *str, const char *delim, char **key);
 int char_width(char input);
 int string_width(const char *input);

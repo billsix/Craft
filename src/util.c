@@ -71,9 +71,9 @@ GLuint gen_faces(int components, int faces, GLfloat *data) {
     return buffer;
 }
 
-GLuint make_shader(GLenum type, char *source) {
+GLuint make_shader(GLenum type, const unsigned char *source) {
     GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, NULL);
+    glShaderSource(shader, 1, (const char * const *) &source, NULL);
     GL_DEBUG_ASSERT();
     glCompileShader(shader);
     GL_DEBUG_ASSERT();
@@ -94,7 +94,7 @@ GLuint make_shader(GLenum type, char *source) {
     return shader;
 }
 
-GLuint load_shader(GLenum type, char *shader) {
+GLuint load_shader(GLenum type, const unsigned char *shader) {
     GLuint result = make_shader(type, shader);
     return result;
 }
@@ -132,7 +132,8 @@ GLuint make_program(GLuint shader1, GLuint shader2) {
     return program;
 }
 
-GLuint load_program(char *vertex_shader,char *fragment_shader) {
+GLuint load_program(const unsigned char *vertex_shader,
+                    const unsigned char *fragment_shader) {
     GLuint shader1 = load_shader(GL_VERTEX_SHADER, vertex_shader);
     GLuint shader2 = load_shader(GL_FRAGMENT_SHADER, fragment_shader);
     GLuint program = make_program(shader1, shader2);
@@ -153,7 +154,7 @@ void flip_image_vertical(
     free(new_data);
 }
 
-void load_png_texture(const void * png, unsigned size) {
+void load_png_texture(const unsigned char * png, unsigned size) {
     unsigned int error;
     unsigned char *data;
     unsigned int width, height;

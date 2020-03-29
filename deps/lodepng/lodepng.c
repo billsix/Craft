@@ -4830,7 +4830,7 @@ unsigned lodepng_decode_file(unsigned char** out, unsigned* w, unsigned* h, cons
   return lodepng_decode_memory(out, w, h, png, size, colortype, bitdepth);
 }
 
-unsigned lodepng_decode32_file(unsigned char** out, unsigned* w, unsigned* h, const void* png, unsigned size)
+unsigned lodepng_decode32_file(unsigned char** out, unsigned* w, unsigned* h, const unsigned char * png, unsigned size)
 {
     return lodepng_decode_file(out, w, h, png, size, LCT_RGBA, 8);
 }
