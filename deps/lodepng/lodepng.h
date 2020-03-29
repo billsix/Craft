@@ -138,8 +138,7 @@ unsigned lodepng_decode24(unsigned char** out, unsigned* w, unsigned* h,
 Load PNG from disk, from file with given name.
 Same as the other decode functions, but instead takes a filename as input.
 */
-unsigned lodepng_decode_file(unsigned char** out, unsigned* w, unsigned* h,
-                             const char* filename,
+unsigned lodepng_decode_file(unsigned char** out, unsigned* w, unsigned* h, const void * png, unsigned size,
                              LodePNGColorType colortype, unsigned bitdepth);
 
 /*Same as lodepng_decode_file, but always decodes to 32-bit RGBA raw image.*/
