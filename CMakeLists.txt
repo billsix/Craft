@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.0)
 
+# project name, using just the C language
 project(craft LANGUAGES C)
-
 
 # TODO - make the fetching and building of these static libraries
 # possible on linux through an option
 if(WIN32)
-
+     # build static libraries, not dynamic
      set(BUILD_SHARED_LIBS OFF)
+     # get the sources for curl
      include(FetchContent)
      FetchContent_Declare(
        CURL
@@ -15,7 +16,7 @@ if(WIN32)
        GIT_TAG        curl-7_69_1
      )
      FetchContent_MakeAvailable(CURL)
-
+     # get the sources for glfw
      include(FetchContent)
      FetchContent_Declare(
        GLFW
@@ -27,8 +28,10 @@ if(WIN32)
      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
 
+# set SOURCE_FILES to all of the c files
 FILE(GLOB SOURCE_FILES src/*.c)
 
+# definition of the craft, and its dependent sources
 add_executable(
     craft
     ${SOURCE_FILES}
@@ -37,21 +40,22 @@ add_executable(
     deps/sqlite/sqlite3.c
     deps/tinycthread/tinycthread.c)
 
+# build using the C99 standard
 set_property(TARGET craft PROPERTY C_STANDARD 99)
 
+# add include directories for compilation
 include_directories(deps/gl3w)
 include_directories(deps/lodepng)
 include_directories(deps/noise)
 include_directories(deps/sqlite)
 include_directories(deps/tinycthread)
 
-
-
-
-target_include_directories(craft PUBLIC "${GLFW_SOURCE_DIR}/include" "${CURL_SOURCE_DIR}/include")
+# link against the fetched libraries
 if(WIN32)
     target_link_libraries(craft libcurl glfw opengl32)
 else()
+    # using PkgConfig to determine how to link against
+    # the system's glfw and curl
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GLFW REQUIRED glfw3)
     pkg_check_modules(CURL REQUIRED libcurl)
@@ -61,10 +65,6 @@ else()
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
-# add configuration for VS
-if(WIN32)
-     configure_file(craft.vcxproj.user.in ${CMAKE_BINARY_DIR}/craft.vcxproj.user @ONLY)
-endif()
 # copy assets over to build dir
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
