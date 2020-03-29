@@ -320,36 +320,23 @@ void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
     glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 10, 0);
     GL_DEBUG_ASSERT();
-    // TODO
-    // Figure out why I have to do this check.
-    // If I don't, I will get an OpenGL error.
-    //
-    // Probably has to do with using a shader
-    // that doesn't define a normal
-    if((int) attrib->normal >= 0) {
-      glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 3));
-      GL_DEBUG_ASSERT();
-    }
-    // TODO
-    // Figure out why I have to do this check.
-    // If I don't, I will get an OpenGL error
-    if((int) attrib->normal >= 0) {
-      glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
-      GL_DEBUG_ASSERT();
-    }
+
+    glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+    GL_DEBUG_ASSERT();
+
+    glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
+                         sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+    GL_DEBUG_ASSERT();
+
     glDrawArrays(GL_TRIANGLES, 0, count);
     GL_DEBUG_ASSERT();
     glDisableVertexAttribArray(attrib->position);
     GL_DEBUG_ASSERT();
-    // TODO
-    // Figure out why I have to do this check.
-    // If I don't, I will get an OpenGL error
-    if((int) attrib->normal >= 0) {
-      glDisableVertexAttribArray(attrib->normal);
-      GL_DEBUG_ASSERT();
-    }
+
+    glDisableVertexAttribArray(attrib->normal);
+    GL_DEBUG_ASSERT();
+
     glDisableVertexAttribArray(attrib->uv);
     GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
