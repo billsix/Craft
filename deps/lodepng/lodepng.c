@@ -1,4 +1,16 @@
 /*
+Copyright (c) 2020 William Emerison Six
+
+Same license as the original, listed below.
+
+Modified to read from a bytestring, not
+from files. This is a modified file,
+and is not representative of the original
+software.  (Listed per the copyright notice
+below.
+*/
+
+/*
 LodePNG version 20131115
 
 Copyright (c) 2005-2013 Lode Vandevenne
