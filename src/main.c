@@ -296,94 +296,173 @@ GLuint gen_text_buffer(float x, float y, float n, char *text) {
 
 void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
 
+    // TODO -- figure out why buffer 0 is being sent in
+    // the first place
+    if(buffer == 0){
+      return;
+    }
     GLuint vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
     glBindVertexArray(vertexArrayID );
+    GL_DEBUG_ASSERT();
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GL_DEBUG_ASSERT();
     glEnableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
     glEnableVertexAttribArray(attrib->normal);
+    GL_DEBUG_ASSERT();
     glEnableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
     glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 10, 0);
+    GL_DEBUG_ASSERT();
+
     glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 3));
+                          sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+    GL_DEBUG_ASSERT();
+
     glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+                         sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+    GL_DEBUG_ASSERT();
+
     glDrawArrays(GL_TRIANGLES, 0, count);
+    GL_DEBUG_ASSERT();
     glDisableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
+
     glDisableVertexAttribArray(attrib->normal);
+    GL_DEBUG_ASSERT();
+
     glDisableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_DEBUG_ASSERT();
 
     glDeleteVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
 
 }
 
 void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
     GLuint vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
     glBindVertexArray(vertexArrayID );
+    GL_DEBUG_ASSERT();
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GL_DEBUG_ASSERT();
     glEnableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
     glEnableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
     glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 5, 0);
+    GL_DEBUG_ASSERT();
     glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 5, (GLvoid *)(sizeof(GLfloat) * 3));
+    GL_DEBUG_ASSERT();
     glDrawArrays(GL_TRIANGLES, 0, count);
+    GL_DEBUG_ASSERT();
     glDisableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
     glDisableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_DEBUG_ASSERT();
 
     glDeleteVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
 }
 
 void draw_triangles_3d(Attrib *attrib, GLuint buffer, int count) {
 
     GLuint vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
     glBindVertexArray(vertexArrayID );
+    GL_DEBUG_ASSERT();
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GL_DEBUG_ASSERT();
     glEnableVertexAttribArray(attrib->position);
-    glEnableVertexAttribArray(attrib->normal);
+    GL_DEBUG_ASSERT();
+    // TODO
+    // Figure out why I have to do this check.
+    // If I don't, I will get an OpenGL error
+    if((int) attrib->normal >= 0) {
+      glEnableVertexAttribArray(attrib->normal);
+      GL_DEBUG_ASSERT();
+    }
     glEnableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
     glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 8, 0);
-    glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 3));
+    GL_DEBUG_ASSERT();
+    // TODO
+    // Figure out why I have to do this check.
+    // If I don't, I will get an OpenGL error
+    if((int) attrib->normal >= 0) {
+      glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 3));
+      GL_DEBUG_ASSERT();
+    }
     glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 6));
+    GL_DEBUG_ASSERT();
     glDrawArrays(GL_TRIANGLES, 0, count);
+    GL_DEBUG_ASSERT();
     glDisableVertexAttribArray(attrib->position);
-    glDisableVertexAttribArray(attrib->normal);
+    GL_DEBUG_ASSERT();
+    // TODO
+    // Figure out why I have to do this check.
+    // If I don't, I will get an OpenGL error
+    if((int) attrib->normal >= 0) {
+      glDisableVertexAttribArray(attrib->normal);
+      GL_DEBUG_ASSERT();
+    }
     glDisableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_DEBUG_ASSERT();
 
     glDeleteVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
 }
 
 void draw_triangles_2d(Attrib *attrib, GLuint buffer, int count) {
 
     GLuint vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
     glBindVertexArray(vertexArrayID );
+    GL_DEBUG_ASSERT();
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GL_DEBUG_ASSERT();
     glEnableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
     glEnableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
     glVertexAttribPointer(attrib->position, 2, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 4, 0);
+    GL_DEBUG_ASSERT();
     glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 4, (GLvoid *)(sizeof(GLfloat) * 2));
+    GL_DEBUG_ASSERT();
     glDrawArrays(GL_TRIANGLES, 0, count);
+    GL_DEBUG_ASSERT();
     glDisableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
     glDisableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_DEBUG_ASSERT();
 
     glDeleteVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
 
 }
 
@@ -391,17 +470,26 @@ void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
 
     GLuint vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
     glBindVertexArray(vertexArrayID );
+    GL_DEBUG_ASSERT();
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GL_DEBUG_ASSERT();
     glEnableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
     glVertexAttribPointer(
         attrib->position, components, GL_FLOAT, GL_FALSE, 0, 0);
+    GL_DEBUG_ASSERT();
     glDrawArrays(GL_LINES, 0, count);
+    GL_DEBUG_ASSERT();
     glDisableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_DEBUG_ASSERT();
 
     glDeleteVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
 }
 
 void draw_chunk(Attrib *attrib, Chunk *chunk) {
@@ -414,23 +502,38 @@ void draw_item(Attrib *attrib, GLuint buffer, int count) {
 
 void draw_text(Attrib *attrib, GLuint buffer, int length) {
     glEnable(GL_BLEND);
+    GL_DEBUG_ASSERT();
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GL_DEBUG_ASSERT();
     draw_triangles_2d(attrib, buffer, length * 6);
+    GL_DEBUG_ASSERT();
     glDisable(GL_BLEND);
+    GL_DEBUG_ASSERT();
 }
 
 void draw_signs(Attrib *attrib, Chunk *chunk) {
     glEnable(GL_POLYGON_OFFSET_FILL);
+    GL_DEBUG_ASSERT();
     glPolygonOffset(-8, -1024);
-    draw_triangles_3d_text(attrib, chunk->sign_buffer, chunk->sign_faces * 6);
+    GL_DEBUG_ASSERT();
+    // TODO
+    //  figure out why sign_buffer can ever
+    //  be 0
+    if(chunk->sign_buffer != 0){
+      draw_triangles_3d_text(attrib, chunk->sign_buffer, chunk->sign_faces * 6);
+    }
     glDisable(GL_POLYGON_OFFSET_FILL);
+    GL_DEBUG_ASSERT();
 }
 
 void draw_sign(Attrib *attrib, GLuint buffer, int length) {
     glEnable(GL_POLYGON_OFFSET_FILL);
+    GL_DEBUG_ASSERT();
     glPolygonOffset(-8, -1024);
     draw_triangles_3d_text(attrib, buffer, length * 6);
+    GL_DEBUG_ASSERT();
     glDisable(GL_POLYGON_OFFSET_FILL);
+    GL_DEBUG_ASSERT();
 }
 
 void draw_cube(Attrib *attrib, GLuint buffer) {
@@ -1657,14 +1760,23 @@ int render_chunks(Attrib *attrib, Player *player) {
     float planes[6][4];
     frustum_planes(planes, g->render_radius, matrix);
     glUseProgram(attrib->program);
+    GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    GL_DEBUG_ASSERT();
     glUniform3f(attrib->camera, s->x, s->y, s->z);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 0);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->extra1, 2);
+    GL_DEBUG_ASSERT();
     glUniform1f(attrib->extra2, light);
+    GL_DEBUG_ASSERT();
     glUniform1f(attrib->extra3, g->render_radius * CHUNK_SIZE);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->extra4, g->ortho);
+    GL_DEBUG_ASSERT();
     glUniform1f(attrib->timer, time_of_day());
+    GL_DEBUG_ASSERT();
     for (int i = 0; i < g->chunk_count; i++) {
         Chunk *chunk = g->chunks + i;
         if (chunk_distance(chunk, p, q) > g->render_radius) {
@@ -1692,9 +1804,13 @@ void render_signs(Attrib *attrib, Player *player) {
     float planes[6][4];
     frustum_planes(planes, g->render_radius, matrix);
     glUseProgram(attrib->program);
+    GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 3);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->extra1, 1);
+    GL_DEBUG_ASSERT();
     for (int i = 0; i < g->chunk_count; i++) {
         Chunk *chunk = g->chunks + i;
         if (chunk_distance(chunk, p, q) > g->sign_radius) {
@@ -1723,9 +1839,13 @@ void render_sign(Attrib *attrib, Player *player) {
         matrix, g->width, g->height,
         s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
     glUseProgram(attrib->program);
+    GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 3);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->extra1, 1);
+    GL_DEBUG_ASSERT();
     char text[MAX_SIGN_LENGTH];
     strncpy(text, g->typing_buffer + 1, MAX_SIGN_LENGTH);
     text[MAX_SIGN_LENGTH - 1] = '\0';
@@ -1743,10 +1863,15 @@ void render_players(Attrib *attrib, Player *player) {
         matrix, g->width, g->height,
         s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
     glUseProgram(attrib->program);
+    GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    GL_DEBUG_ASSERT();
     glUniform3f(attrib->camera, s->x, s->y, s->z);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 0);
+    GL_DEBUG_ASSERT();
     glUniform1f(attrib->timer, time_of_day());
+    GL_DEBUG_ASSERT();
     for (int i = 0; i < g->player_count; i++) {
         Player *other = g->players + i;
         if (other != player) {
@@ -1762,9 +1887,13 @@ void render_sky(Attrib *attrib, Player *player, GLuint buffer) {
         matrix, g->width, g->height,
         0, 0, 0, s->rx, s->ry, g->fov, 0, g->render_radius);
     glUseProgram(attrib->program);
+    GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 2);
+    GL_DEBUG_ASSERT();
     glUniform1f(attrib->timer, time_of_day());
+    GL_DEBUG_ASSERT();
     draw_triangles_3d(attrib, buffer, 512 * 3);
 }
 
@@ -1778,13 +1907,18 @@ void render_wireframe(Attrib *attrib, Player *player) {
     int hw = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
     if (is_obstacle(hw)) {
         glUseProgram(attrib->program);
+        GL_DEBUG_ASSERT();
         glLineWidth(1);
+        GL_DEBUG_ASSERT();
         glEnable(GL_COLOR_LOGIC_OP);
+        GL_DEBUG_ASSERT();
         glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+        GL_DEBUG_ASSERT();
         GLuint wireframe_buffer = gen_wireframe_buffer(hx, hy, hz, 0.53);
         draw_lines(attrib, wireframe_buffer, 3, 24);
         del_buffer(wireframe_buffer);
         glDisable(GL_COLOR_LOGIC_OP);
+        GL_DEBUG_ASSERT();
     }
 }
 
@@ -1792,23 +1926,38 @@ void render_crosshairs(Attrib *attrib) {
     float matrix[16];
     set_matrix_2d(matrix, g->width, g->height);
     glUseProgram(attrib->program);
-    glLineWidth(4 * g->scale);
+    GL_DEBUG_ASSERT();
+    // TODO -
+    //  do something with this, remove it, etc
+    //  commented out because in core profile,
+    //  a linewidth greater than 1.0 results
+    //  in an invalid value error
+    //glLineWidth(4.0 * ((float)g->scale));
+    //GL_DEBUG_ASSERT();
     glEnable(GL_COLOR_LOGIC_OP);
+    GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    GL_DEBUG_ASSERT();
     GLuint crosshair_buffer = gen_crosshair_buffer();
     draw_lines(attrib, crosshair_buffer, 2, 4);
     del_buffer(crosshair_buffer);
     glDisable(GL_COLOR_LOGIC_OP);
+    GL_DEBUG_ASSERT();
 }
 
 void render_item(Attrib *attrib) {
     float matrix[16];
     set_matrix_item(matrix, g->width, g->height, g->scale);
     glUseProgram(attrib->program);
+    GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    GL_DEBUG_ASSERT();
     glUniform3f(attrib->camera, 0, 0, 5);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 0);
+    GL_DEBUG_ASSERT();
     glUniform1f(attrib->timer, time_of_day());
+    GL_DEBUG_ASSERT();
     int w = items[g->item_index];
     if (is_plant(w)) {
         GLuint buffer = gen_plant_buffer(0, 0, 0, 0.5, w);
@@ -1828,9 +1977,13 @@ void render_text(
     float matrix[16];
     set_matrix_2d(matrix, g->width, g->height);
     glUseProgram(attrib->program);
+    GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 1);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->extra1, 0);
+    GL_DEBUG_ASSERT();
     int length = strlen(text);
     x -= n * justify * (length - 1) / 2;
     GLuint buffer = gen_text_buffer(x, y, n, text);
@@ -2653,8 +2806,8 @@ int main(int argc, char **argv) {
     }
     printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
            glGetString(GL_SHADING_LANGUAGE_VERSION));
-    if (!gl3w_is_supported(3, 2)) {
-      fprintf(stderr, "OpenGL 3.2 not supported\n");
+    if (!gl3w_is_supported(3, 3)) {
+      fprintf(stderr, "OpenGL 3.3 not supported\n");
       return -1;
     }
     glEnable(GL_CULL_FACE);
