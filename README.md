@@ -21,7 +21,9 @@ Based off of : http://www.michaelfogleman.com/craft/, https://github.com/foglema
 
 #### Windows
 
-Visual Studio 2019 (cmake will take care of dependencies).
+Download and install [CMake](http://www.cmake.org/cmake/resources/software.html).
+
+CMake will handle the dependencies for you.
 
 #### Mac OS X
 
@@ -39,20 +41,24 @@ the installation:
 ### Compile and Run
 
 #### Windows
-
-From within Visual Studio 2019,
-check out the project from github, 
-https://github.com/billsix/Craft.git
-
-Wait for a few minutes for download and
-for visual studio to configure the project
-via cmake.  you will see a lot of text in 
-the bottom part of the window.
-
-Once that's finished, click "Select Startup Item" near
-the top of VS, and select Craft.exe
-
-Click the play button next to Craft.exe.
+    # check out the project
+    git clone https://github.com/billsix/Craft.git
+    # on the command line, (search in windows for cmd),
+    # use "dir" to see files in current directory, and "cd"
+    # to change directories to the folder above the Craft directory
+    # "mkdir build" makes a "out of source" build directory,
+    # this is common to have multiple builds (debug, release)
+    mkdir build
+    # cd into that directory
+    cd build
+    # create the visual studio solution and project files
+    cmake ..\Craft
+    # using Windows Explorer, double click on "craft.sln"
+    # within visual studio, build the solution.  It will build GLFW
+    # and curl (for network multiplayer) as well.
+    #
+    # run the solution by clicking on the play button within visual
+    # studio.
 
 #### Linux/MacOS
 
