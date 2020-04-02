@@ -66,11 +66,10 @@ GLuint gen_faces(int components, int faces, GLfloat *data) {
     return buffer;
 }
 
-GLuint make_shader(GLenum type, char *source) {
+GLuint make_shader(GLenum type, const char *source) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
-
     GLint status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
     if (status == GL_FALSE) {
@@ -84,8 +83,10 @@ GLuint make_shader(GLenum type, char *source) {
     return shader;
 }
 
-GLuint load_shader(GLenum type, char *shader) {
-    GLuint result = make_shader(type, shader);
+GLuint load_shader(GLenum type, const char *path) {
+    char *data = load_file(path);
+    GLuint result = make_shader(type, data);
+    free(data);
     return result;
 }
 
@@ -111,9 +112,9 @@ GLuint make_program(GLuint shader1, GLuint shader2) {
     return program;
 }
 
-GLuint load_program(char *vertex_shader,char *fragment_shader) {
-    GLuint shader1 = load_shader(GL_VERTEX_SHADER, vertex_shader);
-    GLuint shader2 = load_shader(GL_FRAGMENT_SHADER, fragment_shader);
+GLuint load_program(const char *path1, const char *path2) {
+    GLuint shader1 = load_shader(GL_VERTEX_SHADER, path1);
+    GLuint shader2 = load_shader(GL_FRAGMENT_SHADER, path2);
     GLuint program = make_program(shader1, shader2);
     return program;
 }
@@ -132,13 +133,13 @@ void flip_image_vertical(
     free(new_data);
 }
 
-void load_png_texture(const void * png, unsigned size) {
+void load_png_texture(const char *file_name) {
     unsigned int error;
     unsigned char *data;
     unsigned int width, height;
-    error = lodepng_decode32_file(&data, &width, &height, png, size);
+    error = lodepng_decode32_file(&data, &width, &height, file_name);
     if (error) {
-        fprintf(stderr, "load_png_texture failed, error %u: %s\n", error, lodepng_error_text(error));
+        fprintf(stderr, "load_png_texture %s failed, error %u: %s\n", file_name, error, lodepng_error_text(error));
         exit(1);
     }
     flip_image_vertical(data, width, height);

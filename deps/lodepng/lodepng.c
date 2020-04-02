@@ -4812,18 +4812,27 @@ unsigned lodepng_decode24(unsigned char** out, unsigned* w, unsigned* h, const u
 }
 
 #ifdef LODEPNG_COMPILE_DISK
-unsigned lodepng_decode_file(unsigned char** out, unsigned* w, unsigned* h, const void * png, unsigned size,
+unsigned lodepng_decode_file(unsigned char** out, unsigned* w, unsigned* h, const char* filename,
                              LodePNGColorType colortype, unsigned bitdepth)
 {
-  return lodepng_decode_memory(out, w, h, png, size, colortype, bitdepth);
+  unsigned char* buffer;
+  size_t buffersize;
+  unsigned error;
+  error = lodepng_load_file(&buffer, &buffersize, filename);
+  if(!error) error = lodepng_decode_memory(out, w, h, buffer, buffersize, colortype, bitdepth);
+  lodepng_free(buffer);
+  return error;
 }
 
-unsigned lodepng_decode32_file(unsigned char** out, unsigned* w, unsigned* h, const void* png, unsigned size)
+unsigned lodepng_decode32_file(unsigned char** out, unsigned* w, unsigned* h, const char* filename)
 {
-    return lodepng_decode_file(out, w, h, png, size, LCT_RGBA, 8);
+  return lodepng_decode_file(out, w, h, filename, LCT_RGBA, 8);
 }
 
-
+unsigned lodepng_decode24_file(unsigned char** out, unsigned* w, unsigned* h, const char* filename)
+{
+  return lodepng_decode_file(out, w, h, filename, LCT_RGB, 8);
+}
 #endif /*LODEPNG_COMPILE_DISK*/
 
 void lodepng_decoder_settings_init(LodePNGDecoderSettings* settings)
