@@ -2808,8 +2808,8 @@ int main(int argc, char **argv) {
     }
     printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
            glGetString(GL_SHADING_LANGUAGE_VERSION));
-    if (!gl3w_is_supported(3, 2)) {
-      fprintf(stderr, "OpenGL 3.2 not supported\n");
+    if (!gl3w_is_supported(3, 3)) {
+      fprintf(stderr, "OpenGL 3.3 not supported\n");
       return -1;
     }
     glEnable(GL_CULL_FACE);

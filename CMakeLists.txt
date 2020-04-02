@@ -91,3 +91,5 @@ else()
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
+
+install(TARGETS craft DESTINATION bin)
