@@ -1,13 +1,18 @@
-#version 120
+#version 330 core
 
 uniform mat4 matrix;
 
-attribute vec4 position;
-attribute vec2 uv;
+layout (location = 0) in vec4 position;
+layout (location = 1) in vec2 uv;
 
-varying vec2 fragment_uv;
+
+
+out VS_OUT {
+    vec2 fragment_uv;
+} vs_out;
+
 
 void main() {
     gl_Position = matrix * position;
-    fragment_uv = uv;
+    vs_out.fragment_uv = uv;
 }
