@@ -40,6 +40,13 @@
 #define WORKER_BUSY 1
 #define WORKER_DONE 2
 
+// TEXTURE ids
+GLuint texture;
+GLuint font;
+GLuint sky;
+GLuint sign;
+
+
 typedef struct {
     Map map;
     Map lights;
@@ -1765,9 +1772,16 @@ int render_chunks(Attrib *attrib, Player *player) {
     GL_DEBUG_ASSERT();
     glUniform3f(attrib->camera, s->x, s->y, s->z);
     GL_DEBUG_ASSERT();
+    glActiveTexture(GL_TEXTURE0);
+    GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, texture);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 0);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->extra1, 2);
+    glActiveTexture(GL_TEXTURE1);
+    GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, sky);
+    glUniform1i(attrib->extra1, 1);
     GL_DEBUG_ASSERT();
     glUniform1f(attrib->extra2, light);
     GL_DEBUG_ASSERT();
@@ -1807,7 +1821,15 @@ void render_signs(Attrib *attrib, Player *player) {
     GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 3);
+    glActiveTexture(GL_TEXTURE0);
+    GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, sign);
+    GL_DEBUG_ASSERT();
+    glUniform1i(attrib->sampler, 0);
+    GL_DEBUG_ASSERT();
+    glActiveTexture(GL_TEXTURE1);
+    GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, font);
     GL_DEBUG_ASSERT();
     glUniform1i(attrib->extra1, 1);
     GL_DEBUG_ASSERT();
@@ -1842,7 +1864,15 @@ void render_sign(Attrib *attrib, Player *player) {
     GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 3);
+    glActiveTexture(GL_TEXTURE0);
+    GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, sign);
+    GL_DEBUG_ASSERT();
+    glUniform1i(attrib->sampler, 0);
+    GL_DEBUG_ASSERT();
+    glActiveTexture(GL_TEXTURE1);
+    GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, font);
     GL_DEBUG_ASSERT();
     glUniform1i(attrib->extra1, 1);
     GL_DEBUG_ASSERT();
@@ -1868,6 +1898,10 @@ void render_players(Attrib *attrib, Player *player) {
     GL_DEBUG_ASSERT();
     glUniform3f(attrib->camera, s->x, s->y, s->z);
     GL_DEBUG_ASSERT();
+    glActiveTexture(GL_TEXTURE0);
+    GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, texture);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 0);
     GL_DEBUG_ASSERT();
     glUniform1f(attrib->timer, time_of_day());
@@ -1890,7 +1924,11 @@ void render_sky(Attrib *attrib, Player *player, GLuint buffer) {
     GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 2);
+    glActiveTexture(GL_TEXTURE0);
+    GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, sky);
+    GL_DEBUG_ASSERT();
+    glUniform1i(attrib->sampler, 0);
     GL_DEBUG_ASSERT();
     glUniform1f(attrib->timer, time_of_day());
     GL_DEBUG_ASSERT();
@@ -1954,6 +1992,10 @@ void render_item(Attrib *attrib) {
     GL_DEBUG_ASSERT();
     glUniform3f(attrib->camera, 0, 0, 5);
     GL_DEBUG_ASSERT();
+    glActiveTexture(GL_TEXTURE0);
+    GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, texture);
+    GL_DEBUG_ASSERT();
     glUniform1i(attrib->sampler, 0);
     GL_DEBUG_ASSERT();
     glUniform1f(attrib->timer, time_of_day());
@@ -1980,8 +2022,13 @@ void render_text(
     GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 1);
+    glActiveTexture(GL_TEXTURE0);
     GL_DEBUG_ASSERT();
+    glBindTexture(GL_TEXTURE_2D, font);
+    GL_DEBUG_ASSERT();
+    glUniform1i(attrib->sampler, 0);
+    GL_DEBUG_ASSERT();
+    // extra1 = is_sign
     glUniform1i(attrib->extra1, 0);
     GL_DEBUG_ASSERT();
     int length = strlen(text);
@@ -2815,26 +2862,22 @@ int main(int argc, char **argv) {
     glLogicOp(GL_INVERT);
     glClearColor(0, 0, 0, 1);
 
-    // LOAD TEXTURES //
-    GLuint texture;
-    glGenTextures(1, &texture);
     glActiveTexture(GL_TEXTURE0);
+
+    // LOAD TEXTURES //
+    glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     load_png_texture("textures/texture.png");
 
-    GLuint font;
     glGenTextures(1, &font);
-    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, font);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     load_png_texture("textures/font.png");
 
-    GLuint sky;
     glGenTextures(1, &sky);
-    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, sky);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -2842,9 +2885,7 @@ int main(int argc, char **argv) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     load_png_texture("textures/sky.png");
 
-    GLuint sign;
     glGenTextures(1, &sign);
-    glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, sign);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
