@@ -5,27 +5,12 @@ project(craft LANGUAGES C)
 
 # TODO - make the fetching and building of these static libraries
 # possible on linux through an option
-if(WIN32)
-     # build static libraries, not dynamic
+if(APPLE OR WIN32)
      set(BUILD_SHARED_LIBS OFF)
-     # get the sources for curl
-     include(FetchContent)
-     FetchContent_Declare(
-       CURL
-       GIT_REPOSITORY https://github.com/curl/curl.git
-       GIT_TAG        curl-7_69_1
-     )
-     FetchContent_MakeAvailable(CURL)
-     # get the sources for glfw
-     include(FetchContent)
-     FetchContent_Declare(
-       GLFW
-       GIT_REPOSITORY https://github.com/glfw/glfw.git
-       GIT_TAG        3.3.2
-     )
-     FetchContent_MakeAvailable(GLFW)
-     # no console on start
-     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+     if(WIN32)
+         # no console on start
+         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+     endif(WIN32)
 endif()
 
 # set SOURCE_FILES to all of the c files
@@ -44,6 +29,17 @@ add_executable(
 set_property(TARGET craft PROPERTY C_STANDARD 99)
 
 # add include directories for compilation
+if(APPLE)
+    add_subdirectory(deps/glfw)
+    include_directories(deps/glfw/include)
+endif(APPLE)
+if(WIN32)
+    add_subdirectory(deps/glfw)
+    include_directories(deps/glfw/include)
+    add_subdirectory(deps/curl)
+    include_directories(deps/curl/include)
+endif(WIN32)
+
 include_directories(deps/gl3w)
 include_directories(deps/lodepng)
 include_directories(deps/noise)
@@ -52,7 +48,10 @@ include_directories(deps/tinycthread)
 
 # link against the fetched libraries
 if(WIN32)
-    target_link_libraries(craft libcurl glfw opengl32)
+    target_link_libraries(craft libcurl glfw opengl32 )
+elseif(APPLE)
+    find_package(OpenGL REQUIRED)
+    target_link_libraries(craft curl glfw ${GLFW_LIBRARIES})
 else()
     # using PkgConfig to determine how to link against
     # the system's glfw and curl
@@ -65,14 +64,15 @@ else()
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
-# copy assets over to build dir
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/textures $<TARGET_FILE_DIR:${PROJECT_NAME}>/textures)
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders)
-
+if(WIN32)
+    # copy assets over to build dir
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory
+                           ${CMAKE_SOURCE_DIR}/textures $<TARGET_FILE_DIR:${PROJECT_NAME}>/textures)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory
+                           ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders)
+endif(WIN32)
 
 # Install
 install(TARGETS craft DESTINATION bin)
