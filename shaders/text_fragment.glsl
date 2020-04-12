@@ -10,7 +10,7 @@ in VS_OUT {
 out vec4 fragColor;
 
 void main() {
-    vec4 color = texture2D(sampler, fs_in.fragment_uv);
+    vec4 color = texture(sampler, fs_in.fragment_uv);
     if (is_sign) {
         if (color == vec4(1.0)) {
             discard;

@@ -22,7 +22,7 @@ out vec4 fragColor;
 const float pi = 3.14159265;
 
 void main() {
-    vec3 color = vec3(texture2D(sampler, fs_in.fragment_uv));
+    vec3 color = vec3(texture(sampler, fs_in.fragment_uv));
     if (color == vec3(1.0, 0.0, 1.0)) {
         discard;
     }
@@ -39,7 +39,7 @@ void main() {
     vec3 ambient = vec3(value * 0.3 + 0.2);
     vec3 light = ambient + light_color * df;
     color = clamp(color * light * ao, vec3(0.0), vec3(1.0));
-    vec3 sky_color = vec3(texture2D(sky_sampler, vec2(timer, fs_in.fog_height)));
+    vec3 sky_color = vec3(texture(sky_sampler, vec2(timer, fs_in.fog_height)));
     color = mix(color, sky_color, fs_in.fog_factor);
     fragColor = vec4(color, 1.0);
 }
