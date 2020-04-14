@@ -23,7 +23,6 @@ Based off of : http://www.michaelfogleman.com/craft/, https://github.com/foglema
 
 Download and install [CMake](http://www.cmake.org/cmake/resources/software.html).
 
-CMake will handle the dependencies for you.
 
 #### Mac OS X
 
@@ -41,24 +40,25 @@ the installation:
 ### Compile and Run
 
 #### Windows
-    # check out the project
     git clone https://github.com/billsix/Craft.git
-    # on the command line, (search in windows for cmd),
-    # use "dir" to see files in current directory, and "cd"
-    # to change directories to the folder above the Craft directory
-    # "mkdir build" makes a "out of source" build directory,
-    # this is common to have multiple builds (debug, release)
     mkdir build
-    # cd into that directory
+    mkdir buildInstall
     cd build
     # create the visual studio solution and project files
-    cmake ..\Craft
-    # using Windows Explorer, double click on "craft.sln"
-    # within visual studio, build the solution.  It will build GLFW
-    # and curl (for network multiplayer) as well.
-    #
-    # run the solution by clicking on the play button within visual
-    # studio.
+    cmake -DCMAKE_INSTALL_PREFIX=..\buildInstall ..\Craft
+    cmake --build . --target INSTALL --config Debug
+    cd ..\buildInstall
+    .\bin\craft.exe
+    # to debug it, just click File, open, project, and then select 
+    # the exe
+    # Go to the project properties (right click on the project name in the 
+    # Solution Explorer, then Properties on the pop up menu).
+    # Then, under Configuration Properties / Debugging, remove the trailing "\bin"
+    # from the Working Directory.
+    # To set a breakpoint, since you won't see source,
+    # Select Debug > New Breakpoint > Function Breakpoint, or press Alt+F9 > Ctrl+B,
+    # and enter "main"
+ 
 
 #### Linux/MacOS
 
@@ -69,10 +69,13 @@ terminal.
     cd Craft
     git clone https://github.com/fogleman/Craft.git
     mkdir build
+    mkdir buildInstall
     cd build
-    cmake ../Craft
-    make
+    cmake -DCMAKE_INSTALL_PREFIX=../buildInstall ../Craft
+    cmake --build . --target INSTALL --config Debug
+    cd ../buildInstall
     ./craft
+    # to debug it, just run craft through the debugger
 
 ### Multiplayer
 
