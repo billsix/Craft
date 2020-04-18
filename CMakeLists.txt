@@ -46,6 +46,10 @@ include_directories(deps/noise)
 include_directories(deps/sqlite)
 include_directories(deps/tinycthread)
 
+add_definitions(-DTEXTURE_DIR="${CMAKE_INSTALL_PREFIX}/share/craft/textures/")
+add_definitions(-DSHADER_DIR="${CMAKE_INSTALL_PREFIX}/share/craft/shaders/")
+
+
 # link against the fetched libraries
 if(WIN32)
     target_link_libraries(craft libcurl glfw opengl32 )
@@ -76,5 +80,5 @@ endif(WIN32)
 
 # Install
 install(TARGETS craft DESTINATION bin)
-install(DIRECTORY textures/ DESTINATION textures)
-install(DIRECTORY shaders/ DESTINATION shaders)
+install(DIRECTORY textures/ DESTINATION share/craft/textures)
+install(DIRECTORY shaders/ DESTINATION share/craft/shaders)
