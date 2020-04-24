@@ -68,6 +68,11 @@ else()
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
+# add configuration for VS
+if(WIN32)
+     configure_file(craft.vcxproj.user.in ${CMAKE_BINARY_DIR}/craft.vcxproj.user @ONLY)
+endif()
+
 if(WIN32)
     # copy assets over to build dir
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
