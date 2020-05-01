@@ -186,81 +186,11 @@ float time_of_day() {
     return t;
 }
 
-float get_daylight() {
-    float timer = time_of_day();
-    if (timer < 0.5) {
-        float t = (timer - 0.25) * 100;
-        return 1 / (1 + powf(2, -t));
-    }
-    else {
-        float t = (timer - 0.85) * 100;
-        return 1 - 1 / (1 + powf(2, -t));
-    }
-}
-
-int get_scale_factor() {
-    int window_width, window_height;
-    int buffer_width, buffer_height;
-    glfwGetWindowSize(g->window, &window_width, &window_height);
-    glfwGetFramebufferSize(g->window, &buffer_width, &buffer_height);
-    int result = buffer_width / window_width;
-    result = MAX(1, result);
-    result = MIN(2, result);
-    return result;
-}
-
 void get_sight_vector(float rx, float ry, float *vx, float *vy, float *vz) {
     float m = cosf(ry);
     *vx = cosf(rx - RADIANS(90)) * m;
     *vy = sinf(ry);
     *vz = sinf(rx - RADIANS(90)) * m;
-}
-
-void get_motion_vector(int flying, int sz, int sx, float rx, float ry,
-    float *vx, float *vy, float *vz) {
-    *vx = 0; *vy = 0; *vz = 0;
-    if (!sz && !sx) {
-        return;
-    }
-    float strafe = atan2f(sz, sx);
-    if (flying) {
-        float m = cosf(ry);
-        float y = sinf(ry);
-        if (sx) {
-            if (!sz) {
-                y = 0;
-            }
-            m = 1;
-        }
-        if (sz > 0) {
-            y = -y;
-        }
-        *vx = cosf(rx + strafe) * m;
-        *vy = y;
-        *vz = sinf(rx + strafe) * m;
-    }
-    else {
-        *vx = cosf(rx + strafe);
-        *vy = 0;
-        *vz = sinf(rx + strafe);
-    }
-}
-
-GLuint gen_crosshair_buffer() {
-    int x = g->width / 2;
-    int y = g->height / 2;
-    int p = 10 * g->scale;
-    float data[] = {
-        x, y - p, x, y + p,
-        x - p, y, x + p, y
-    };
-    return gen_buffer(sizeof(data), data);
-}
-
-GLuint gen_wireframe_buffer(float x, float y, float z, float n) {
-    float data[72];
-    make_cube_wireframe(data, x, y, z, n);
-    return gen_buffer(sizeof(data), data);
 }
 
 GLuint gen_sky_buffer() {
@@ -269,28 +199,6 @@ GLuint gen_sky_buffer() {
     return gen_buffer(sizeof(data), data);
 }
 
-GLuint gen_cube_buffer(float x, float y, float z, float n, int w) {
-    GLfloat *data = malloc_faces(10, 6);
-    float ao[6][4] = {0};
-    float light[6][4] = {
-        {0.5, 0.5, 0.5, 0.5},
-        {0.5, 0.5, 0.5, 0.5},
-        {0.5, 0.5, 0.5, 0.5},
-        {0.5, 0.5, 0.5, 0.5},
-        {0.5, 0.5, 0.5, 0.5},
-        {0.5, 0.5, 0.5, 0.5}
-    };
-    make_cube(data, ao, light, 1, 1, 1, 1, 1, 1, x, y, z, n, w);
-    return gen_faces(10, 6, data);
-}
-
-GLuint gen_plant_buffer(float x, float y, float z, float n, int w) {
-    GLfloat *data = malloc_faces(10, 4);
-    float ao = 0;
-    float light = 1;
-    make_plant(data, ao, light, x, y, z, n, w, 45);
-    return gen_faces(10, 4, data);
-}
 
 GLuint gen_player_buffer(float x, float y, float z, float rx, float ry) {
     GLfloat *data = malloc_faces(10, 6);
@@ -298,15 +206,6 @@ GLuint gen_player_buffer(float x, float y, float z, float rx, float ry) {
     return gen_faces(10, 6, data);
 }
 
-GLuint gen_text_buffer(float x, float y, float n, char *text) {
-    int length = strlen(text);
-    GLfloat *data = malloc_faces(4, length);
-    for (int i = 0; i < length; i++) {
-        make_character(data + i * 24, x, y, n / 2, n, text[i]);
-        x += n;
-    }
-    return gen_faces(4, length, data);
-}
 
 void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
 
@@ -506,62 +405,6 @@ void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
     GL_DEBUG_ASSERT();
 }
 
-void draw_chunk(Attrib *attrib, Chunk *chunk) {
-    draw_triangles_3d_ao(attrib, chunk->buffer, chunk->faces * 6);
-}
-
-void draw_item(Attrib *attrib, GLuint buffer, int count) {
-    draw_triangles_3d_ao(attrib, buffer, count);
-}
-
-void draw_text(Attrib *attrib, GLuint buffer, int length) {
-    glEnable(GL_BLEND);
-    GL_DEBUG_ASSERT();
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    GL_DEBUG_ASSERT();
-    draw_triangles_2d(attrib, buffer, length * 6);
-    GL_DEBUG_ASSERT();
-    glDisable(GL_BLEND);
-    GL_DEBUG_ASSERT();
-}
-
-void draw_signs(Attrib *attrib, Chunk *chunk) {
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    GL_DEBUG_ASSERT();
-    glPolygonOffset(-8, -1024);
-    GL_DEBUG_ASSERT();
-    // TODO
-    //  figure out why sign_buffer can ever
-    //  be 0
-    if(chunk->sign_buffer != 0){
-      draw_triangles_3d_text(attrib, chunk->sign_buffer, chunk->sign_faces * 6);
-    }
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    GL_DEBUG_ASSERT();
-}
-
-void draw_sign(Attrib *attrib, GLuint buffer, int length) {
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    GL_DEBUG_ASSERT();
-    glPolygonOffset(-8, -1024);
-    draw_triangles_3d_text(attrib, buffer, length * 6);
-    GL_DEBUG_ASSERT();
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    GL_DEBUG_ASSERT();
-}
-
-void draw_cube(Attrib *attrib, GLuint buffer) {
-    draw_item(attrib, buffer, 36);
-}
-
-void draw_plant(Attrib *attrib, GLuint buffer) {
-    draw_item(attrib, buffer, 24);
-}
-
-void draw_player(Attrib *attrib, Player *player) {
-    draw_cube(attrib, player->buffer);
-}
-
 Player *find_player(int id) {
     for (int i = 0; i < g->player_count; i++) {
         Player *player = g->players + i;
@@ -621,8 +464,8 @@ void delete_player(int id) {
     }
     int count = g->player_count;
     del_buffer(player->buffer);
-    Player *other = g->players + (--count);
-    memcpy(player, other, sizeof(Player));
+    Player *other_player = g->players + (--count);
+    memcpy(player, other_player, sizeof(Player));
     g->player_count = count;
 }
 
@@ -663,16 +506,16 @@ Player *player_crosshair(Player *player) {
     float threshold = RADIANS(5);
     float best = 0;
     for (int i = 0; i < g->player_count; i++) {
-        Player *other = g->players + i;
-        if (other == player) {
+        Player *other_player = g->players + i;
+        if (other_player == player) {
             continue;
         }
-        float p = player_crosshair_distance(player, other);
-        float d = player_player_distance(player, other);
+        float p = player_crosshair_distance(player, other_player);
+        float d = player_player_distance(player, other_player);
         if (d < 96 && p / d < threshold) {
             if (best == 0 || d < best) {
                 best = d;
-                result = other;
+                result = other_player;
             }
         }
     }
@@ -1000,14 +843,14 @@ int has_lights(Chunk *chunk) {
     }
     for (int dp = -1; dp <= 1; dp++) {
         for (int dq = -1; dq <= 1; dq++) {
-            Chunk *other = chunk;
+            Chunk *other_chunk = chunk;
             if (dp || dq) {
-                other = find_chunk(chunk->p + dp, chunk->q + dq);
+                other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
             }
-            if (!other) {
+            if (!other_chunk) {
                 continue;
             }
-            Map *map = &other->lights;
+            Map *map = &other_chunk->lights;
             if (map->size) {
                 return 1;
             }
@@ -1021,9 +864,9 @@ void dirty_chunk(Chunk *chunk) {
     if (has_lights(chunk)) {
         for (int dp = -1; dp <= 1; dp++) {
             for (int dq = -1; dq <= 1; dq++) {
-                Chunk *other = find_chunk(chunk->p + dp, chunk->q + dq);
-                if (other) {
-                    other->dirty = 1;
+                Chunk *other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
+                if (other_chunk) {
+                    other_chunk->dirty = 1;
                 }
             }
         }
@@ -1303,13 +1146,13 @@ void gen_chunk_buffer(Chunk *chunk) {
     item->q = chunk->q;
     for (int dp = -1; dp <= 1; dp++) {
         for (int dq = -1; dq <= 1; dq++) {
-            Chunk *other = chunk;
+            Chunk *other_chunk = chunk;
             if (dp || dq) {
-                other = find_chunk(chunk->p + dp, chunk->q + dq);
+                other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
             }
-            if (other) {
-                item->block_maps[dp + 1][dq + 1] = &other->map;
-                item->light_maps[dp + 1][dq + 1] = &other->lights;
+            if (other_chunk) {
+                item->block_maps[dp + 1][dq + 1] = &other_chunk->map;
+                item->light_maps[dp + 1][dq + 1] = &other_chunk->lights;
             }
             else {
                 item->block_maps[dp + 1][dq + 1] = 0;
@@ -1400,8 +1243,8 @@ void delete_chunks() {
             sign_list_free(&chunk->signs);
             del_buffer(chunk->buffer);
             del_buffer(chunk->sign_buffer);
-            Chunk *other = g->chunks + (--count);
-            memcpy(chunk, other, sizeof(Chunk));
+            Chunk *other_chunk = g->chunks + (--count);
+            memcpy(chunk, other_chunk, sizeof(Chunk));
         }
     }
     g->chunk_count = count;
@@ -1546,15 +1389,15 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
     item->load = load;
     for (int dp = -1; dp <= 1; dp++) {
         for (int dq = -1; dq <= 1; dq++) {
-            Chunk *other = chunk;
+            Chunk *other_chunk = chunk;
             if (dp || dq) {
-                other = find_chunk(chunk->p + dp, chunk->q + dq);
+                other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
             }
-            if (other) {
+            if (other_chunk) {
                 Map *block_map = malloc(sizeof(Map));
-                map_copy(block_map, &other->map);
+                map_copy(block_map, &other_chunk->map);
                 Map *light_map = malloc(sizeof(Map));
-                map_copy(light_map, &other->lights);
+                map_copy(light_map, &other_chunk->lights);
                 item->block_maps[dp + 1][dq + 1] = block_map;
                 item->light_maps[dp + 1][dq + 1] = light_map;
             }
@@ -1766,7 +1609,22 @@ int render_chunks(Attrib *attrib, Player *player) {
     ensure_chunks(player);
     int p = chunked(s->x);
     int q = chunked(s->z);
-    float light = get_daylight();
+
+    float light;
+    // initilize light
+    {
+      // daylight
+      float timer = time_of_day();
+      if (timer < 0.5) {
+        float t = (timer - 0.25) * 100;
+        light = 1 / (1 + powf(2, -t));
+      }
+      else {
+        float t = (timer - 0.85) * 100;
+        light = 1 - 1 / (1 + powf(2, -t));
+    }
+
+    }
     float matrix[16];
     set_matrix_3d(
         matrix, g->width, g->height,
@@ -1808,7 +1666,8 @@ int render_chunks(Attrib *attrib, Player *player) {
         {
             continue;
         }
-        draw_chunk(attrib, chunk);
+        // draw chunk
+        draw_triangles_3d_ao(attrib, chunk->buffer, chunk->faces * 6);
         result += chunk->faces;
     }
     return result;
@@ -1850,7 +1709,19 @@ void render_signs(Attrib *attrib, Player *player) {
         {
             continue;
         }
-        draw_signs(attrib, chunk);
+        // draw signs
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        GL_DEBUG_ASSERT();
+        glPolygonOffset(-8, -1024);
+        GL_DEBUG_ASSERT();
+        // TODO
+        //  figure out why sign_buffer can ever
+        //  be 0
+        if(chunk->sign_buffer != 0){
+          draw_triangles_3d_text(attrib, chunk->sign_buffer, chunk->sign_faces * 6);
+        }
+        glDisable(GL_POLYGON_OFFSET_FILL);
+        GL_DEBUG_ASSERT();
     }
 }
 
@@ -1889,7 +1760,16 @@ void render_sign(Attrib *attrib, Player *player) {
     GLfloat *data = malloc_faces(5, strlen(text));
     int length = _gen_sign_buffer(data, x, y, z, face, text);
     GLuint buffer = gen_faces(5, length, data);
-    draw_sign(attrib, buffer, length);
+
+    // draw sign
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    GL_DEBUG_ASSERT();
+    glPolygonOffset(-8, -1024);
+    draw_triangles_3d_text(attrib, buffer, length * 6);
+    GL_DEBUG_ASSERT();
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    GL_DEBUG_ASSERT();
+
     del_buffer(buffer);
 }
 
@@ -1914,9 +1794,10 @@ void render_players(Attrib *attrib, Player *player) {
     glUniform1f(attrib->timer, time_of_day());
     GL_DEBUG_ASSERT();
     for (int i = 0; i < g->player_count; i++) {
-        Player *other = g->players + i;
-        if (other != player) {
-            draw_player(attrib, other);
+        Player *other_player = g->players + i;
+        if (other_player != player) {
+            // draw player
+            draw_triangles_3d_ao(attrib, other_player->buffer, 36);
         }
     }
 }
@@ -1959,7 +1840,13 @@ void render_wireframe(Attrib *attrib, Player *player) {
         GL_DEBUG_ASSERT();
         glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
         GL_DEBUG_ASSERT();
-        GLuint wireframe_buffer = gen_wireframe_buffer(hx, hy, hz, 0.53);
+        GLuint wireframe_buffer;
+        {
+          // initilize wireframe_buffer
+          float data[72];
+          make_cube_wireframe(data, hx, hy, hz, 0.53);
+          wireframe_buffer = gen_buffer(sizeof(data), data);
+        }
         draw_lines(attrib, wireframe_buffer, 3, 24);
         del_buffer(wireframe_buffer);
         glDisable(GL_COLOR_LOGIC_OP);
@@ -1983,7 +1870,19 @@ void render_crosshairs(Attrib *attrib) {
     GL_DEBUG_ASSERT();
     glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
-    GLuint crosshair_buffer = gen_crosshair_buffer();
+    GLuint crosshair_buffer;
+    {
+      // initialize crosshair_buffer
+      const int x = g->width / 2;
+      const int y = g->height / 2;
+      const int p = 10 * g->scale;
+      float data[] = {
+                      x, y - p, x, y + p,
+                      x - p, y, x + p, y
+      };
+      crosshair_buffer = gen_buffer(sizeof(data), data);
+    }
+
     draw_lines(attrib, crosshair_buffer, 2, 4);
     del_buffer(crosshair_buffer);
     glDisable(GL_COLOR_LOGIC_OP);
@@ -2009,14 +1908,46 @@ void render_item(Attrib *attrib) {
     GL_DEBUG_ASSERT();
     int w = items[g->item_index];
     if (is_plant(w)) {
-        GLuint buffer = gen_plant_buffer(0, 0, 0, 0.5, w);
-        draw_plant(attrib, buffer);
-        del_buffer(buffer);
+        GLuint plant_buffer;
+        {
+          // initialize plant buffer
+          const float x = 0;
+          const float y = 0;
+          const float z = 0;
+          const float n = 0.5;
+          GLfloat *data = malloc_faces(10, 4);
+          float ao = 0;
+          float light = 1;
+          make_plant(data, ao, light, x, y, z, n, w, 45);
+          plant_buffer = gen_faces(10, 4, data);
+        }
+        // draw plant
+        draw_triangles_3d_ao(attrib, plant_buffer, 24);
+        del_buffer(plant_buffer);
     }
     else {
-        GLuint buffer = gen_cube_buffer(0, 0, 0, 0.5, w);
-        draw_cube(attrib, buffer);
-        del_buffer(buffer);
+        GLuint cube_buffer;
+        {
+          // initilize cube_buffer
+          const float x = 0;
+          const float y = 0;
+          const float z = 0;
+          const float n = 0.5;
+          GLfloat *data = malloc_faces(10, 6);
+          float ao[6][4] = {0};
+          float light[6][4] = {
+                               {0.5, 0.5, 0.5, 0.5},
+                               {0.5, 0.5, 0.5, 0.5},
+                               {0.5, 0.5, 0.5, 0.5},
+                               {0.5, 0.5, 0.5, 0.5},
+                               {0.5, 0.5, 0.5, 0.5},
+                               {0.5, 0.5, 0.5, 0.5}
+          };
+          make_cube(data, ao, light, 1, 1, 1, 1, 1, 1, x, y, z, n, w);
+          cube_buffer = gen_faces(10, 6, data);
+        }
+        draw_triangles_3d_ao(attrib, cube_buffer, 36);
+        del_buffer(cube_buffer);
     }
 }
 
@@ -2040,9 +1971,28 @@ void render_text(
     GL_DEBUG_ASSERT();
     int length = strlen(text);
     x -= n * justify * (length - 1) / 2;
-    GLuint buffer = gen_text_buffer(x, y, n, text);
-    draw_text(attrib, buffer, length);
-    del_buffer(buffer);
+    GLuint text_buffer;
+    {
+      // initialize text_buffer
+      const int length = strlen(text);
+      GLfloat *data = malloc_faces(4, length);
+      for (int i = 0; i < length; i++) {
+        make_character(data + i * 24, x, y, n / 2, n, text[i]);
+        x += n;
+      }
+      text_buffer = gen_faces(4, length, data);
+    }
+    // draw text
+    glEnable(GL_BLEND);
+    GL_DEBUG_ASSERT();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GL_DEBUG_ASSERT();
+    draw_triangles_2d(attrib, text_buffer, length * 6);
+    GL_DEBUG_ASSERT();
+    glDisable(GL_BLEND);
+    GL_DEBUG_ASSERT();
+
+    del_buffer(text_buffer);
 }
 
 void add_message(const char *text) {
@@ -2409,7 +2359,7 @@ void on_right_click() {
 void on_middle_click() {
     State *s = &g->players->state;
     int hx, hy, hz;
-    int hw = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
+    const int hw = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
     for (int i = 0; i < item_count; i++) {
         if (items[i] == hw) {
             g->item_index = i;
@@ -2419,9 +2369,7 @@ void on_middle_click() {
 }
 
 void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    int control = mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER);
-    int exclusive =
-        glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
+    const int control = mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER);
     if (action == GLFW_RELEASE) {
         return;
     }
@@ -2437,6 +2385,9 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
         return;
     }
     if (key == GLFW_KEY_ESCAPE) {
+        const int exclusive =
+          glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
+
         if (g->typing) {
             g->typing = 0;
         }
@@ -2568,8 +2519,8 @@ void on_scroll(GLFWwindow *window, double xdelta, double ydelta) {
 }
 
 void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
-    int control = mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER);
-    int exclusive =
+    const int control = mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER);
+    const int exclusive =
         glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
     if (action != GLFW_PRESS) {
         return;
@@ -2602,25 +2553,6 @@ void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
             on_middle_click();
         }
     }
-}
-
-void create_window() {
-    int window_width = WINDOW_WIDTH;
-    int window_height = WINDOW_HEIGHT;
-    GLFWmonitor *monitor = NULL;
-    if (FULLSCREEN) {
-        int mode_count;
-        monitor = glfwGetPrimaryMonitor();
-        const GLFWvidmode *modes = glfwGetVideoModes(monitor, &mode_count);
-        window_width = modes[mode_count - 1].width;
-        window_height = modes[mode_count - 1].height;
-    }
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    g->window = glfwCreateWindow(
-        window_width, window_height, "Craft", monitor, NULL);
 }
 
 void handle_mouse_input() {
@@ -2674,8 +2606,35 @@ void handle_movement(double dt) {
         if (glfwGetKey(g->window, GLFW_KEY_UP)) s->ry += m;
         if (glfwGetKey(g->window, GLFW_KEY_DOWN)) s->ry -= m;
     }
-    float vx, vy, vz;
-    get_motion_vector(g->flying, sz, sx, s->rx, s->ry, &vx, &vy, &vz);
+    // motion vector vx, vy, vz
+    float vx = 0.0, vy = 0.0, vz = 0.0;
+    const int motion_key_was_pressed = sz || sx;
+    // initiize motion vector if a movement key was pressed
+    if (motion_key_was_pressed) {
+      float strafe = atan2f(sz, sx);
+      if (g->flying) {
+        float m = cosf(s->ry);
+        float y = sinf(s->ry);
+        if (sx) {
+          if (!sz) {
+            y = 0;
+          }
+          m = 1;
+        }
+        if (sz > 0) {
+          y = -y;
+        }
+        vx = cosf(s->rx + strafe) * m;
+        vy = y;
+        vz = sinf(s->rx + strafe) * m;
+      }
+      else {
+        vx = cosf(s->rx + strafe);
+        vy = 0;
+        vz = sinf(s->rx + strafe);
+      }
+    }
+
     if (!g->typing) {
         if (glfwGetKey(g->window, CRAFT_KEY_JUMP)) {
             if (g->flying) {
@@ -2841,7 +2800,26 @@ int main(int argc, char **argv) {
     if (!glfwInit()) {
         return -1;
     }
-    create_window();
+    // create window
+    {
+      // initialize g->window
+      int window_width = WINDOW_WIDTH;
+      int window_height = WINDOW_HEIGHT;
+      GLFWmonitor *  monitor = NULL;
+      if (FULLSCREEN) {
+        int mode_count;
+        monitor = glfwGetPrimaryMonitor();
+        const GLFWvidmode *modes = glfwGetVideoModes(monitor, &mode_count);
+        window_width = modes[mode_count - 1].width;
+        window_height = modes[mode_count - 1].height;
+      }
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+      glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+      glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+      g->window = glfwCreateWindow(
+                                   window_width, window_height, "Craft", monitor, NULL);
+    }
     if (!g->window) {
         glfwTerminate();
         return -1;
@@ -3022,7 +3000,18 @@ int main(int argc, char **argv) {
         double previous = glfwGetTime();
         while (1) {
             // WINDOW SIZE AND SCALE //
-            g->scale = get_scale_factor();
+            // set g->scale
+            {
+              int window_width, window_height;
+              int buffer_width, buffer_height;
+              glfwGetWindowSize(g->window, &window_width, &window_height);
+              glfwGetFramebufferSize(g->window, &buffer_width, &buffer_height);
+              int result = buffer_width / window_width;
+              result = MAX(1, result);
+              result = MIN(2, result);
+              g->scale = result;
+            }
+
             glfwGetFramebufferSize(g->window, &g->width, &g->height);
             glViewport(0, 0, g->width, g->height);
 
@@ -3137,11 +3126,11 @@ int main(int argc, char **argv) {
                     render_text(&text_attrib, ALIGN_CENTER,
                         g->width / 2, ts, ts, player->name);
                 }
-                Player *other = player_crosshair(player);
-                if (other) {
+                Player *other_player = player_crosshair(player);
+                if (other_player) {
                     render_text(&text_attrib, ALIGN_CENTER,
                         g->width / 2, g->height / 2 - ts - 24, ts,
-                        other->name);
+                        other_player->name);
                 }
             }
 
