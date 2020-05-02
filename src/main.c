@@ -47,11 +47,6 @@
 #define WORKER_BUSY 1
 #define WORKER_DONE 2
 
-// TEXTURE ids
-GLuint texture;
-GLuint font;
-GLuint sky;
-GLuint sign;
 
 
 typedef struct {
@@ -167,6 +162,26 @@ typedef struct {
     Block copy0;
     Block copy1;
 } Model;
+
+
+// global variables - TODO - make this better,
+
+// TEXTURE ids
+GLuint texture;
+GLuint font;
+GLuint sky;
+GLuint sign;
+
+//   and only store onto programs; get rid
+//   of the Attrib struct
+Attrib block_attrib = {0};
+Attrib line_attrib = {0};
+Attrib text_attrib = {0};
+Attrib sky_attrib = {0};
+
+
+
+
 
 static Model model;
 static Model *g = &model;
@@ -2790,12 +2805,13 @@ void reset_model() {
     g->time_changed = 1;
 }
 
-int main(int argc, char **argv) {
+
+// returns -1 on failure
+int initialize_craft(int argc, char **argv){
     // INITIALIZATION //
     curl_global_init(CURL_GLOBAL_DEFAULT);
     srand(time(NULL));
     rand();
-
     // WINDOW INITIALIZATION //
     if (!glfwInit()) {
         return -1;
@@ -2876,11 +2892,6 @@ int main(int argc, char **argv) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     load_png_texture(TEXTURE_DIR "sign.png");
 
-    // LOAD SHADERS //
-    Attrib block_attrib = {0};
-    Attrib line_attrib = {0};
-    Attrib text_attrib = {0};
-    Attrib sky_attrib = {0};
     GLuint program;
 
     program = load_program(
@@ -2949,6 +2960,14 @@ int main(int argc, char **argv) {
         mtx_init(&worker->mtx, mtx_plain);
         cnd_init(&worker->cnd);
         thrd_create(&worker->thrd, worker_run, worker);
+    }
+}
+
+
+int main(int argc, char **argv) {
+
+  if ( -1 == initialize_craft(argc, argv)){
+      return -1;
     }
 
     // OUTER LOOP //
