@@ -202,7 +202,7 @@ float time_of_day() {
 }
 
 void get_sight_vector(float rx, float ry, float *vx, float *vy, float *vz) {
-    float m = cosf(ry);
+    const float m = cosf(ry);
     *vx = cosf(rx - RADIANS(90)) * m;
     *vy = sinf(ry);
     *vz = sinf(rx - RADIANS(90)) * m;
@@ -216,209 +216,12 @@ GLuint gen_sky_buffer() {
 
 
 GLuint gen_player_buffer(float x, float y, float z, float rx, float ry) {
-    GLfloat *data = malloc_faces(10, 6);
+    GLfloat * const data = malloc_faces(10, 6);
     make_player(data, x, y, z, rx, ry);
     return gen_faces(10, 6, data);
 }
 
 
-void draw_triangles_3d_ao(Attrib *attrib, GLuint buffer, int count) {
-
-    // TODO -- figure out why buffer 0 is being sent in
-    // the first place
-    if(buffer == 0){
-      return;
-    }
-    GLuint vertexArrayID;
-    glGenVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-    glBindVertexArray(vertexArrayID );
-    GL_DEBUG_ASSERT();
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->normal);
-    GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->uv);
-    GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 10, 0);
-    GL_DEBUG_ASSERT();
-
-    glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
-    GL_DEBUG_ASSERT();
-
-    glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
-                         sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
-    GL_DEBUG_ASSERT();
-
-    glDrawArrays(GL_TRIANGLES, 0, count);
-    GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-
-    glDisableVertexAttribArray(attrib->normal);
-    GL_DEBUG_ASSERT();
-
-    glDisableVertexAttribArray(attrib->uv);
-    GL_DEBUG_ASSERT();
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    GL_DEBUG_ASSERT();
-
-    glDeleteVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-
-}
-
-void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
-    GLuint vertexArrayID;
-    glGenVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-    glBindVertexArray(vertexArrayID );
-    GL_DEBUG_ASSERT();
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->uv);
-    GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 5, 0);
-    GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 5, (GLvoid *)(sizeof(GLfloat) * 3));
-    GL_DEBUG_ASSERT();
-    glDrawArrays(GL_TRIANGLES, 0, count);
-    GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->uv);
-    GL_DEBUG_ASSERT();
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    GL_DEBUG_ASSERT();
-
-    glDeleteVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-}
-
-void draw_triangles_3d(Attrib *attrib, GLuint buffer, int count) {
-
-    GLuint vertexArrayID;
-    glGenVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-    glBindVertexArray(vertexArrayID );
-    GL_DEBUG_ASSERT();
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-    // TODO
-    // Figure out why I have to do this check.
-    // If I don't, I will get an OpenGL error
-    if((int) attrib->normal >= 0) {
-      glEnableVertexAttribArray(attrib->normal);
-      GL_DEBUG_ASSERT();
-    }
-    glEnableVertexAttribArray(attrib->uv);
-    GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 8, 0);
-    GL_DEBUG_ASSERT();
-    // TODO
-    // Figure out why I have to do this check.
-    // If I don't, I will get an OpenGL error
-    if((int) attrib->normal >= 0) {
-      glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 3));
-      GL_DEBUG_ASSERT();
-    }
-    glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 6));
-    GL_DEBUG_ASSERT();
-    glDrawArrays(GL_TRIANGLES, 0, count);
-    GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-    // TODO
-    // Figure out why I have to do this check.
-    // If I don't, I will get an OpenGL error
-    if((int) attrib->normal >= 0) {
-      glDisableVertexAttribArray(attrib->normal);
-      GL_DEBUG_ASSERT();
-    }
-    glDisableVertexAttribArray(attrib->uv);
-    GL_DEBUG_ASSERT();
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    GL_DEBUG_ASSERT();
-
-    glDeleteVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-}
-
-void draw_triangles_2d(Attrib *attrib, GLuint buffer, int count) {
-
-    GLuint vertexArrayID;
-    glGenVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-    glBindVertexArray(vertexArrayID );
-    GL_DEBUG_ASSERT();
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->uv);
-    GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->position, 2, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 4, 0);
-    GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 4, (GLvoid *)(sizeof(GLfloat) * 2));
-    GL_DEBUG_ASSERT();
-    glDrawArrays(GL_TRIANGLES, 0, count);
-    GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->uv);
-    GL_DEBUG_ASSERT();
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    GL_DEBUG_ASSERT();
-
-    glDeleteVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-
-}
-
-void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
-
-    GLuint vertexArrayID;
-    glGenVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-    glBindVertexArray(vertexArrayID );
-    GL_DEBUG_ASSERT();
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-    glVertexAttribPointer(
-        attrib->position, components, GL_FLOAT, GL_FALSE, 0, 0);
-    GL_DEBUG_ASSERT();
-    glDrawArrays(GL_LINES, 0, count);
-    GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->position);
-    GL_DEBUG_ASSERT();
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    GL_DEBUG_ASSERT();
-
-    glDeleteVertexArrays(1, &vertexArrayID);
-    GL_DEBUG_ASSERT();
-}
 
 Player *find_player(int id) {
     for (int i = 0; i < g->player_count; i++) {
@@ -454,67 +257,6 @@ void update_player(Player *player,
     }
 }
 
-void interpolate_player(Player *player) {
-    State *s1 = &player->state1;
-    State *s2 = &player->state2;
-    float t1 = s2->t - s1->t;
-    float t2 = glfwGetTime() - s2->t;
-    t1 = MIN(t1, 1);
-    t1 = MAX(t1, 0.1);
-    float p = MIN(t2 / t1, 1);
-    update_player(
-        player,
-        s1->x + (s2->x - s1->x) * p,
-        s1->y + (s2->y - s1->y) * p,
-        s1->z + (s2->z - s1->z) * p,
-        s1->rx + (s2->rx - s1->rx) * p,
-        s1->ry + (s2->ry - s1->ry) * p,
-        0);
-}
-
-void delete_player(int id) {
-    Player *player = find_player(id);
-    if (!player) {
-        return;
-    }
-    int count = g->player_count;
-    del_buffer(player->buffer);
-    Player *other_player = g->players + (--count);
-    memcpy(player, other_player, sizeof(Player));
-    g->player_count = count;
-}
-
-void delete_all_players() {
-    for (int i = 0; i < g->player_count; i++) {
-        Player *player = g->players + i;
-        del_buffer(player->buffer);
-    }
-    g->player_count = 0;
-}
-
-float player_player_distance(Player *p1, Player *p2) {
-    State *s1 = &p1->state;
-    State *s2 = &p2->state;
-    float x = s2->x - s1->x;
-    float y = s2->y - s1->y;
-    float z = s2->z - s1->z;
-    return sqrtf(x * x + y * y + z * z);
-}
-
-float player_crosshair_distance(Player *p1, Player *p2) {
-    State *s1 = &p1->state;
-    State *s2 = &p2->state;
-    float d = player_player_distance(p1, p2);
-    float vx, vy, vz;
-    get_sight_vector(s1->rx, s1->ry, &vx, &vy, &vz);
-    vx *= d; vy *= d; vz *= d;
-    float px, py, pz;
-    px = s1->x + vx; py = s1->y + vy; pz = s1->z + vz;
-    float x = s2->x - px;
-    float y = s2->y - py;
-    float z = s2->z - pz;
-    return sqrtf(x * x + y * y + z * z);
-}
 
 Player *player_crosshair(Player *player) {
     Player *result = 0;
@@ -525,11 +267,38 @@ Player *player_crosshair(Player *player) {
         if (other_player == player) {
             continue;
         }
-        float p = player_crosshair_distance(player, other_player);
-        float d = player_player_distance(player, other_player);
-        if (d < 96 && p / d < threshold) {
-            if (best == 0 || d < best) {
-                best = d;
+
+        float player_other_player_distance;
+        {
+          // initialize player_other_player_distance
+          const State * const s1 = &player->state;
+          const State * const s2 = &other_player->state;
+          const float x = s2->x - s1->x;
+          const float y = s2->y - s1->y;
+          const float z = s2->z - s1->z;
+          player_other_player_distance = sqrtf(x * x + y * y + z * z);
+        }
+
+        float player_crosshair_distance;
+        { // initialize player crosshair distance
+          State *s1 = &player->state;
+          State *s2 = &other_player->state;
+          float vx, vy, vz;
+          get_sight_vector(s1->rx, s1->ry, &vx, &vy, &vz);
+          vx *= player_other_player_distance;
+          vy *= player_other_player_distance;
+          vz *= player_other_player_distance;
+          float px, py, pz;
+          px = s1->x + vx; py = s1->y + vy; pz = s1->z + vz;
+          float x = s2->x - px;
+          float y = s2->y - py;
+          float z = s2->z - pz;
+          player_crosshair_distance = sqrtf(x * x + y * y + z * z);
+        }
+        if (player_other_player_distance < 96
+            && player_crosshair_distance / player_other_player_distance < threshold) {
+            if (best == 0 || player_other_player_distance < best) {
+                best = player_other_player_distance;
                 result = other_player;
             }
         }
@@ -708,46 +477,6 @@ int hit_test_face(Player *player, int *x, int *y, int *z, int *face) {
     return 0;
 }
 
-int collide(int height, float *x, float *y, float *z) {
-    int result = 0;
-    int p = chunked(*x);
-    int q = chunked(*z);
-    Chunk *chunk = find_chunk(p, q);
-    if (!chunk) {
-        return result;
-    }
-    Map *map = &chunk->map;
-    int nx = roundf(*x);
-    int ny = roundf(*y);
-    int nz = roundf(*z);
-    float px = *x - nx;
-    float py = *y - ny;
-    float pz = *z - nz;
-    float pad = 0.25;
-    for (int dy = 0; dy < height; dy++) {
-        if (px < -pad && is_obstacle(map_get(map, nx - 1, ny - dy, nz))) {
-            *x = nx - pad;
-        }
-        if (px > pad && is_obstacle(map_get(map, nx + 1, ny - dy, nz))) {
-            *x = nx + pad;
-        }
-        if (py < -pad && is_obstacle(map_get(map, nx, ny - dy - 1, nz))) {
-            *y = ny - pad;
-            result = 1;
-        }
-        if (py > pad && is_obstacle(map_get(map, nx, ny - dy + 1, nz))) {
-            *y = ny + pad;
-            result = 1;
-        }
-        if (pz < -pad && is_obstacle(map_get(map, nx, ny - dy, nz - 1))) {
-            *z = nz - pad;
-        }
-        if (pz > pad && is_obstacle(map_get(map, nx, ny - dy, nz + 1))) {
-            *z = nz + pad;
-        }
-    }
-    return result;
-}
 
 int player_intersects_block(
     int height,
@@ -826,30 +555,6 @@ int _gen_sign_buffer(
         }
     }
     return count;
-}
-
-void gen_sign_buffer(Chunk *chunk) {
-    SignList *signs = &chunk->signs;
-
-    // first pass - count characters
-    int max_faces = 0;
-    for (int i = 0; i < signs->size; i++) {
-        Sign *e = signs->data + i;
-        max_faces += strlen(e->text);
-    }
-
-    // second pass - generate geometry
-    GLfloat *data = malloc_faces(5, max_faces);
-    int faces = 0;
-    for (int i = 0; i < signs->size; i++) {
-        Sign *e = signs->data + i;
-        faces += _gen_sign_buffer(
-            data + faces * 30, e->x, e->y, e->z, e->face, e->text);
-    }
-
-    del_buffer(chunk->sign_buffer);
-    chunk->sign_buffer = gen_faces(5, faces, data);
-    chunk->sign_faces = faces;
 }
 
 int has_lights(Chunk *chunk) {
@@ -1151,7 +856,29 @@ void generate_chunk(Chunk *chunk, WorkerItem *item) {
     chunk->faces = item->faces;
     del_buffer(chunk->buffer);
     chunk->buffer = gen_faces(10, item->faces, item->data);
-    gen_sign_buffer(chunk);
+
+    // generate sign buffer
+    SignList *signs = &chunk->signs;
+
+    // first pass - count characters
+    int maxFaces = 0;
+    for (int i = 0; i < signs->size; i++) {
+        Sign *e = signs->data + i;
+        maxFaces += strlen(e->text);
+    }
+
+    // second pass - generate geometry
+    GLfloat *data = malloc_faces(5, maxFaces);
+    int faces = 0;
+    for (int i = 0; i < signs->size; i++) {
+        Sign *e = signs->data + i;
+        faces += _gen_sign_buffer(
+                data + faces * 30, e->x, e->y, e->z, e->face, e->text);
+    }
+
+    del_buffer(chunk->sign_buffer);
+    chunk->sign_buffer = gen_faces(5, faces, data);
+    chunk->sign_faces = faces;
 }
 
 void gen_chunk_buffer(Chunk *chunk) {
@@ -1681,12 +1408,92 @@ int render_chunks(Attrib *attrib, Player *player) {
         {
             continue;
         }
+        if(chunk->buffer == 0){
+          continue;
+        }
+
+        // TODO -
+        // make and initilize the VAO once at initilization time.
+        // only thing that should happen here
+        // is 1) binding the vao, 2) binding the vbo,
+        // 3) setting the vertexattribpointers
+        // 4) draw arrays 5) cleanup
+        // also, remove magic numbers, like 6
+
         // draw chunk
-        draw_triangles_3d_ao(attrib, chunk->buffer, chunk->faces * 6);
+        GLuint vertexArrayID;
+        glGenVertexArrays(1, &vertexArrayID);
+        GL_DEBUG_ASSERT();
+        glBindVertexArray(vertexArrayID );
+        GL_DEBUG_ASSERT();
+        glBindBuffer(GL_ARRAY_BUFFER, chunk->buffer);
+        GL_DEBUG_ASSERT();
+        glEnableVertexAttribArray(attrib->position);
+        GL_DEBUG_ASSERT();
+        glEnableVertexAttribArray(attrib->normal);
+        GL_DEBUG_ASSERT();
+        glEnableVertexAttribArray(attrib->uv);
+        GL_DEBUG_ASSERT();
+        glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
+                              sizeof(GLfloat) * 10, 0);
+        GL_DEBUG_ASSERT();
+        glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
+                              sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+        GL_DEBUG_ASSERT();
+        glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
+                              sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+        GL_DEBUG_ASSERT();
+        glDrawArrays(GL_TRIANGLES, 0, chunk->faces * 6);
+        GL_DEBUG_ASSERT();
+        glDisableVertexAttribArray(attrib->position);
+        GL_DEBUG_ASSERT();
+        glDisableVertexAttribArray(attrib->normal);
+        GL_DEBUG_ASSERT();
+        glDisableVertexAttribArray(attrib->uv);
+        GL_DEBUG_ASSERT();
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        GL_DEBUG_ASSERT();
+        glDeleteVertexArrays(1, &vertexArrayID);
+        GL_DEBUG_ASSERT();
+
         result += chunk->faces;
     }
     return result;
 }
+
+
+void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
+    glBindVertexArray(vertexArrayID );
+    GL_DEBUG_ASSERT();
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GL_DEBUG_ASSERT();
+    glEnableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
+    glEnableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
+    glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
+        sizeof(GLfloat) * 5, 0);
+    GL_DEBUG_ASSERT();
+    glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
+        sizeof(GLfloat) * 5, (GLvoid *)(sizeof(GLfloat) * 3));
+    GL_DEBUG_ASSERT();
+    glDrawArrays(GL_TRIANGLES, 0, count);
+    GL_DEBUG_ASSERT();
+    glDisableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
+    glDisableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_DEBUG_ASSERT();
+
+    glDeleteVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
+}
+
 
 void render_signs(Attrib *attrib, Player *player) {
     State *s = &player->state;
@@ -1812,7 +1619,52 @@ void render_players(Attrib *attrib, Player *player) {
         Player *other_player = g->players + i;
         if (other_player != player) {
             // draw player
-            draw_triangles_3d_ao(attrib, other_player->buffer, 36);
+          if(other_player->buffer == 0){
+            continue;
+          }
+          // TODO -
+          // make and initilize the VAO once at initilization time.
+          // only thing that should happen here
+          // is 1) binding the vao, 2) binding the vbo,
+          // 3) setting the vertexattribpointers
+          // 4) draw arrays 5) cleanup
+          // also, remove magic numbers, like 36
+
+          // draw player
+          GLuint vertexArrayID;
+          glGenVertexArrays(1, &vertexArrayID);
+          GL_DEBUG_ASSERT();
+          glBindVertexArray(vertexArrayID );
+          GL_DEBUG_ASSERT();
+          glBindBuffer(GL_ARRAY_BUFFER, other_player->buffer);
+          GL_DEBUG_ASSERT();
+          glEnableVertexAttribArray(attrib->position);
+          GL_DEBUG_ASSERT();
+          glEnableVertexAttribArray(attrib->normal);
+          GL_DEBUG_ASSERT();
+          glEnableVertexAttribArray(attrib->uv);
+          GL_DEBUG_ASSERT();
+          glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
+                                sizeof(GLfloat) * 10, 0);
+          GL_DEBUG_ASSERT();
+          glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
+                                sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+          GL_DEBUG_ASSERT();
+          glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
+                                sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+          GL_DEBUG_ASSERT();
+          glDrawArrays(GL_TRIANGLES, 0, 36);
+          GL_DEBUG_ASSERT();
+          glDisableVertexAttribArray(attrib->position);
+          GL_DEBUG_ASSERT();
+          glDisableVertexAttribArray(attrib->normal);
+          GL_DEBUG_ASSERT();
+          glDisableVertexAttribArray(attrib->uv);
+          GL_DEBUG_ASSERT();
+          glBindBuffer(GL_ARRAY_BUFFER, 0);
+          GL_DEBUG_ASSERT();
+          glDeleteVertexArrays(1, &vertexArrayID);
+          GL_DEBUG_ASSERT();
         }
     }
 }
@@ -1835,8 +1687,95 @@ void render_sky(Attrib *attrib, Player *player, GLuint buffer) {
     GL_DEBUG_ASSERT();
     glUniform1f(attrib->timer, time_of_day());
     GL_DEBUG_ASSERT();
-    draw_triangles_3d(attrib, buffer, 512 * 3);
+
+    // draw sky
+    // make and initilize the VAO once at initilization time.
+    // only thing that should happen here
+    // is 1) binding the vao, 2) binding the vbo,
+    // 3) setting the vertexattribpointers
+    // 4) draw arrays 5) cleanup
+    // TODO - remove magic numbers, like 512 * 3
+
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
+    glBindVertexArray(vertexArrayID );
+    GL_DEBUG_ASSERT();
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GL_DEBUG_ASSERT();
+    glEnableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
+    // TODO
+    // Figure out why I have to do this check.
+    // If I don't, I will get an OpenGL error
+    if((int) attrib->normal >= 0) {
+      glEnableVertexAttribArray(attrib->normal);
+      GL_DEBUG_ASSERT();
+    }
+    glEnableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
+    glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(GLfloat) * 8, 0);
+    GL_DEBUG_ASSERT();
+    // TODO
+    // Figure out why I have to do this check.
+    // If I don't, I will get an OpenGL error
+    if((int) attrib->normal >= 0) {
+      glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 3));
+      GL_DEBUG_ASSERT();
+    }
+    glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 6));
+    GL_DEBUG_ASSERT();
+    glDrawArrays(GL_TRIANGLES, 0, 512 * 3);
+    GL_DEBUG_ASSERT();
+    glDisableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
+    // TODO
+    // Figure out why I have to do this check.
+    // If I don't, I will get an OpenGL error
+    if((int) attrib->normal >= 0) {
+      glDisableVertexAttribArray(attrib->normal);
+      GL_DEBUG_ASSERT();
+    }
+    glDisableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_DEBUG_ASSERT();
+
+    glDeleteVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
+
 }
+
+void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
+
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
+    glBindVertexArray(vertexArrayID );
+    GL_DEBUG_ASSERT();
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    GL_DEBUG_ASSERT();
+    glEnableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
+    glVertexAttribPointer(
+        attrib->position, components, GL_FLOAT, GL_FALSE, 0, 0);
+    GL_DEBUG_ASSERT();
+    glDrawArrays(GL_LINES, 0, count);
+    GL_DEBUG_ASSERT();
+    glDisableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_DEBUG_ASSERT();
+
+    glDeleteVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
+}
+
 
 void render_wireframe(Attrib *attrib, Player *player) {
     State *s = &player->state;
@@ -1866,103 +1805,6 @@ void render_wireframe(Attrib *attrib, Player *player) {
         del_buffer(wireframe_buffer);
         glDisable(GL_COLOR_LOGIC_OP);
         GL_DEBUG_ASSERT();
-    }
-}
-
-void render_crosshairs(Attrib *attrib) {
-    float matrix[16];
-    set_matrix_2d(matrix, g->width, g->height);
-    glUseProgram(attrib->program);
-    GL_DEBUG_ASSERT();
-    // TODO -
-    //  do something with this, remove it, etc
-    //  commented out because in core profile,
-    //  a linewidth greater than 1.0 results
-    //  in an invalid value error
-    //glLineWidth(4.0 * ((float)g->scale));
-    //GL_DEBUG_ASSERT();
-    glEnable(GL_COLOR_LOGIC_OP);
-    GL_DEBUG_ASSERT();
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
-    GL_DEBUG_ASSERT();
-    GLuint crosshair_buffer;
-    {
-      // initialize crosshair_buffer
-      const int x = g->width / 2;
-      const int y = g->height / 2;
-      const int p = 10 * g->scale;
-      float data[] = {
-                      x, y - p, x, y + p,
-                      x - p, y, x + p, y
-      };
-      crosshair_buffer = gen_buffer(sizeof(data), data);
-    }
-
-    draw_lines(attrib, crosshair_buffer, 2, 4);
-    del_buffer(crosshair_buffer);
-    glDisable(GL_COLOR_LOGIC_OP);
-    GL_DEBUG_ASSERT();
-}
-
-void render_item(Attrib *attrib) {
-    float matrix[16];
-    set_matrix_item(matrix, g->width, g->height, g->scale);
-    glUseProgram(attrib->program);
-    GL_DEBUG_ASSERT();
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
-    GL_DEBUG_ASSERT();
-    glUniform3f(attrib->camera, 0, 0, 5);
-    GL_DEBUG_ASSERT();
-    glActiveTexture(GL_TEXTURE0);
-    GL_DEBUG_ASSERT();
-    glBindTexture(GL_TEXTURE_2D, texture);
-    GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 0);
-    GL_DEBUG_ASSERT();
-    glUniform1f(attrib->timer, time_of_day());
-    GL_DEBUG_ASSERT();
-    int w = items[g->item_index];
-    if (is_plant(w)) {
-        GLuint plant_buffer;
-        {
-          // initialize plant buffer
-          const float x = 0;
-          const float y = 0;
-          const float z = 0;
-          const float n = 0.5;
-          GLfloat *data = malloc_faces(10, 4);
-          float ao = 0;
-          float light = 1;
-          make_plant(data, ao, light, x, y, z, n, w, 45);
-          plant_buffer = gen_faces(10, 4, data);
-        }
-        // draw plant
-        draw_triangles_3d_ao(attrib, plant_buffer, 24);
-        del_buffer(plant_buffer);
-    }
-    else {
-        GLuint cube_buffer;
-        {
-          // initilize cube_buffer
-          const float x = 0;
-          const float y = 0;
-          const float z = 0;
-          const float n = 0.5;
-          GLfloat *data = malloc_faces(10, 6);
-          float ao[6][4] = {0};
-          float light[6][4] = {
-                               {0.5, 0.5, 0.5, 0.5},
-                               {0.5, 0.5, 0.5, 0.5},
-                               {0.5, 0.5, 0.5, 0.5},
-                               {0.5, 0.5, 0.5, 0.5},
-                               {0.5, 0.5, 0.5, 0.5},
-                               {0.5, 0.5, 0.5, 0.5}
-          };
-          make_cube(data, ao, light, 1, 1, 1, 1, 1, 1, x, y, z, n, w);
-          cube_buffer = gen_faces(10, 6, data);
-        }
-        draw_triangles_3d_ao(attrib, cube_buffer, 36);
-        del_buffer(cube_buffer);
     }
 }
 
@@ -2002,7 +1844,37 @@ void render_text(
     GL_DEBUG_ASSERT();
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     GL_DEBUG_ASSERT();
-    draw_triangles_2d(attrib, text_buffer, length * 6);
+
+    GLuint vertexArrayID;
+    glGenVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
+    glBindVertexArray(vertexArrayID );
+    GL_DEBUG_ASSERT();
+
+    glBindBuffer(GL_ARRAY_BUFFER, text_buffer);
+    GL_DEBUG_ASSERT();
+    glEnableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
+    glEnableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
+    glVertexAttribPointer(attrib->position, 2, GL_FLOAT, GL_FALSE,
+        sizeof(GLfloat) * 4, 0);
+    GL_DEBUG_ASSERT();
+    glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
+        sizeof(GLfloat) * 4, (GLvoid *)(sizeof(GLfloat) * 2));
+    GL_DEBUG_ASSERT();
+    glDrawArrays(GL_TRIANGLES, 0, length * 6);
+    GL_DEBUG_ASSERT();
+    glDisableVertexAttribArray(attrib->position);
+    GL_DEBUG_ASSERT();
+    glDisableVertexAttribArray(attrib->uv);
+    GL_DEBUG_ASSERT();
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_DEBUG_ASSERT();
+
+    glDeleteVertexArrays(1, &vertexArrayID);
+    GL_DEBUG_ASSERT();
+
     GL_DEBUG_ASSERT();
     glDisable(GL_BLEND);
     GL_DEBUG_ASSERT();
@@ -2681,7 +2553,50 @@ void handle_movement(double dt) {
         s->x += vx;
         s->y += vy + dy * ut;
         s->z += vz;
-        if (collide(2, &s->x, &s->y, &s->z)) {
+        int collide = 0; // false
+        {
+          // set collide to true, TODO explain
+          // why it would be set to true
+          int p = chunked(s->x);
+          int q = chunked(s->z);
+          Chunk *chunk = find_chunk(p, q);
+          if (chunk) {
+            Map *map = &chunk->map;
+            int nx = roundf(s->x);
+            int ny = roundf(s->y);
+            int nz = roundf(s->z);
+            float px = s->x - nx;
+            float py = s->y - ny;
+            float pz = s->z - nz;
+            float pad = 0.25;
+            const int height = 2;
+            for (int dy = 0; dy < height; dy++) {
+              if (px < -pad && is_obstacle(map_get(map, nx - 1, ny - dy, nz))) {
+                s->x = nx - pad;
+              }
+              if (px > pad && is_obstacle(map_get(map, nx + 1, ny - dy, nz))) {
+                s->x = nx + pad;
+              }
+              if (py < -pad && is_obstacle(map_get(map, nx, ny - dy - 1, nz))) {
+                s->y = ny - pad;
+                collide = 1;
+              }
+              if (py > pad && is_obstacle(map_get(map, nx, ny - dy + 1, nz))) {
+                s->y = ny + pad;
+                collide = 1;
+              }
+              if (pz < -pad && is_obstacle(map_get(map, nx, ny - dy, nz - 1))) {
+                s->z = nz - pad;
+              }
+              if (pz > pad && is_obstacle(map_get(map, nx, ny - dy, nz + 1))) {
+                s->z = nz + pad;
+              }
+            }
+          }
+        }
+        if (collide) {
+            // TODO - perhaps do the assigment to dy where collide
+            // is being set to 1
             dy = 0;
         }
     }
@@ -2740,7 +2655,15 @@ void parse_buffer(char *buffer) {
             }
         }
         if (sscanf(line, "D,%d", &pid) == 1) {
-            delete_player(pid);
+            // delete player
+            Player *player = find_player(pid);
+            if (player) {
+              int count = g->player_count;
+              del_buffer(player->buffer);
+              Player *other_player = g->players + (--count);
+              memcpy(player, other_player, sizeof(Player));
+              g->player_count = count;
+            }
         }
         int kp, kq, kk;
         if (sscanf(line, "K,%d,%d,%d", &kp, &kq, &kk) == 3) {
@@ -3080,7 +3003,25 @@ int main(int argc, char **argv) {
             del_buffer(me->buffer);
             me->buffer = gen_player_buffer(s->x, s->y, s->z, s->rx, s->ry);
             for (int i = 1; i < g->player_count; i++) {
-                interpolate_player(g->players + i);
+                // interpolate playen
+                {
+                  Player *player = g->players + i;
+                  State *s1 = &player->state1;
+                  State *s2 = &player->state2;
+                  float t1 = s2->t - s1->t;
+                  float t2 = glfwGetTime() - s2->t;
+                  t1 = MIN(t1, 1);
+                  t1 = MAX(t1, 0.1);
+                  float p = MIN(t2 / t1, 1);
+                  update_player(
+                                player,
+                                s1->x + (s2->x - s1->x) * p,
+                                s1->y + (s2->y - s1->y) * p,
+                                s1->z + (s2->z - s1->z) * p,
+                                s1->rx + (s2->rx - s1->rx) * p,
+                                s1->ry + (s2->ry - s1->ry) * p,
+                                0);
+                }
             }
             Player *player = g->players + g->observe1;
 
@@ -3100,10 +3041,209 @@ int main(int argc, char **argv) {
             // RENDER HUD //
             glClear(GL_DEPTH_BUFFER_BIT);
             if (SHOW_CROSSHAIRS) {
-                render_crosshairs(&line_attrib);
+                // render crosshairs
+                float matrix[16];
+                set_matrix_2d(matrix, g->width, g->height);
+                glUseProgram(line_attrib.program);
+                GL_DEBUG_ASSERT();
+                // TODO -
+                //  do something with this, remove it, etc
+                //  commented out because in core profile,
+                //  a linewidth greater than 1.0 results
+                //  in an invalid value error
+                //glLineWidth(4.0 * ((float)g->scale));
+                //GL_DEBUG_ASSERT();
+                glEnable(GL_COLOR_LOGIC_OP);
+                GL_DEBUG_ASSERT();
+                glUniformMatrix4fv(line_attrib.matrix, 1, GL_FALSE, matrix);
+                GL_DEBUG_ASSERT();
+                GLuint crosshair_buffer;
+                {
+                  // initialize crosshair_buffer
+                  const int x = g->width / 2;
+                  const int y = g->height / 2;
+                  const int p = 10 * g->scale;
+                  float data[] = {
+                                  x, y - p, x, y + p,
+                                  x - p, y, x + p, y
+                  };
+                  crosshair_buffer = gen_buffer(sizeof(data), data);
+                }
+
+                draw_lines(&line_attrib, crosshair_buffer, 2, 4);
+                del_buffer(crosshair_buffer);
+                glDisable(GL_COLOR_LOGIC_OP);
+                GL_DEBUG_ASSERT();
             }
             if (SHOW_ITEM) {
-                render_item(&block_attrib);
+                // render item
+                float matrix[16];
+                set_matrix_item(matrix, g->width, g->height, g->scale);
+                glUseProgram(block_attrib.program);
+                GL_DEBUG_ASSERT();
+                glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
+                GL_DEBUG_ASSERT();
+                glUniform3f(block_attrib.camera, 0, 0, 5);
+                GL_DEBUG_ASSERT();
+                glActiveTexture(GL_TEXTURE0);
+                GL_DEBUG_ASSERT();
+                glBindTexture(GL_TEXTURE_2D, texture);
+                GL_DEBUG_ASSERT();
+                glUniform1i(block_attrib.sampler, 0);
+                GL_DEBUG_ASSERT();
+                glUniform1f(block_attrib.timer, time_of_day());
+                GL_DEBUG_ASSERT();
+                int w = items[g->item_index];
+                if (is_plant(w)) {
+                  GLuint plant_buffer;
+                  {
+                    // initialize plant buffer
+                    const float x = 0;
+                    const float y = 0;
+                    const float z = 0;
+                    const float n = 0.5;
+                    GLfloat *data = malloc_faces(10, 4);
+                    float ao = 0;
+                    float light = 1;
+                    make_plant(data, ao, light, x, y, z, n, w, 45);
+                    plant_buffer = gen_faces(10, 4, data);
+                  }
+                  // TODO -
+                  // make and initilize the VAO once at initilization time.
+                  // only thing that should happen here
+                  // is 1) binding the vao, 2) binding the vbo,
+                  // 3) setting the vertexattribpointers
+                  // 4) draw arrays 5) cleanup
+                  // also, remove magic numbers, like 24
+
+                  // draw plant
+                  if(plant_buffer == 0){
+                    goto clean_up_plant_buffer;
+                  }
+                  GLuint vertexArrayID;
+                  glGenVertexArrays(1, &vertexArrayID);
+                  GL_DEBUG_ASSERT();
+                  glBindVertexArray(vertexArrayID );
+                  GL_DEBUG_ASSERT();
+
+                  glBindBuffer(GL_ARRAY_BUFFER, plant_buffer);
+                  GL_DEBUG_ASSERT();
+                  glEnableVertexAttribArray(block_attrib.position);
+                  GL_DEBUG_ASSERT();
+                  glEnableVertexAttribArray(block_attrib.normal);
+                  GL_DEBUG_ASSERT();
+                  glEnableVertexAttribArray(block_attrib.uv);
+                  GL_DEBUG_ASSERT();
+                  glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
+                                        sizeof(GLfloat) * 10, 0);
+                  GL_DEBUG_ASSERT();
+
+                  glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
+                                        sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+                  GL_DEBUG_ASSERT();
+
+                  glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
+                                        sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+                  GL_DEBUG_ASSERT();
+
+                  glDrawArrays(GL_TRIANGLES, 0, 24);
+                  GL_DEBUG_ASSERT();
+                  glDisableVertexAttribArray(block_attrib.position);
+                  GL_DEBUG_ASSERT();
+
+                  glDisableVertexAttribArray(block_attrib.normal);
+                  GL_DEBUG_ASSERT();
+
+                  glDisableVertexAttribArray(block_attrib.uv);
+                  GL_DEBUG_ASSERT();
+                  glBindBuffer(GL_ARRAY_BUFFER, 0);
+                  GL_DEBUG_ASSERT();
+
+                  glDeleteVertexArrays(1, &vertexArrayID);
+                  GL_DEBUG_ASSERT();
+
+                clean_up_plant_buffer:
+                  del_buffer(plant_buffer);
+                }
+                else {
+                  GLuint cube_buffer;
+                  {
+                    // initilize cube_buffer
+                    const float x = 0;
+                    const float y = 0;
+                    const float z = 0;
+                    const float n = 0.5;
+                    GLfloat *data = malloc_faces(10, 6);
+                    float ao[6][4] = {0};
+                    float light[6][4] = {
+                                         {0.5, 0.5, 0.5, 0.5},
+                                         {0.5, 0.5, 0.5, 0.5},
+                                         {0.5, 0.5, 0.5, 0.5},
+                                         {0.5, 0.5, 0.5, 0.5},
+                                         {0.5, 0.5, 0.5, 0.5},
+                                         {0.5, 0.5, 0.5, 0.5}
+                    };
+                    make_cube(data, ao, light, 1, 1, 1, 1, 1, 1, x, y, z, n, w);
+                    cube_buffer = gen_faces(10, 6, data);
+                  }
+                  // TODO -
+                  // make and initilize the VAO once at initilization time.
+                  // only thing that should happen here
+                  // is 1) binding the vao, 2) binding the vbo,
+                  // 3) setting the vertexattribpointers
+                  // 4) draw arrays 5) cleanup
+                  // also, remove magic numbers, like 36
+
+
+                  // draw cube buffer
+                  if(cube_buffer == 0){
+                    goto cleanup_cube_buffer;
+                  }
+                  GLuint vertexArrayID;
+                  glGenVertexArrays(1, &vertexArrayID);
+                  GL_DEBUG_ASSERT();
+                  glBindVertexArray(vertexArrayID );
+                  GL_DEBUG_ASSERT();
+
+                  glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
+                  GL_DEBUG_ASSERT();
+                  glEnableVertexAttribArray(block_attrib.position);
+                  GL_DEBUG_ASSERT();
+                  glEnableVertexAttribArray(block_attrib.normal);
+                  GL_DEBUG_ASSERT();
+                  glEnableVertexAttribArray(block_attrib.uv);
+                  GL_DEBUG_ASSERT();
+                  glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
+                                        sizeof(GLfloat) * 10, 0);
+                  GL_DEBUG_ASSERT();
+
+                  glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
+                                        sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+                  GL_DEBUG_ASSERT();
+
+                  glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
+                                        sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+                  GL_DEBUG_ASSERT();
+
+                  glDrawArrays(GL_TRIANGLES, 0, 36);
+                  GL_DEBUG_ASSERT();
+                  glDisableVertexAttribArray(block_attrib.position);
+                  GL_DEBUG_ASSERT();
+
+                  glDisableVertexAttribArray(block_attrib.normal);
+                  GL_DEBUG_ASSERT();
+
+                  glDisableVertexAttribArray(block_attrib.uv);
+                  GL_DEBUG_ASSERT();
+                  glBindBuffer(GL_ARRAY_BUFFER, 0);
+                  GL_DEBUG_ASSERT();
+
+                  glDeleteVertexArrays(1, &vertexArrayID);
+                  GL_DEBUG_ASSERT();
+
+                cleanup_cube_buffer:
+                  del_buffer(cube_buffer);
+                }
             }
 
             // RENDER TEXT //
@@ -3209,7 +3349,14 @@ int main(int argc, char **argv) {
         client_disable();
         del_buffer(sky_buffer);
         delete_all_chunks();
-        delete_all_players();
+        // delete all players
+        {
+          for (int i = 0; i < g->player_count; i++) {
+            Player *player = g->players + i;
+            del_buffer(player->buffer);
+          }
+          g->player_count = 0;
+        }
     }
 
     glfwTerminate();
