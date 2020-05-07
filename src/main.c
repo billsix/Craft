@@ -110,20 +110,6 @@ typedef struct {
     GLuint buffer;
 } Player;
 
-typedef struct {
-    GLuint program;
-    GLuint position;
-    GLuint normal;
-    GLuint uv;
-    GLuint matrix;
-    GLuint sampler;
-    GLuint camera;
-    GLuint timer;
-    GLuint extra1;
-    GLuint extra2;
-    GLuint extra3;
-    GLuint extra4;
-} Attrib;
 
 typedef struct {
     GLFWwindow *window;
@@ -174,12 +160,45 @@ GLuint sign;
 
 //   and only store onto programs; get rid
 //   of the Attrib struct
-Attrib block_attrib = {0};
-Attrib line_attrib = {0};
-Attrib text_attrib = {0};
-Attrib sky_attrib = {0};
+typedef struct {
+    GLuint program;
+    GLuint position;
+    GLuint normal;
+    GLuint uv;
+    GLuint matrix;
+    GLuint sampler;
+    GLuint camera;
+    GLuint timer;
+    GLuint sky_sampler;
+    GLuint daylight;
+    GLuint fog_distance;
+    GLuint ortho;
+} Block_Attributes;
 
+typedef struct {
+    GLuint program;
+    GLuint position;
+    GLuint matrix;
+} Line_Attributes;
 
+typedef struct {
+    GLuint program;
+    GLuint position;
+    GLuint uv;
+    GLuint matrix;
+    GLuint sampler;
+    GLuint is_sign;
+} Text_Attributes;
+
+typedef struct {
+    GLuint program;
+    GLuint position;
+    GLuint normal;
+    GLuint uv;
+    GLuint matrix;
+    GLuint sampler;
+    GLuint timer;
+} Sky_Attributes;
 
 
 
@@ -1345,7 +1364,7 @@ void builder_block(int x, int y, int z, int w) {
     }
 }
 
-int render_chunks(Attrib *attrib, Player *player) {
+int render_chunks(Block_Attributes *block_attrib, Player *player) {
     int result = 0;
     State *s = &player->state;
     ensure_chunks(player);
@@ -1373,30 +1392,30 @@ int render_chunks(Attrib *attrib, Player *player) {
         s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
     float planes[6][4];
     frustum_planes(planes, g->render_radius, matrix);
-    glUseProgram(attrib->program);
+    glUseProgram(block_attrib->program);
     GL_DEBUG_ASSERT();
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(block_attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
-    glUniform3f(attrib->camera, s->x, s->y, s->z);
+    glUniform3f(block_attrib->camera, s->x, s->y, s->z);
     GL_DEBUG_ASSERT();
     glActiveTexture(GL_TEXTURE0);
     GL_DEBUG_ASSERT();
     glBindTexture(GL_TEXTURE_2D, texture);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 0);
+    glUniform1i(block_attrib->sampler, 0);
     GL_DEBUG_ASSERT();
     glActiveTexture(GL_TEXTURE1);
     GL_DEBUG_ASSERT();
     glBindTexture(GL_TEXTURE_2D, sky);
-    glUniform1i(attrib->extra1, 1);
+    glUniform1i(block_attrib->sky_sampler, 1);
     GL_DEBUG_ASSERT();
-    glUniform1f(attrib->extra2, light);
+    glUniform1f(block_attrib->daylight, light);
     GL_DEBUG_ASSERT();
-    glUniform1f(attrib->extra3, g->render_radius * CHUNK_SIZE);
+    glUniform1f(block_attrib->fog_distance, g->render_radius * CHUNK_SIZE);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->extra4, g->ortho);
+    glUniform1i(block_attrib->ortho, g->ortho);
     GL_DEBUG_ASSERT();
-    glUniform1f(attrib->timer, time_of_day());
+    glUniform1f(block_attrib->timer, time_of_day());
     GL_DEBUG_ASSERT();
     for (int i = 0; i < g->chunk_count; i++) {
         Chunk *chunk = g->chunks + i;
@@ -1428,28 +1447,28 @@ int render_chunks(Attrib *attrib, Player *player) {
         GL_DEBUG_ASSERT();
         glBindBuffer(GL_ARRAY_BUFFER, chunk->buffer);
         GL_DEBUG_ASSERT();
-        glEnableVertexAttribArray(attrib->position);
+        glEnableVertexAttribArray(block_attrib->position);
         GL_DEBUG_ASSERT();
-        glEnableVertexAttribArray(attrib->normal);
+        glEnableVertexAttribArray(block_attrib->normal);
         GL_DEBUG_ASSERT();
-        glEnableVertexAttribArray(attrib->uv);
+        glEnableVertexAttribArray(block_attrib->uv);
         GL_DEBUG_ASSERT();
-        glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
+        glVertexAttribPointer(block_attrib->position, 3, GL_FLOAT, GL_FALSE,
                               sizeof(GLfloat) * 10, 0);
         GL_DEBUG_ASSERT();
-        glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
+        glVertexAttribPointer(block_attrib->normal, 3, GL_FLOAT, GL_FALSE,
                               sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
         GL_DEBUG_ASSERT();
-        glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
+        glVertexAttribPointer(block_attrib->uv, 4, GL_FLOAT, GL_FALSE,
                               sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
         GL_DEBUG_ASSERT();
         glDrawArrays(GL_TRIANGLES, 0, chunk->faces * 6);
         GL_DEBUG_ASSERT();
-        glDisableVertexAttribArray(attrib->position);
+        glDisableVertexAttribArray(block_attrib->position);
         GL_DEBUG_ASSERT();
-        glDisableVertexAttribArray(attrib->normal);
+        glDisableVertexAttribArray(block_attrib->normal);
         GL_DEBUG_ASSERT();
-        glDisableVertexAttribArray(attrib->uv);
+        glDisableVertexAttribArray(block_attrib->uv);
         GL_DEBUG_ASSERT();
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         GL_DEBUG_ASSERT();
@@ -1462,7 +1481,7 @@ int render_chunks(Attrib *attrib, Player *player) {
 }
 
 
-void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
+void draw_triangles_3d_text(Text_Attributes *text_attrib, GLuint buffer, int count) {
     GLuint vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
     GL_DEBUG_ASSERT();
@@ -1471,21 +1490,21 @@ void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->position);
+    glEnableVertexAttribArray(text_attrib->position);
     GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->uv);
+    glEnableVertexAttribArray(text_attrib->uv);
     GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
+    glVertexAttribPointer(text_attrib->position, 3, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 5, 0);
     GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
+    glVertexAttribPointer(text_attrib->uv, 2, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 5, (GLvoid *)(sizeof(GLfloat) * 3));
     GL_DEBUG_ASSERT();
     glDrawArrays(GL_TRIANGLES, 0, count);
     GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->position);
+    glDisableVertexAttribArray(text_attrib->position);
     GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->uv);
+    glDisableVertexAttribArray(text_attrib->uv);
     GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     GL_DEBUG_ASSERT();
@@ -1495,7 +1514,7 @@ void draw_triangles_3d_text(Attrib *attrib, GLuint buffer, int count) {
 }
 
 
-void render_signs(Attrib *attrib, Player *player) {
+void render_signs(Text_Attributes *text_attrib, Player *player) {
     State *s = &player->state;
     int p = chunked(s->x);
     int q = chunked(s->z);
@@ -1505,21 +1524,21 @@ void render_signs(Attrib *attrib, Player *player) {
         s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
     float planes[6][4];
     frustum_planes(planes, g->render_radius, matrix);
-    glUseProgram(attrib->program);
+    glUseProgram(text_attrib->program);
     GL_DEBUG_ASSERT();
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(text_attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
     glActiveTexture(GL_TEXTURE0);
     GL_DEBUG_ASSERT();
     glBindTexture(GL_TEXTURE_2D, sign);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 0);
+    glUniform1i(text_attrib->sampler, 0);
     GL_DEBUG_ASSERT();
     glActiveTexture(GL_TEXTURE1);
     GL_DEBUG_ASSERT();
     glBindTexture(GL_TEXTURE_2D, font);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->extra1, 1);
+    glUniform1i(text_attrib->is_sign, 1);
     GL_DEBUG_ASSERT();
     for (int i = 0; i < g->chunk_count; i++) {
         Chunk *chunk = g->chunks + i;
@@ -1540,14 +1559,14 @@ void render_signs(Attrib *attrib, Player *player) {
         //  figure out why sign_buffer can ever
         //  be 0
         if(chunk->sign_buffer != 0){
-          draw_triangles_3d_text(attrib, chunk->sign_buffer, chunk->sign_faces * 6);
+          draw_triangles_3d_text(text_attrib, chunk->sign_buffer, chunk->sign_faces * 6);
         }
         glDisable(GL_POLYGON_OFFSET_FILL);
         GL_DEBUG_ASSERT();
     }
 }
 
-void render_sign(Attrib *attrib, Player *player) {
+void render_sign(Text_Attributes *text_attrib, Player *player) {
     if (!g->typing || g->typing_buffer[0] != CRAFT_KEY_SIGN) {
         return;
     }
@@ -1560,21 +1579,21 @@ void render_sign(Attrib *attrib, Player *player) {
     set_matrix_3d(
         matrix, g->width, g->height,
         s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
-    glUseProgram(attrib->program);
+    glUseProgram(text_attrib->program);
     GL_DEBUG_ASSERT();
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(text_attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
     glActiveTexture(GL_TEXTURE0);
     GL_DEBUG_ASSERT();
     glBindTexture(GL_TEXTURE_2D, sign);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 0);
+    glUniform1i(text_attrib->sampler, 0);
     GL_DEBUG_ASSERT();
     glActiveTexture(GL_TEXTURE1);
     GL_DEBUG_ASSERT();
     glBindTexture(GL_TEXTURE_2D, font);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->extra1, 1);
+    glUniform1i(text_attrib->is_sign, 1);
     GL_DEBUG_ASSERT();
     char text[MAX_SIGN_LENGTH];
     strncpy(text, g->typing_buffer + 1, MAX_SIGN_LENGTH);
@@ -1587,7 +1606,7 @@ void render_sign(Attrib *attrib, Player *player) {
     glEnable(GL_POLYGON_OFFSET_FILL);
     GL_DEBUG_ASSERT();
     glPolygonOffset(-8, -1024);
-    draw_triangles_3d_text(attrib, buffer, length * 6);
+    draw_triangles_3d_text(text_attrib, buffer, length * 6);
     GL_DEBUG_ASSERT();
     glDisable(GL_POLYGON_OFFSET_FILL);
     GL_DEBUG_ASSERT();
@@ -1595,25 +1614,25 @@ void render_sign(Attrib *attrib, Player *player) {
     del_buffer(buffer);
 }
 
-void render_players(Attrib *attrib, Player *player) {
+void render_players(Block_Attributes *block_attrib, Player *player) {
     State *s = &player->state;
     float matrix[16];
     set_matrix_3d(
         matrix, g->width, g->height,
         s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
-    glUseProgram(attrib->program);
+    glUseProgram(block_attrib->program);
     GL_DEBUG_ASSERT();
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(block_attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
-    glUniform3f(attrib->camera, s->x, s->y, s->z);
+    glUniform3f(block_attrib->camera, s->x, s->y, s->z);
     GL_DEBUG_ASSERT();
     glActiveTexture(GL_TEXTURE0);
     GL_DEBUG_ASSERT();
     glBindTexture(GL_TEXTURE_2D, texture);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 0);
+    glUniform1i(block_attrib->sampler, 0);
     GL_DEBUG_ASSERT();
-    glUniform1f(attrib->timer, time_of_day());
+    glUniform1f(block_attrib->timer, time_of_day());
     GL_DEBUG_ASSERT();
     for (int i = 0; i < g->player_count; i++) {
         Player *other_player = g->players + i;
@@ -1638,28 +1657,28 @@ void render_players(Attrib *attrib, Player *player) {
           GL_DEBUG_ASSERT();
           glBindBuffer(GL_ARRAY_BUFFER, other_player->buffer);
           GL_DEBUG_ASSERT();
-          glEnableVertexAttribArray(attrib->position);
+          glEnableVertexAttribArray(block_attrib->position);
           GL_DEBUG_ASSERT();
-          glEnableVertexAttribArray(attrib->normal);
+          glEnableVertexAttribArray(block_attrib->normal);
           GL_DEBUG_ASSERT();
-          glEnableVertexAttribArray(attrib->uv);
+          glEnableVertexAttribArray(block_attrib->uv);
           GL_DEBUG_ASSERT();
-          glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
+          glVertexAttribPointer(block_attrib->position, 3, GL_FLOAT, GL_FALSE,
                                 sizeof(GLfloat) * 10, 0);
           GL_DEBUG_ASSERT();
-          glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
+          glVertexAttribPointer(block_attrib->normal, 3, GL_FLOAT, GL_FALSE,
                                 sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
           GL_DEBUG_ASSERT();
-          glVertexAttribPointer(attrib->uv, 4, GL_FLOAT, GL_FALSE,
+          glVertexAttribPointer(block_attrib->uv, 4, GL_FLOAT, GL_FALSE,
                                 sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
           GL_DEBUG_ASSERT();
           glDrawArrays(GL_TRIANGLES, 0, 36);
           GL_DEBUG_ASSERT();
-          glDisableVertexAttribArray(attrib->position);
+          glDisableVertexAttribArray(block_attrib->position);
           GL_DEBUG_ASSERT();
-          glDisableVertexAttribArray(attrib->normal);
+          glDisableVertexAttribArray(block_attrib->normal);
           GL_DEBUG_ASSERT();
-          glDisableVertexAttribArray(attrib->uv);
+          glDisableVertexAttribArray(block_attrib->uv);
           GL_DEBUG_ASSERT();
           glBindBuffer(GL_ARRAY_BUFFER, 0);
           GL_DEBUG_ASSERT();
@@ -1669,23 +1688,23 @@ void render_players(Attrib *attrib, Player *player) {
     }
 }
 
-void render_sky(Attrib *attrib, Player *player, GLuint buffer) {
+void render_sky(Sky_Attributes *sky_attrib, Player *player, GLuint buffer) {
     State *s = &player->state;
     float matrix[16];
     set_matrix_3d(
         matrix, g->width, g->height,
         0, 0, 0, s->rx, s->ry, g->fov, 0, g->render_radius);
-    glUseProgram(attrib->program);
+    glUseProgram(sky_attrib->program);
     GL_DEBUG_ASSERT();
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(sky_attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
     glActiveTexture(GL_TEXTURE0);
     GL_DEBUG_ASSERT();
     glBindTexture(GL_TEXTURE_2D, sky);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 0);
+    glUniform1i(sky_attrib->sampler, 0);
     GL_DEBUG_ASSERT();
-    glUniform1f(attrib->timer, time_of_day());
+    glUniform1f(sky_attrib->timer, time_of_day());
     GL_DEBUG_ASSERT();
 
     // draw sky
@@ -1704,43 +1723,43 @@ void render_sky(Attrib *attrib, Player *player, GLuint buffer) {
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->position);
+    glEnableVertexAttribArray(sky_attrib->position);
     GL_DEBUG_ASSERT();
     // TODO
     // Figure out why I have to do this check.
     // If I don't, I will get an OpenGL error
-    if((int) attrib->normal >= 0) {
-      glEnableVertexAttribArray(attrib->normal);
+    if((int) sky_attrib->normal >= 0) {
+      glEnableVertexAttribArray(sky_attrib->normal);
       GL_DEBUG_ASSERT();
     }
-    glEnableVertexAttribArray(attrib->uv);
+    glEnableVertexAttribArray(sky_attrib->uv);
     GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->position, 3, GL_FLOAT, GL_FALSE,
+    glVertexAttribPointer(sky_attrib->position, 3, GL_FLOAT, GL_FALSE,
                           sizeof(GLfloat) * 8, 0);
     GL_DEBUG_ASSERT();
     // TODO
     // Figure out why I have to do this check.
     // If I don't, I will get an OpenGL error
-    if((int) attrib->normal >= 0) {
-      glVertexAttribPointer(attrib->normal, 3, GL_FLOAT, GL_FALSE,
+    if((int) sky_attrib->normal >= 0) {
+      glVertexAttribPointer(sky_attrib->normal, 3, GL_FLOAT, GL_FALSE,
                             sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 3));
       GL_DEBUG_ASSERT();
     }
-    glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
+    glVertexAttribPointer(sky_attrib->uv, 2, GL_FLOAT, GL_FALSE,
                           sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 6));
     GL_DEBUG_ASSERT();
     glDrawArrays(GL_TRIANGLES, 0, 512 * 3);
     GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->position);
+    glDisableVertexAttribArray(sky_attrib->position);
     GL_DEBUG_ASSERT();
     // TODO
     // Figure out why I have to do this check.
     // If I don't, I will get an OpenGL error
-    if((int) attrib->normal >= 0) {
-      glDisableVertexAttribArray(attrib->normal);
+    if((int) sky_attrib->normal >= 0) {
+      glDisableVertexAttribArray(sky_attrib->normal);
       GL_DEBUG_ASSERT();
     }
-    glDisableVertexAttribArray(attrib->uv);
+    glDisableVertexAttribArray(sky_attrib->uv);
     GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     GL_DEBUG_ASSERT();
@@ -1750,7 +1769,7 @@ void render_sky(Attrib *attrib, Player *player, GLuint buffer) {
 
 }
 
-void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
+void draw_lines(Line_Attributes *line_attrib, GLuint buffer, int components, int count) {
 
     GLuint vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
@@ -1760,14 +1779,14 @@ void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->position);
+    glEnableVertexAttribArray(line_attrib->position);
     GL_DEBUG_ASSERT();
     glVertexAttribPointer(
-        attrib->position, components, GL_FLOAT, GL_FALSE, 0, 0);
+        line_attrib->position, components, GL_FLOAT, GL_FALSE, 0, 0);
     GL_DEBUG_ASSERT();
     glDrawArrays(GL_LINES, 0, count);
     GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->position);
+    glDisableVertexAttribArray(line_attrib->position);
     GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     GL_DEBUG_ASSERT();
@@ -1777,7 +1796,7 @@ void draw_lines(Attrib *attrib, GLuint buffer, int components, int count) {
 }
 
 
-void render_wireframe(Attrib *attrib, Player *player) {
+void render_wireframe(Line_Attributes *line_attrib, Player *player) {
     State *s = &player->state;
     float matrix[16];
     set_matrix_3d(
@@ -1786,13 +1805,13 @@ void render_wireframe(Attrib *attrib, Player *player) {
     int hx, hy, hz;
     int hw = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
     if (is_obstacle(hw)) {
-        glUseProgram(attrib->program);
+        glUseProgram(line_attrib->program);
         GL_DEBUG_ASSERT();
         glLineWidth(1);
         GL_DEBUG_ASSERT();
         glEnable(GL_COLOR_LOGIC_OP);
         GL_DEBUG_ASSERT();
-        glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+        glUniformMatrix4fv(line_attrib->matrix, 1, GL_FALSE, matrix);
         GL_DEBUG_ASSERT();
         GLuint wireframe_buffer;
         {
@@ -1801,7 +1820,7 @@ void render_wireframe(Attrib *attrib, Player *player) {
           make_cube_wireframe(data, hx, hy, hz, 0.53);
           wireframe_buffer = gen_buffer(sizeof(data), data);
         }
-        draw_lines(attrib, wireframe_buffer, 3, 24);
+        draw_lines(line_attrib, wireframe_buffer, 3, 24);
         del_buffer(wireframe_buffer);
         glDisable(GL_COLOR_LOGIC_OP);
         GL_DEBUG_ASSERT();
@@ -1809,22 +1828,22 @@ void render_wireframe(Attrib *attrib, Player *player) {
 }
 
 void render_text(
-    Attrib *attrib, int justify, float x, float y, float n, char *text)
+    Text_Attributes *text_attrib, int justify, float x, float y, float n, char *text)
 {
     float matrix[16];
     set_matrix_2d(matrix, g->width, g->height);
-    glUseProgram(attrib->program);
+    glUseProgram(text_attrib->program);
     GL_DEBUG_ASSERT();
-    glUniformMatrix4fv(attrib->matrix, 1, GL_FALSE, matrix);
+    glUniformMatrix4fv(text_attrib->matrix, 1, GL_FALSE, matrix);
     GL_DEBUG_ASSERT();
     glActiveTexture(GL_TEXTURE0);
     GL_DEBUG_ASSERT();
     glBindTexture(GL_TEXTURE_2D, font);
     GL_DEBUG_ASSERT();
-    glUniform1i(attrib->sampler, 0);
+    glUniform1i(text_attrib->sampler, 0);
     GL_DEBUG_ASSERT();
     // extra1 = is_sign
-    glUniform1i(attrib->extra1, 0);
+    glUniform1i(text_attrib->is_sign, 0);
     GL_DEBUG_ASSERT();
     int length = strlen(text);
     x -= n * justify * (length - 1) / 2;
@@ -1853,21 +1872,21 @@ void render_text(
 
     glBindBuffer(GL_ARRAY_BUFFER, text_buffer);
     GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->position);
+    glEnableVertexAttribArray(text_attrib->position);
     GL_DEBUG_ASSERT();
-    glEnableVertexAttribArray(attrib->uv);
+    glEnableVertexAttribArray(text_attrib->uv);
     GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->position, 2, GL_FLOAT, GL_FALSE,
+    glVertexAttribPointer(text_attrib->position, 2, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 4, 0);
     GL_DEBUG_ASSERT();
-    glVertexAttribPointer(attrib->uv, 2, GL_FLOAT, GL_FALSE,
+    glVertexAttribPointer(text_attrib->uv, 2, GL_FLOAT, GL_FALSE,
         sizeof(GLfloat) * 4, (GLvoid *)(sizeof(GLfloat) * 2));
     GL_DEBUG_ASSERT();
     glDrawArrays(GL_TRIANGLES, 0, length * 6);
     GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->position);
+    glDisableVertexAttribArray(text_attrib->position);
     GL_DEBUG_ASSERT();
-    glDisableVertexAttribArray(attrib->uv);
+    glDisableVertexAttribArray(text_attrib->uv);
     GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     GL_DEBUG_ASSERT();
@@ -2815,48 +2834,6 @@ int initialize_craft(int argc, char **argv){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     load_png_texture(TEXTURE_DIR "sign.png");
 
-    GLuint program;
-
-    program = load_program(
-        SHADER_DIR "block_vertex.glsl", SHADER_DIR "block_fragment.glsl");
-    block_attrib.program = program;
-    block_attrib.position = glGetAttribLocation(program, "position");
-    block_attrib.normal = glGetAttribLocation(program, "normal");
-    block_attrib.uv = glGetAttribLocation(program, "uv");
-    block_attrib.matrix = glGetUniformLocation(program, "matrix");
-    block_attrib.sampler = glGetUniformLocation(program, "sampler");
-    block_attrib.extra1 = glGetUniformLocation(program, "sky_sampler");
-    block_attrib.extra2 = glGetUniformLocation(program, "daylight");
-    block_attrib.extra3 = glGetUniformLocation(program, "fog_distance");
-    block_attrib.extra4 = glGetUniformLocation(program, "ortho");
-    block_attrib.camera = glGetUniformLocation(program, "camera");
-    block_attrib.timer = glGetUniformLocation(program, "timer");
-
-    program = load_program(
-        SHADER_DIR "line_vertex.glsl", SHADER_DIR "line_fragment.glsl");
-    line_attrib.program = program;
-    line_attrib.position = glGetAttribLocation(program, "position");
-    line_attrib.matrix = glGetUniformLocation(program, "matrix");
-
-    program = load_program(
-        SHADER_DIR "text_vertex.glsl", SHADER_DIR "text_fragment.glsl");
-    text_attrib.program = program;
-    text_attrib.position = glGetAttribLocation(program, "position");
-    text_attrib.uv = glGetAttribLocation(program, "uv");
-    text_attrib.matrix = glGetUniformLocation(program, "matrix");
-    text_attrib.sampler = glGetUniformLocation(program, "sampler");
-    text_attrib.extra1 = glGetUniformLocation(program, "is_sign");
-
-    program = load_program(
-        SHADER_DIR "sky_vertex.glsl", SHADER_DIR "sky_fragment.glsl");
-    sky_attrib.program = program;
-    sky_attrib.position = glGetAttribLocation(program, "position");
-    sky_attrib.normal = glGetAttribLocation(program, "normal");
-    sky_attrib.uv = glGetAttribLocation(program, "uv");
-    sky_attrib.matrix = glGetUniformLocation(program, "matrix");
-    sky_attrib.sampler = glGetUniformLocation(program, "sampler");
-    sky_attrib.timer = glGetUniformLocation(program, "timer");
-
     // CHECK COMMAND LINE ARGUMENTS //
     if (argc == 2 || argc == 3) {
         g->mode = MODE_ONLINE;
@@ -2884,6 +2861,7 @@ int initialize_craft(int argc, char **argv){
         cnd_init(&worker->cnd);
         thrd_create(&worker->thrd, worker_run, worker);
     }
+    return 0;
 }
 
 
@@ -2892,6 +2870,58 @@ int main(int argc, char **argv) {
   if ( -1 == initialize_craft(argc, argv)){
       return -1;
     }
+
+    GLint program = load_program(SHADER_DIR "block_vertex.glsl", 
+				 SHADER_DIR "block_fragment.glsl");
+    // initiliaze shaders
+    Block_Attributes block_attrib = {
+      .program = program,
+      .position = glGetAttribLocation(program, "position"),
+      .normal = glGetAttribLocation(program, "normal"),
+      .uv = glGetAttribLocation(program, "uv"),
+      .matrix = glGetUniformLocation(program, "matrix"),
+      .sampler = glGetUniformLocation(program, "sampler"),
+      .camera = glGetUniformLocation(program, "camera"),
+      .timer = glGetUniformLocation(program, "timer"),
+      .sky_sampler = glGetUniformLocation(program, "sky_sampler"),
+      .daylight = glGetUniformLocation(program, "daylight"),
+      .fog_distance = glGetUniformLocation(program, "fog_distance"),
+      .ortho = glGetUniformLocation(program, "ortho")
+    };
+
+    program = load_program(
+        SHADER_DIR "line_vertex.glsl", SHADER_DIR "line_fragment.glsl");
+    Line_Attributes line_attrib = {
+      .program = program,
+      .position = glGetAttribLocation(program, "position"),
+      .matrix = glGetUniformLocation(program, "matrix")
+    };
+
+    program = load_program(
+        SHADER_DIR "text_vertex.glsl", SHADER_DIR "text_fragment.glsl");
+    Text_Attributes text_attrib = {
+      text_attrib.program = program,
+      text_attrib.position = glGetAttribLocation(program, "position"),
+      text_attrib.uv = glGetAttribLocation(program, "uv"),
+      text_attrib.matrix = glGetUniformLocation(program, "matrix"),
+      text_attrib.sampler = glGetUniformLocation(program, "sampler"),
+      text_attrib.is_sign = glGetUniformLocation(program, "is_sign")
+    };
+  
+    program = load_program(
+        SHADER_DIR "sky_vertex.glsl", SHADER_DIR "sky_fragment.glsl");
+    Sky_Attributes sky_attrib = {
+      .program = program,
+      .position = glGetAttribLocation(program, "position"),
+      .normal = glGetAttribLocation(program, "normal"),
+      .uv = glGetAttribLocation(program, "uv"),
+      .matrix = glGetUniformLocation(program, "matrix"),
+      .sampler = glGetUniformLocation(program, "sampler"),
+      .timer = glGetUniformLocation(program, "timer")
+    };
+
+
+
 
     // OUTER LOOP //
     int running = 1;
