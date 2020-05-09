@@ -49,16 +49,16 @@ the installation:
     cmake --build . --target INSTALL --config Debug
     cd ..\buildInstall
     .\bin\craft.exe
-    # to debug it, just click File, open, project, and then select 
+    # to debug it, just click File, open, project, and then select
     # the exe
-    # Go to the project properties (right click on the project name in the 
+    # Go to the project properties (right click on the project name in the
     # Solution Explorer, then Properties on the pop up menu).
     # Then, under Configuration Properties / Debugging, remove the trailing "\bin"
     # from the Working Directory.
     # To set a breakpoint, since you won't see source,
     # Select Debug > New Breakpoint > Function Breakpoint, or press Alt+F9 > Ctrl+B,
     # and enter "main"
- 
+
 
 #### Linux/MacOS
 
@@ -68,13 +68,7 @@ terminal.
     mkdir Craft
     cd Craft
     git clone https://github.com/fogleman/Craft.git
-    mkdir build
-    mkdir buildInstall
-    cd build
-    cmake -DCMAKE_INSTALL_PREFIX=../buildInstall ../Craft
-    cmake --build . --target INSTALL --config Debug
-    cd ../buildInstall
-    ./craft
+    ./build.sh
     # to debug it, just run craft through the debugger
 
 ### Multiplayer
