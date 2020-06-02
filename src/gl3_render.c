@@ -2,9 +2,10 @@
 #include "gl3w.h"
 #include <GLFW/glfw3.h>
 #include <stdio.h>
+#include <stdint.h>
 
-GLuint gen_buffer(GLsizei size, GLfloat *data) {
-    GLuint buffer;
+uint32_t gen_buffer(size_t size, float *data) {
+    uint32_t buffer;
     glGenBuffers(1, &buffer);
     GL_DEBUG_ASSERT();
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -16,37 +17,37 @@ GLuint gen_buffer(GLsizei size, GLfloat *data) {
     return buffer;
 }
 
-void del_buffer(GLuint buffer) {
+void del_buffer(uint32_t buffer) {
     glDeleteBuffers(1, &buffer);
     GL_DEBUG_ASSERT();
 }
 
-GLfloat *malloc_faces(int components, int faces) {
-    return malloc(sizeof(GLfloat) * 6 * components * faces);
+float *malloc_faces(int components, int faces) {
+    return malloc(sizeof(float) * 6 * components * faces);
 }
 
-GLuint gen_faces(int components, int faces, GLfloat *data) {
-    GLuint buffer = gen_buffer(
-        sizeof(GLfloat) * 6 * components * faces, data);
+uint32_t gen_faces(int components, int faces, float *data) {
+    uint32_t buffer = gen_buffer(
+        sizeof(float) * 6 * components * faces, data);
     free(data);
     return buffer;
 }
 
-GLuint make_shader(GLenum type, const char *source) {
-    GLuint shader = glCreateShader(type);
+uint32_t make_shader(uint32_t type, const char *source) {
+    uint32_t shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
     GL_DEBUG_ASSERT();
     glCompileShader(shader);
     GL_DEBUG_ASSERT();
 
-    GLint status;
+    int32_t status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
     GL_DEBUG_ASSERT();
     if (status == GL_FALSE) {
-        GLint length;
+        int32_t length;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
         GL_DEBUG_ASSERT();
-        GLchar *info = calloc(length, sizeof(GLchar));
+        char *info = calloc(length, sizeof(char));
         glGetShaderInfoLog(shader, length, NULL, info);
         GL_DEBUG_ASSERT();
         fprintf(stderr, "glCompileShader failed:\n%s\n", info);
@@ -55,15 +56,15 @@ GLuint make_shader(GLenum type, const char *source) {
     return shader;
 }
 
-GLuint load_shader(GLenum type, const char *path) {
+uint32_t load_shader(uint32_t type, const char *path) {
     char *data = load_file(path);
-    GLuint result = make_shader(type, data);
+    uint32_t result = make_shader(type, data);
     free(data);
     return result;
 }
 
-GLuint make_program(GLuint shader1, GLuint shader2) {
-    GLuint program = glCreateProgram();
+uint32_t make_program(uint32_t shader1, uint32_t shader2) {
+    uint32_t program = glCreateProgram();
     GL_DEBUG_ASSERT();
     glAttachShader(program, shader1);
     GL_DEBUG_ASSERT();
@@ -71,14 +72,14 @@ GLuint make_program(GLuint shader1, GLuint shader2) {
     GL_DEBUG_ASSERT();
     glLinkProgram(program);
     GL_DEBUG_ASSERT();
-    GLint status;
+    int32_t status;
     glGetProgramiv(program, GL_LINK_STATUS, &status);
     GL_DEBUG_ASSERT();
     if (status == GL_FALSE) {
-        GLint length;
+        int32_t length;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
         GL_DEBUG_ASSERT();
-        GLchar *info = calloc(length, sizeof(GLchar));
+        char *info = calloc(length, sizeof(char));
         glGetProgramInfoLog(program, length, NULL, info);
         GL_DEBUG_ASSERT();
         fprintf(stderr, "glLinkProgram failed: %s\n", info);
@@ -95,10 +96,10 @@ GLuint make_program(GLuint shader1, GLuint shader2) {
     return program;
 }
 
-GLuint load_program(const char *path1, const char *path2) {
-    GLuint shader1 = load_shader(GL_VERTEX_SHADER, path1);
-    GLuint shader2 = load_shader(GL_FRAGMENT_SHADER, path2);
-    GLuint program = make_program(shader1, shader2);
+uint32_t load_program(const char *path1, const char *path2) {
+    uint32_t shader1 = load_shader(GL_VERTEX_SHADER, path1);
+    uint32_t shader2 = load_shader(GL_FRAGMENT_SHADER, path2);
+    uint32_t program = make_program(shader1, shader2);
     return program;
 }
 

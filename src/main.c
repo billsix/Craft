@@ -5,6 +5,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <time.h>
 #include "auth.h"
@@ -62,8 +63,8 @@ typedef struct {
     int dirty;
     int miny;
     int maxy;
-    GLuint buffer;
-    GLuint sign_buffer;
+    uint32_t buffer;
+    uint32_t sign_buffer;
 } Chunk;
 
 typedef struct {
@@ -75,7 +76,7 @@ typedef struct {
     int miny;
     int maxy;
     int faces;
-    GLfloat *data;
+    float *data;
 } WorkerItem;
 
 typedef struct {
@@ -109,7 +110,7 @@ typedef struct {
     State state;
     State state1;
     State state2;
-    GLuint buffer;
+    uint32_t buffer;
 } Player;
 
 
@@ -155,51 +156,51 @@ typedef struct {
 // global variables - TODO - make this better,
 
 // TEXTURE ids
-GLuint texture;
-GLuint font;
-GLuint sky;
-GLuint sign;
+uint32_t texture;
+uint32_t font;
+uint32_t sky;
+uint32_t sign;
 
 //   and only store onto programs; get rid
 //   of the Attrib struct
 typedef struct {
-    GLuint program;
-    GLuint position;
-    GLuint normal;
-    GLuint uv;
-    GLuint matrix;
-    GLuint sampler;
-    GLuint camera;
-    GLuint timer;
-    GLuint sky_sampler;
-    GLuint daylight;
-    GLuint fog_distance;
-    GLuint ortho;
+    uint32_t program;
+    uint32_t position;
+    uint32_t normal;
+    uint32_t uv;
+    uint32_t matrix;
+    uint32_t sampler;
+    uint32_t camera;
+    uint32_t timer;
+    uint32_t sky_sampler;
+    uint32_t daylight;
+    uint32_t fog_distance;
+    uint32_t ortho;
 } Block_Attributes;
 
 typedef struct {
-    GLuint program;
-    GLuint position;
-    GLuint matrix;
+    uint32_t program;
+    uint32_t position;
+    uint32_t matrix;
 } Line_Attributes;
 
 typedef struct {
-    GLuint program;
-    GLuint position;
-    GLuint uv;
-    GLuint matrix;
-    GLuint sampler;
-    GLuint is_sign;
+    uint32_t program;
+    uint32_t position;
+    uint32_t uv;
+    uint32_t matrix;
+    uint32_t sampler;
+    uint32_t is_sign;
 } Text_Attributes;
 
 typedef struct {
-    GLuint program;
-    GLuint position;
-    GLuint normal;
-    GLuint uv;
-    GLuint matrix;
-    GLuint sampler;
-    GLuint timer;
+    uint32_t program;
+    uint32_t position;
+    uint32_t normal;
+    uint32_t uv;
+    uint32_t matrix;
+    uint32_t sampler;
+    uint32_t timer;
 } Sky_Attributes;
 
 
@@ -229,15 +230,15 @@ void get_sight_vector(float rx, float ry, float *vx, float *vy, float *vz) {
     *vz = sinf(rx - RADIANS(90)) * m;
 }
 
-GLuint gen_sky_buffer() {
+uint32_t gen_sky_buffer() {
     float data[12288];
     make_sphere(data, 1, 3);
     return gen_buffer(sizeof(data), data);
 }
 
 
-GLuint gen_player_buffer(float x, float y, float z, float rx, float ry) {
-    GLfloat * const data = malloc_faces(10, 6);
+uint32_t gen_player_buffer(float x, float y, float z, float rx, float ry) {
+    float * const data = malloc_faces(10, 6);
     make_player(data, x, y, z, rx, ry);
     return gen_faces(10, 6, data);
 }
@@ -516,7 +517,7 @@ int player_intersects_block(
 }
 
 int _gen_sign_buffer(
-    GLfloat *data, float x, float y, float z, int face, const char *text)
+    float *data, float x, float y, float z, int face, const char *text)
 {
     static const int glyph_dx[8] = {0, 0, -1, 1, 1, 0, -1, 0};
     static const int glyph_dz[8] = {1, -1, 0, 0, 0, -1, 0, 1};
@@ -793,7 +794,7 @@ void compute_chunk(WorkerItem *item) {
     } END_MAP_FOR_EACH;
 
     // generate geometry
-    GLfloat *data = malloc_faces(10, faces);
+    float *data = malloc_faces(10, faces);
     int offset = 0;
     MAP_FOR_EACH(map, ex, ey, ez, ew) {
         if (ew <= 0) {
@@ -889,7 +890,7 @@ void generate_chunk(Chunk *chunk, WorkerItem *item) {
     }
 
     // second pass - generate geometry
-    GLfloat *data = malloc_faces(5, maxFaces);
+    float *data = malloc_faces(5, maxFaces);
     int faces = 0;
     for (int i = 0; i < signs->size; i++) {
         Sign *e = signs->data + i;
@@ -1442,7 +1443,7 @@ int render_chunks(Block_Attributes *block_attrib, Player *player) {
         // also, remove magic numbers, like 6
 
         // draw chunk
-        GLuint vertexArrayID;
+        uint32_t vertexArrayID;
         glGenVertexArrays(1, &vertexArrayID);
         GL_DEBUG_ASSERT();
         glBindVertexArray(vertexArrayID );
@@ -1456,13 +1457,13 @@ int render_chunks(Block_Attributes *block_attrib, Player *player) {
         glEnableVertexAttribArray(block_attrib->uv);
         GL_DEBUG_ASSERT();
         glVertexAttribPointer(block_attrib->position, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(GLfloat) * 10, 0);
+                              sizeof(float) * 10, 0);
         GL_DEBUG_ASSERT();
         glVertexAttribPointer(block_attrib->normal, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+                              sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
         GL_DEBUG_ASSERT();
         glVertexAttribPointer(block_attrib->uv, 4, GL_FLOAT, GL_FALSE,
-                              sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+                              sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
         GL_DEBUG_ASSERT();
         glDrawArrays(GL_TRIANGLES, 0, chunk->faces * 6);
         GL_DEBUG_ASSERT();
@@ -1483,8 +1484,8 @@ int render_chunks(Block_Attributes *block_attrib, Player *player) {
 }
 
 
-void draw_triangles_3d_text(Text_Attributes *text_attrib, GLuint buffer, int count) {
-    GLuint vertexArrayID;
+void draw_triangles_3d_text(Text_Attributes *text_attrib, uint32_t buffer, int count) {
+    uint32_t vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
     GL_DEBUG_ASSERT();
     glBindVertexArray(vertexArrayID );
@@ -1497,10 +1498,10 @@ void draw_triangles_3d_text(Text_Attributes *text_attrib, GLuint buffer, int cou
     glEnableVertexAttribArray(text_attrib->uv);
     GL_DEBUG_ASSERT();
     glVertexAttribPointer(text_attrib->position, 3, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 5, 0);
+        sizeof(float) * 5, 0);
     GL_DEBUG_ASSERT();
     glVertexAttribPointer(text_attrib->uv, 2, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 5, (GLvoid *)(sizeof(GLfloat) * 3));
+        sizeof(float) * 5, (GLvoid *)(sizeof(float) * 3));
     GL_DEBUG_ASSERT();
     glDrawArrays(GL_TRIANGLES, 0, count);
     GL_DEBUG_ASSERT();
@@ -1600,9 +1601,9 @@ void render_sign(Text_Attributes *text_attrib, Player *player) {
     char text[MAX_SIGN_LENGTH];
     strncpy(text, g->typing_buffer + 1, MAX_SIGN_LENGTH);
     text[MAX_SIGN_LENGTH - 1] = '\0';
-    GLfloat *data = malloc_faces(5, strlen(text));
+    float *data = malloc_faces(5, strlen(text));
     int length = _gen_sign_buffer(data, x, y, z, face, text);
-    GLuint buffer = gen_faces(5, length, data);
+    uint32_t buffer = gen_faces(5, length, data);
 
     // draw sign
     glEnable(GL_POLYGON_OFFSET_FILL);
@@ -1652,7 +1653,7 @@ void render_players(Block_Attributes *block_attrib, Player *player) {
           // also, remove magic numbers, like 36
 
           // draw player
-          GLuint vertexArrayID;
+          uint32_t vertexArrayID;
           glGenVertexArrays(1, &vertexArrayID);
           GL_DEBUG_ASSERT();
           glBindVertexArray(vertexArrayID );
@@ -1666,13 +1667,13 @@ void render_players(Block_Attributes *block_attrib, Player *player) {
           glEnableVertexAttribArray(block_attrib->uv);
           GL_DEBUG_ASSERT();
           glVertexAttribPointer(block_attrib->position, 3, GL_FLOAT, GL_FALSE,
-                                sizeof(GLfloat) * 10, 0);
+                                sizeof(float) * 10, 0);
           GL_DEBUG_ASSERT();
           glVertexAttribPointer(block_attrib->normal, 3, GL_FLOAT, GL_FALSE,
-                                sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+                                sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
           GL_DEBUG_ASSERT();
           glVertexAttribPointer(block_attrib->uv, 4, GL_FLOAT, GL_FALSE,
-                                sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+                                sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
           GL_DEBUG_ASSERT();
           glDrawArrays(GL_TRIANGLES, 0, 36);
           GL_DEBUG_ASSERT();
@@ -1690,7 +1691,7 @@ void render_players(Block_Attributes *block_attrib, Player *player) {
     }
 }
 
-void render_sky(Sky_Attributes *sky_attrib, Player *player, GLuint buffer) {
+void render_sky(Sky_Attributes *sky_attrib, Player *player, uint32_t buffer) {
     State *s = &player->state;
     float matrix[16];
     set_matrix_3d(
@@ -1717,7 +1718,7 @@ void render_sky(Sky_Attributes *sky_attrib, Player *player, GLuint buffer) {
     // 4) draw arrays 5) cleanup
     // TODO - remove magic numbers, like 512 * 3
 
-    GLuint vertexArrayID;
+    uint32_t vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
     GL_DEBUG_ASSERT();
     glBindVertexArray(vertexArrayID );
@@ -1737,18 +1738,18 @@ void render_sky(Sky_Attributes *sky_attrib, Player *player, GLuint buffer) {
     glEnableVertexAttribArray(sky_attrib->uv);
     GL_DEBUG_ASSERT();
     glVertexAttribPointer(sky_attrib->position, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(GLfloat) * 8, 0);
+                          sizeof(float) * 8, 0);
     GL_DEBUG_ASSERT();
     // TODO
     // Figure out why I have to do this check.
     // If I don't, I will get an OpenGL error
     if((int) sky_attrib->normal >= 0) {
       glVertexAttribPointer(sky_attrib->normal, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 3));
+                            sizeof(float) * 8, (GLvoid *)(sizeof(float) * 3));
       GL_DEBUG_ASSERT();
     }
     glVertexAttribPointer(sky_attrib->uv, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(GLfloat) * 8, (GLvoid *)(sizeof(GLfloat) * 6));
+                          sizeof(float) * 8, (GLvoid *)(sizeof(float) * 6));
     GL_DEBUG_ASSERT();
     glDrawArrays(GL_TRIANGLES, 0, 512 * 3);
     GL_DEBUG_ASSERT();
@@ -1771,9 +1772,9 @@ void render_sky(Sky_Attributes *sky_attrib, Player *player, GLuint buffer) {
 
 }
 
-void draw_lines(Line_Attributes *line_attrib, GLuint buffer, int components, int count) {
+void draw_lines(Line_Attributes *line_attrib, uint32_t buffer, int components, int count) {
 
-    GLuint vertexArrayID;
+    uint32_t vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
     GL_DEBUG_ASSERT();
     glBindVertexArray(vertexArrayID );
@@ -1815,7 +1816,7 @@ void render_wireframe(Line_Attributes *line_attrib, Player *player) {
         GL_DEBUG_ASSERT();
         glUniformMatrix4fv(line_attrib->matrix, 1, GL_FALSE, matrix);
         GL_DEBUG_ASSERT();
-        GLuint wireframe_buffer;
+        uint32_t wireframe_buffer;
         {
           // initilize wireframe_buffer
           float data[72];
@@ -1849,11 +1850,11 @@ void render_text(
     GL_DEBUG_ASSERT();
     int length = strlen(text);
     x -= n * justify * (length - 1) / 2;
-    GLuint text_buffer;
+    uint32_t text_buffer;
     {
       // initialize text_buffer
       const int length = strlen(text);
-      GLfloat *data = malloc_faces(4, length);
+      float *data = malloc_faces(4, length);
       for (int i = 0; i < length; i++) {
         make_character(data + i * 24, x, y, n / 2, n, text[i]);
         x += n;
@@ -1866,7 +1867,7 @@ void render_text(
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     GL_DEBUG_ASSERT();
 
-    GLuint vertexArrayID;
+    uint32_t vertexArrayID;
     glGenVertexArrays(1, &vertexArrayID);
     GL_DEBUG_ASSERT();
     glBindVertexArray(vertexArrayID );
@@ -1879,10 +1880,10 @@ void render_text(
     glEnableVertexAttribArray(text_attrib->uv);
     GL_DEBUG_ASSERT();
     glVertexAttribPointer(text_attrib->position, 2, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 4, 0);
+        sizeof(float) * 4, 0);
     GL_DEBUG_ASSERT();
     glVertexAttribPointer(text_attrib->uv, 2, GL_FLOAT, GL_FALSE,
-        sizeof(GLfloat) * 4, (GLvoid *)(sizeof(GLfloat) * 2));
+        sizeof(float) * 4, (GLvoid *)(sizeof(float) * 2));
     GL_DEBUG_ASSERT();
     glDrawArrays(GL_TRIANGLES, 0, length * 6);
     GL_DEBUG_ASSERT();
@@ -2877,7 +2878,7 @@ int main(int argc, char **argv) {
 
 #define SHADER_DIR RESOURCE_PATH "/share/craft/shaders/"
 
-  GLint program = load_program(SHADER_DIR "block_vertex.glsl",
+  int32_t program = load_program(SHADER_DIR "block_vertex.glsl",
                                SHADER_DIR "block_fragment.glsl");
   // initiliaze shaders
   Block_Attributes block_attrib =
@@ -2908,12 +2909,12 @@ int main(int argc, char **argv) {
         SHADER_DIR "text_vertex.glsl", SHADER_DIR "text_fragment.glsl");
     Text_Attributes text_attrib =
       {
-       text_attrib.program = program,
-       text_attrib.position = glGetAttribLocation(program, "position"),
-       text_attrib.uv = glGetAttribLocation(program, "uv"),
-       text_attrib.matrix = glGetUniformLocation(program, "matrix"),
-       text_attrib.sampler = glGetUniformLocation(program, "sampler"),
-       text_attrib.is_sign = glGetUniformLocation(program, "is_sign")
+       .program = program,
+       .position = glGetAttribLocation(program, "position"),
+       .uv = glGetAttribLocation(program, "uv"),
+       .matrix = glGetUniformLocation(program, "matrix"),
+       .sampler = glGetUniformLocation(program, "sampler"),
+       .is_sign = glGetUniformLocation(program, "is_sign")
       };
 
     program = load_program(
@@ -2961,7 +2962,7 @@ int main(int argc, char **argv) {
         FPS fps = {0, 0, 0};
         double last_commit = glfwGetTime();
         double last_update = glfwGetTime();
-        GLuint sky_buffer = gen_sky_buffer();
+        uint32_t sky_buffer = gen_sky_buffer();
 
         Player *me = g->players;
         State *s = &g->players->state;
@@ -3096,7 +3097,7 @@ int main(int argc, char **argv) {
                 GL_DEBUG_ASSERT();
                 glUniformMatrix4fv(line_attrib.matrix, 1, GL_FALSE, matrix);
                 GL_DEBUG_ASSERT();
-                GLuint crosshair_buffer;
+                uint32_t crosshair_buffer;
                 {
                   // initialize crosshair_buffer
                   const int x = g->width / 2;
@@ -3134,14 +3135,14 @@ int main(int argc, char **argv) {
                 GL_DEBUG_ASSERT();
                 int w = items[g->item_index];
                 if (is_plant(w)) {
-                  GLuint plant_buffer;
+                  uint32_t plant_buffer;
                   {
                     // initialize plant buffer
                     const float x = 0;
                     const float y = 0;
                     const float z = 0;
                     const float n = 0.5;
-                    GLfloat *data = malloc_faces(10, 4);
+                    float *data = malloc_faces(10, 4);
                     float ao = 0;
                     float light = 1;
                     make_plant(data, ao, light, x, y, z, n, w, 45);
@@ -3159,7 +3160,7 @@ int main(int argc, char **argv) {
                   if(plant_buffer == 0){
                     goto clean_up_plant_buffer;
                   }
-                  GLuint vertexArrayID;
+                  uint32_t vertexArrayID;
                   glGenVertexArrays(1, &vertexArrayID);
                   GL_DEBUG_ASSERT();
                   glBindVertexArray(vertexArrayID );
@@ -3174,15 +3175,15 @@ int main(int argc, char **argv) {
                   glEnableVertexAttribArray(block_attrib.uv);
                   GL_DEBUG_ASSERT();
                   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
-                                        sizeof(GLfloat) * 10, 0);
+                                        sizeof(float) * 10, 0);
                   GL_DEBUG_ASSERT();
 
                   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                                        sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+                                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
                   GL_DEBUG_ASSERT();
 
                   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
-                                        sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+                                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
                   GL_DEBUG_ASSERT();
 
                   glDrawArrays(GL_TRIANGLES, 0, 24);
@@ -3205,14 +3206,14 @@ int main(int argc, char **argv) {
                   del_buffer(plant_buffer);
                 }
                 else {
-                  GLuint cube_buffer;
+                  uint32_t cube_buffer;
                   {
                     // initilize cube_buffer
                     const float x = 0;
                     const float y = 0;
                     const float z = 0;
                     const float n = 0.5;
-                    GLfloat *data = malloc_faces(10, 6);
+                    float *data = malloc_faces(10, 6);
                     float ao[6][4] = {0};
                     float light[6][4] = {
                                          {0.5, 0.5, 0.5, 0.5},
@@ -3238,7 +3239,7 @@ int main(int argc, char **argv) {
                   if(cube_buffer == 0){
                     goto cleanup_cube_buffer;
                   }
-                  GLuint vertexArrayID;
+                  uint32_t vertexArrayID;
                   glGenVertexArrays(1, &vertexArrayID);
                   GL_DEBUG_ASSERT();
                   glBindVertexArray(vertexArrayID );
@@ -3253,15 +3254,15 @@ int main(int argc, char **argv) {
                   glEnableVertexAttribArray(block_attrib.uv);
                   GL_DEBUG_ASSERT();
                   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
-                                        sizeof(GLfloat) * 10, 0);
+                                        sizeof(float) * 10, 0);
                   GL_DEBUG_ASSERT();
 
                   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                                        sizeof(GLfloat) * 10, (GLvoid*)(sizeof(GLfloat) * 3));
+                                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
                   GL_DEBUG_ASSERT();
 
                   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
-                                        sizeof(GLfloat) * 10, (GLvoid *)(sizeof(GLfloat) * 6));
+                                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
                   GL_DEBUG_ASSERT();
 
                   glDrawArrays(GL_TRIANGLES, 0, 36);

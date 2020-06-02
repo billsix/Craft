@@ -7,14 +7,14 @@
 #include "util.h"
 #include "lodepng.h"
 
-GLuint gen_buffer(GLsizei size, GLfloat *data);
-void del_buffer(GLuint buffer);
-GLfloat *malloc_faces(int components, int faces);
-GLuint gen_faces(int components, int faces, GLfloat *data);
-GLuint make_shader(GLenum type, const char *source);
-GLuint load_shader(GLenum type, const char *path);
-GLuint make_program(GLuint shader1, GLuint shader2);
-GLuint load_program(const char *path1, const char *path2);
+uint32_t gen_buffer(size_t size, float *data);
+void del_buffer(uint32_t buffer);
+float *malloc_faces(int components, int faces);
+uint32_t gen_faces(int components, int faces, float *data);
+uint32_t make_shader(uint32_t type, const char *source);
+uint32_t load_shader(uint32_t type, const char *path);
+uint32_t make_program(uint32_t shader1, uint32_t shader2);
+uint32_t load_program(const char *path1, const char *path2);
 void load_png_texture(const char *file_name);
 
 // Uncomment the following flag to debug OpenGL calls
@@ -24,7 +24,7 @@ void load_png_texture(const char *file_name);
 
 #ifdef GLDEBUG
 #define GL_DEBUG_ASSERT() { \
-  GLenum error = glGetError(); \
+  uint32_t error = glGetError(); \
   if (error != GL_NO_ERROR) \
     {                                                                   \
       switch(error){                                                    \
