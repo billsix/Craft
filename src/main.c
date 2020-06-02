@@ -21,6 +21,8 @@
 #include "util.h"
 #include "world.h"
 
+#include "gl3_render.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #elif CMAKE_CONFIG
