@@ -16,6 +16,17 @@ endif()
 # set SOURCE_FILES to all of the c files
 FILE(GLOB SOURCE_FILES src/*.c)
 
+IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+  message("Debug mode")
+  set(RESOURCE_PATH "${CMAKE_SOURCE_DIR}")
+ELSE(CMAKE_BUILD_TYPE MATCHES DEBUG)
+  message("Release mode")
+  set(RESOURCE_PATH "${CMAKE_INSTALL_PREFIX}")
+ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+
+configure_file(src/config.h.in src/config.h @ONLY)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
+
 # definition of the craft, and its dependent sources
 add_executable(
     craft
@@ -52,9 +63,6 @@ include_directories(deps/noise)
 include_directories(deps/sqlite)
 include_directories(deps/tinycthread)
 
-add_definitions(-DTEXTURE_DIR="${CMAKE_INSTALL_PREFIX}/share/craft/textures/")
-add_definitions(-DSHADER_DIR="${CMAKE_INSTALL_PREFIX}/share/craft/shaders/")
-
 
 # link against the fetched libraries
 if(WIN32)
@@ -74,15 +82,6 @@ else()
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
-if(WIN32)
-    # copy assets over to build dir
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory
-                           ${CMAKE_SOURCE_DIR}/textures $<TARGET_FILE_DIR:${PROJECT_NAME}>/textures)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory
-                           ${CMAKE_SOURCE_DIR}/shaders $<TARGET_FILE_DIR:${PROJECT_NAME}>/shaders)
-endif(WIN32)
 
 # Install
 install(TARGETS craft DESTINATION bin)
