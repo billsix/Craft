@@ -1,9 +1,22 @@
 #ifndef _gl3_render_h_
 #define _gl3_render_h_
 
-#include "gl3w.h"
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
+#include "auth.h"
+#include "client.h"
+#include "config.h"
+#include "cube.h"
+#include "db.h"
+#include "item.h"
+#include "map.h"
+#include "matrix.h"
+#include "noise.h"
+#include "sign.h"
+#include "tinycthread.h"
+#include "util.h"
+#include "world.h"
+#include "main.h"
 #include "util.h"
 #include "lodepng.h"
 
@@ -17,8 +30,44 @@ uint32_t make_program(uint32_t shader1, uint32_t shader2);
 uint32_t load_program(const char *path1, const char *path2);
 void load_png_texture(const char *file_name);
 
+int gl3_graphics_loader_init();
+void gl3_initiliaze_global_state();
+void gl3_initiliaze_textures();
+
+void gl3_setup_render_chunks(float *matrix, State * s, float light);
+
+void gl3_render_chunk(Chunk *chunk);
+
+void gl3_draw_triangles_3d_text(uint32_t buffer, int count);
+
+void gl3_setup_render_signs(float *matrix);
+
+void gl3_render_signs(Chunk *chunk);
+
+void gl3_render_sign(float *matrix, int x, int y, int z, int face);
+
+void gl3_setup_render_players(float *matrix, State *s);
+
+void gl3_render_player(Player * other_player);
+
+void gl3_render_sky(uint32_t buffer, float *matrix);
+
+void gl3_draw_lines(uint32_t buffer, int components, int count);
+
+void gl3_render_wireframe(float *matrix, int hx, int hy, int hz);
+
 // Uncomment the following flag to debug OpenGL calls
 // #define GLDEBUG 1
+
+void gl3_render_text(float *matrix, int justify, float x, float y, float n, char *text);
+
+void gl3_render_item(float *matrix);
+
+void gl3_render_plant(uint32_t plant_buffer);
+
+void gl3_render_cube(uint32_t cube_buffer);
+
+void gl3_render_crosshairs(uint32_t crosshair_buffer, float *matrix);
 
 #define NOOP() (void)0
 
