@@ -1,5 +1,3 @@
-#define GL3W_IMPLEMENTATION 1
-#include "gl3w.h"
 #include <GLFW/glfw3.h>
 #include <curl/curl.h>
 #include <math.h>
@@ -2355,7 +2353,7 @@ int main(int argc, char **argv) {
             }
 
             glfwGetFramebufferSize(g->window, &g->width, &g->height);
-            glViewport(0, 0, g->width, g->height);
+            gl3_viewport(0, 0, g->width, g->height);
 
             // FRAME RATE //
             if (g->time_changed) {
@@ -2426,10 +2424,11 @@ int main(int argc, char **argv) {
             Player *player = g->players + g->observe1;
 
             // RENDER 3-D SCENE //
-            glClear(GL_COLOR_BUFFER_BIT);
-            glClear(GL_DEPTH_BUFFER_BIT);
+
+            gl3_clear_color_buffer();
+            gl3_clear_depth_buffer();
             render_sky(player, sky_buffer);
-            glClear(GL_DEPTH_BUFFER_BIT);
+            gl3_clear_depth_buffer();
             int face_count = render_chunks(player);
             render_signs(player);
             render_sign(player);
@@ -2439,7 +2438,7 @@ int main(int argc, char **argv) {
             }
 
             // RENDER HUD //
-            glClear(GL_DEPTH_BUFFER_BIT);
+            gl3_clear_depth_buffer();
             if (SHOW_CROSSHAIRS) {
                 // render crosshairs
                 float matrix[16];
@@ -2459,7 +2458,6 @@ int main(int argc, char **argv) {
 
                 gl3_render_crosshairs(crosshair_buffer, matrix);
                 del_buffer(crosshair_buffer);
-                glDisable(GL_COLOR_LOGIC_OP);
                 GL_DEBUG_ASSERT();
             }
             if (SHOW_ITEM) {
@@ -2585,12 +2583,12 @@ int main(int argc, char **argv) {
                 int sw = pw + pad * 2;
                 int sh = ph + pad * 2;
 
-                glEnable(GL_SCISSOR_TEST);
-                glScissor(g->width - sw - offset + pad, offset - pad, sw, sh);
-                glClear(GL_COLOR_BUFFER_BIT);
-                glDisable(GL_SCISSOR_TEST);
-                glClear(GL_DEPTH_BUFFER_BIT);
-                glViewport(g->width - pw - offset, offset, pw, ph);
+                gl3_enable_scissor_test();
+                gl3_scissor(g->width - sw - offset + pad, offset - pad, sw, sh);
+                gl3_clear_color_buffer();
+                gl3_disable_scissor_test();
+                gl3_clear_depth_buffer();
+                gl3_viewport(g->width - pw - offset, offset, pw, ph);
 
                 g->width = pw;
                 g->height = ph;
@@ -2598,11 +2596,11 @@ int main(int argc, char **argv) {
                 g->fov = 65;
 
                 render_sky(player, sky_buffer);
-                glClear(GL_DEPTH_BUFFER_BIT);
+                gl3_clear_depth_buffer();
                 render_chunks(player);
                 render_signs(player);
                 render_players(player);
-                glClear(GL_DEPTH_BUFFER_BIT);
+                gl3_clear_depth_buffer();
                 if (SHOW_PLAYER_NAMES) {
                     render_text(ALIGN_CENTER,
                         pw / 2, ts, ts, player->name);

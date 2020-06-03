@@ -20,6 +20,16 @@
 #include "util.h"
 #include "lodepng.h"
 
+void gl3_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min, uint32_t y_max);
+
+void gl3_clear_depth_buffer();
+void gl3_clear_color_buffer();
+
+void gl3_enable_scissor_test();
+void gl3_disable_scissor_test();
+
+void gl3_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width, uint32_t y_height);
+
 uint32_t gen_buffer(size_t size, float *data);
 void del_buffer(uint32_t buffer);
 float *malloc_faces(int components, int faces);

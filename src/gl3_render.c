@@ -1,3 +1,4 @@
+#define GL3W_IMPLEMENTATION 1
 #include "gl3w.h"
 #include "gl3_render.h"
 #include <GLFW/glfw3.h>
@@ -15,6 +16,32 @@ Block_Attributes block_attrib;
 Line_Attributes line_attrib;
 Text_Attributes text_attrib;
 Sky_Attributes sky_attrib;
+
+
+void gl3_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min, uint32_t y_max){
+  glViewport(x_min, x_max, y_min, y_max);
+}
+
+void gl3_clear_depth_buffer(){
+  glClear(GL_DEPTH_BUFFER_BIT);
+}
+
+void gl3_clear_color_buffer(){
+  glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void gl3_enable_scissor_test(){
+  glEnable(GL_SCISSOR_TEST);
+}
+
+void gl3_disable_scissor_test(){
+  glDisable(GL_SCISSOR_TEST);
+}
+
+void gl3_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width, uint32_t y_height){
+  glScissor(x_min, y_min, x_width, y_height);
+}
+
 
 // TODO -- rename gen_buffer, and all other functions
 // in this file, to have a gl3_ prefix
@@ -806,4 +833,6 @@ void gl3_render_crosshairs(uint32_t crosshair_buffer, float *matrix){
   GL_DEBUG_ASSERT();
 
   gl3_draw_lines(crosshair_buffer, 2, 4);
+  glDisable(GL_COLOR_LOGIC_OP);
+
 }
