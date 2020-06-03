@@ -2,29 +2,29 @@
 #define _ring_h_
 
 typedef enum {
-    BLOCK,
-    LIGHT,
-    KEY,
-    COMMIT,
-    EXIT
+              BLOCK,
+              LIGHT,
+              KEY,
+              COMMIT,
+              EXIT
 } RingEntryType;
 
 typedef struct {
-    RingEntryType type;
-    int p;
-    int q;
-    int x;
-    int y;
-    int z;
-    int w;
-    int key;
+  RingEntryType type;
+  int p;
+  int q;
+  int x;
+  int y;
+  int z;
+  int w;
+  int key;
 } RingEntry;
 
 typedef struct {
-    unsigned int capacity;
-    unsigned int start;
-    unsigned int end;
-    RingEntry *data;
+  unsigned int capacity;
+  unsigned int start;
+  unsigned int end;
+  RingEntry *data;
 } Ring;
 
 void ring_alloc(Ring *ring, int capacity);

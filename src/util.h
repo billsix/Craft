@@ -13,15 +13,15 @@
 #define SIGN(x) (((x) > 0) - ((x) < 0))
 
 #if DEBUG
-    #define LOG(...) printf(__VA_ARGS__)
+#define LOG(...) printf(__VA_ARGS__)
 #else
-    #define LOG(...)
+#define LOG(...)
 #endif
 
 typedef struct {
-    unsigned int fps;
-    unsigned int frames;
-    double since;
+  unsigned int fps;
+  unsigned int frames;
+  double since;
 } FPS;
 
 int rand_int(int n);
