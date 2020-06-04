@@ -16,13 +16,13 @@ endif()
 # set SOURCE_FILES to all of the c files
 FILE(GLOB SOURCE_FILES src/*.c)
 
-IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Debug mode")
   set(RESOURCE_PATH "${CMAKE_SOURCE_DIR}")
-ELSE(CMAKE_BUILD_TYPE MATCHES DEBUG)
+ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Release mode")
-  set(RESOURCE_PATH "${CMAKE_INSTALL_PREFIX}")
-ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+  set(RESOURCE_PATH "${CMAKE_INSTALL_PREFIX}/share/craft/")
+ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 configure_file(src/config.h.in src/config.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)

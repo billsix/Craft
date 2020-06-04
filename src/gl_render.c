@@ -189,7 +189,7 @@ void gl_initiliaze_global_state(){
   glLogicOp(GL_INVERT);
   glClearColor(0, 0, 0, 1);
 
-#define SHADER_DIR RESOURCE_PATH "/share/craft/shaders/"
+#define SHADER_DIR RESOURCE_PATH "/shaders/"
 
   int32_t program = gl_load_program(SHADER_DIR "block_vertex.glsl",
                                     SHADER_DIR "block_fragment.glsl");
@@ -243,7 +243,7 @@ void gl_initiliaze_global_state(){
 }
 
 void gl_initiliaze_textures(){
-#define TEXTURE_DIR RESOURCE_PATH "/share/craft/textures/"
+#define TEXTURE_DIR RESOURCE_PATH "/textures/"
   glActiveTexture(GL_TEXTURE0);
   // LOAD TEXTURES //
   glGenTextures(1, &texture);

@@ -2418,6 +2418,13 @@ int main(int argc, char **argv) {
     FPS fps = {0, 0, 0};
     double last_commit = glfwGetTime();
     double last_update = glfwGetTime();
+
+    // use the openGL3.3 renderer
+    // TODO - make this configurable between OpenGL3.3 core profile,
+    // Vulkan, and Apple's Metal
+    renderer = gl_renderer;
+
+
     uint32_t sky_buffer = gen_sky_buffer();
 
     Player *me = g->players;
@@ -2436,11 +2443,6 @@ int main(int argc, char **argv) {
 
     // BEGIN MAIN LOOP //
     double previous = glfwGetTime();
-
-    // use the openGL3.3 renderer
-    // TODO - make this configurable between OpenGL3.3 core profile,
-    // Vulkan, and Apple's Metal
-    renderer = gl_renderer;
 
     // the event loop
     while (1) {

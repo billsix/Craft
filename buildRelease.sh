@@ -1,8 +1,8 @@
 mkdir build
 mkdir buildInstall
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=../buildInstall ../
-cmake --build  . --target all --config Release
-cmake --build  . --target install --config Release
+cmake -DCMAKE_INSTALL_PREFIX=../buildInstall -DCMAKE_BUILD_TYPE=Release ../
+cmake --build  . --target all
+cmake --build  . --target install
 cd ../buildInstall
 ./bin/craft
