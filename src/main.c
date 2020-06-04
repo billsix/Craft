@@ -21,7 +21,7 @@
 #include "world.h"
 #include "main.h"
 
-#include "gl3_render.h"
+#include "gl_render.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -89,13 +89,13 @@ struct graphics_renderer{
 };
 
 // the OpenGL 3.3 Core Profile renderer
-struct graphics_renderer gl3_renderer = {
-					 .viewport = gl3_viewport,
-					 .clear_depth_buffer = gl3_clear_depth_buffer,
-					 .clear_color_buffer = gl3_clear_color_buffer,
-					 .enable_scissor_test = gl3_enable_scissor_test,
-					 .disable_scissor_test = gl3_disable_scissor_test,
-					 .scissor = gl3_scissor,
+struct graphics_renderer gl_renderer = {
+					 .viewport = gl_viewport,
+					 .clear_depth_buffer = gl_clear_depth_buffer,
+					 .clear_color_buffer = gl_clear_color_buffer,
+					 .enable_scissor_test = gl_enable_scissor_test,
+					 .disable_scissor_test = gl_disable_scissor_test,
+					 .scissor = gl_scissor,
 					 .gen_buffer = gen_buffer,
 					 .del_buffer = del_buffer,
 					 .malloc_faces = malloc_faces,
@@ -105,25 +105,25 @@ struct graphics_renderer gl3_renderer = {
 					 .make_program = make_program,
 					 .load_program = load_program,
 					 .load_png_texture = load_png_texture,
-					 .graphics_loader_init = gl3_graphics_loader_init,
-					 .initiliaze_global_state = gl3_initiliaze_global_state,
-					 .initiliaze_textures = gl3_initiliaze_textures,
-					 .setup_render_chunks = gl3_setup_render_chunks,
-					 .render_chunk = gl3_render_chunk,
-					 .draw_triangles_3d_text = gl3_draw_triangles_3d_text,
-					 .setup_render_signs = gl3_setup_render_signs,
-					 .render_signs = gl3_render_signs,
-					 .render_sign = gl3_render_sign,
-					 .setup_render_players = gl3_setup_render_players,
-					 .render_player = gl3_render_player,
-					 .render_sky = gl3_render_sky,
-					 .draw_lines = gl3_draw_lines,
-					 .render_wireframe = gl3_render_wireframe,
-					 .render_text = gl3_render_text,
-					 .render_item = gl3_render_item,
-					 .render_plant = gl3_render_plant,
-					 .render_cube = gl3_render_cube,
-					 .render_crosshairs = gl3_render_crosshairs,
+					 .graphics_loader_init = gl_graphics_loader_init,
+					 .initiliaze_global_state = gl_initiliaze_global_state,
+					 .initiliaze_textures = gl_initiliaze_textures,
+					 .setup_render_chunks = gl_setup_render_chunks,
+					 .render_chunk = gl_render_chunk,
+					 .draw_triangles_3d_text = gl_draw_triangles_3d_text,
+					 .setup_render_signs = gl_setup_render_signs,
+					 .render_signs = gl_render_signs,
+					 .render_sign = gl_render_sign,
+					 .setup_render_players = gl_setup_render_players,
+					 .render_player = gl_render_player,
+					 .render_sky = gl_render_sky,
+					 .draw_lines = gl_draw_lines,
+					 .render_wireframe = gl_render_wireframe,
+					 .render_text = gl_render_text,
+					 .render_item = gl_render_item,
+					 .render_plant = gl_render_plant,
+					 .render_cube = gl_render_cube,
+					 .render_crosshairs = gl_render_crosshairs,
 };
 
 // needs to be initialized before the event loop begins
@@ -1317,7 +1317,7 @@ int render_chunks(Player *player) {
   float planes[6][4];
   frustum_planes(planes, g->render_radius, matrix);
 
-  gl3_setup_render_chunks(matrix, s, light);
+  gl_setup_render_chunks(matrix, s, light);
 
   for (int i = 0; i < g->chunk_count; i++) {
     Chunk *chunk = g->chunks + i;
@@ -1342,7 +1342,7 @@ int render_chunks(Player *player) {
 
 
 void draw_triangles_3d_text(uint32_t buffer, int count) {
-  gl3_draw_triangles_3d_text(buffer, count);
+  gl_draw_triangles_3d_text(buffer, count);
 }
 
 
@@ -1357,7 +1357,7 @@ void render_signs(Player *player) {
   float planes[6][4];
   frustum_planes(planes, g->render_radius, matrix);
 
-  gl3_setup_render_signs(matrix);
+  gl_setup_render_signs(matrix);
 
   for (int i = 0; i < g->chunk_count; i++) {
     Chunk *chunk = g->chunks + i;
@@ -1397,7 +1397,7 @@ void render_players(Player *player) {
                 matrix, g->width, g->height,
                 s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
 
-  gl3_setup_render_players(matrix, s);
+  gl_setup_render_players(matrix, s);
 
   for (int i = 0; i < g->player_count; i++) {
     Player *other_player = g->players + i;
@@ -1422,7 +1422,7 @@ void render_sky(Player *player, uint32_t buffer) {
 }
 
 void draw_lines(uint32_t buffer, int components, int count) {
-  gl3_draw_lines(buffer, components, count);
+  gl_draw_lines(buffer, components, count);
 }
 
 
@@ -2317,16 +2317,23 @@ int initialize_craft(int argc, char **argv){
       window_width = modes[mode_count - 1].width;
       window_height = modes[mode_count - 1].height;
     }
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    g->window = glfwCreateWindow(
-                                 window_width, window_height, "Craft", monitor, NULL);
-  }
-  if (!g->window) {
-    glfwTerminate();
-    return -1;
+    g->window = glfwCreateWindow(window_width, window_height, "Craft", monitor, NULL);
+    if (!g->window) {
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+      glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+      glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+      g->window = glfwCreateWindow(window_width, window_height, "Craft", monitor, NULL);
+
+      if (!g->window) {
+        glfwTerminate();
+        return -1;
+      }
+    }
   }
 
   glfwMakeContextCurrent(g->window);
@@ -2337,13 +2344,13 @@ int initialize_craft(int argc, char **argv){
   glfwSetMouseButtonCallback(g->window, on_mouse_button);
   glfwSetScrollCallback(g->window, on_scroll);
 
-  if(-1 == gl3_graphics_loader_init()){
+  if(-1 == gl_graphics_loader_init()){
     return -1;
   }
 
-  gl3_initiliaze_global_state();
+  gl_initiliaze_global_state();
 
-  gl3_initiliaze_textures();
+  gl_initiliaze_textures();
 
   // CHECK COMMAND LINE ARGUMENTS //
   if (argc == 2 || argc == 3) {
@@ -2435,7 +2442,7 @@ int main(int argc, char **argv) {
     // use the openGL3.3 renderer
     // TODO - make this configurable between OpenGL3.3 core profile,
     // Vulkan, and Apple's Metal
-    renderer = gl3_renderer;
+    renderer = gl_renderer;
 
     // the event loop
     while (1) {
@@ -2558,7 +2565,6 @@ int main(int argc, char **argv) {
 
         (*renderer.render_crosshairs)(crosshair_buffer, matrix);
         (*renderer.del_buffer)(crosshair_buffer);
-        GL_DEBUG_ASSERT();
       }
       if (SHOW_ITEM) {
         // render item
@@ -2742,10 +2748,3 @@ int main(int argc, char **argv) {
   curl_global_cleanup();
   return 0;
 }
-
-
-
-
-
-
-    
