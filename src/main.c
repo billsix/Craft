@@ -36,6 +36,99 @@
 Model model;
 Model *g = &model;
 
+
+// Interface for multiple rendering backends
+// currently, only OpenGL3.3 core profile is supported.
+//
+// The event loop is intended to be independent of rendering backend.
+// I intend to support Vulkan and Metal.
+//
+// I removed GLuint, GLbool, etc, and used uint32_t, etc,
+// by looking up in the OpenGL standard what the minimal
+// number of bits required is.
+// I did this with the intent of making this interface portable
+// towards those other framewarks.
+// TODO - because of the above comments, this may have been
+// imprudent, and I will need to reassess later as I understand
+// those frameworks better.
+struct graphics_renderer{
+  void (*viewport)(uint32_t x_min, uint32_t x_max, uint32_t y_min, uint32_t y_max);
+  void (*clear_depth_buffer)();
+  void (*clear_color_buffer)();
+  void (*enable_scissor_test)();
+  void (*disable_scissor_test)();
+  void (*scissor)(uint32_t x_min, uint32_t y_min, uint32_t x_width, uint32_t y_height);
+  uint32_t (*gen_buffer)(size_t size, float *data);
+  void (*del_buffer)(uint32_t buffer);
+  float* (*malloc_faces)(int components, int faces);
+  uint32_t (*gen_faces)(int components, int faces, float *data);
+  uint32_t (*make_shader)(uint32_t type, const char *source);
+  uint32_t (*load_shader)(uint32_t type, const char *path);
+  uint32_t (*make_program)(uint32_t shader1, uint32_t shader2);
+  uint32_t (*load_program)(const char *path1, const char *path2);
+  void (*load_png_texture)(const char *file_name);
+  int (*graphics_loader_init)();
+  void (*initiliaze_global_state)();
+  void (*initiliaze_textures)();
+  void (*setup_render_chunks)(float *matrix, State * s, float light);
+  void (*render_chunk)(Chunk *chunk);
+  void (*draw_triangles_3d_text)(uint32_t buffer, int count);
+  void (*setup_render_signs)(float *matrix);
+  void (*render_signs)(Chunk *chunk);
+  void (*render_sign)(float *matrix, int x, int y, int z, int face);
+  void (*setup_render_players)(float *matrix, State *s);
+  void (*render_player)(Player * other_player);
+  void (*render_sky)(uint32_t buffer, float *matrix);
+  void (*draw_lines)(uint32_t buffer, int components, int count);
+  void (*render_wireframe)(float *matrix, int hx, int hy, int hz);
+  void (*render_text)(float *matrix, int justify, float x, float y, float n, char *text);
+  void (*render_item)(float *matrix);
+  void (*render_plant)(uint32_t plant_buffer);
+  void (*render_cube)(uint32_t cube_buffer);
+  void (*render_crosshairs)(uint32_t crosshair_buffer, float *matrix);
+};
+
+// the OpenGL 3.3 Core Profile renderer
+struct graphics_renderer gl3_renderer = {
+					 .viewport = gl3_viewport,
+					 .clear_depth_buffer = gl3_clear_depth_buffer,
+					 .clear_color_buffer = gl3_clear_color_buffer,
+					 .enable_scissor_test = gl3_enable_scissor_test,
+					 .disable_scissor_test = gl3_disable_scissor_test,
+					 .scissor = gl3_scissor,
+					 .gen_buffer = gen_buffer,
+					 .del_buffer = del_buffer,
+					 .malloc_faces = malloc_faces,
+					 .gen_faces = gen_faces,
+					 .make_shader = make_shader,
+					 .load_shader = load_shader,
+					 .make_program = make_program,
+					 .load_program = load_program,
+					 .load_png_texture = load_png_texture,
+					 .graphics_loader_init = gl3_graphics_loader_init,
+					 .initiliaze_global_state = gl3_initiliaze_global_state,
+					 .initiliaze_textures = gl3_initiliaze_textures,
+					 .setup_render_chunks = gl3_setup_render_chunks,
+					 .render_chunk = gl3_render_chunk,
+					 .draw_triangles_3d_text = gl3_draw_triangles_3d_text,
+					 .setup_render_signs = gl3_setup_render_signs,
+					 .render_signs = gl3_render_signs,
+					 .render_sign = gl3_render_sign,
+					 .setup_render_players = gl3_setup_render_players,
+					 .render_player = gl3_render_player,
+					 .render_sky = gl3_render_sky,
+					 .draw_lines = gl3_draw_lines,
+					 .render_wireframe = gl3_render_wireframe,
+					 .render_text = gl3_render_text,
+					 .render_item = gl3_render_item,
+					 .render_plant = gl3_render_plant,
+					 .render_cube = gl3_render_cube,
+					 .render_crosshairs = gl3_render_crosshairs,
+};
+
+// needs to be initialized before the event loop begins
+struct graphics_renderer renderer;
+
 int chunked(float x) {
   return floorf(roundf(x) / CHUNK_SIZE);
 }
@@ -1240,7 +1333,7 @@ int render_chunks(Player *player) {
       continue;
     }
 
-    gl3_render_chunk(chunk);
+    (*renderer.render_chunk)(chunk);
 
     result += chunk->faces;
   }
@@ -1276,7 +1369,7 @@ void render_signs(Player *player) {
       {
         continue;
       }
-    gl3_render_signs(chunk);
+    (*renderer.render_signs)(chunk);
   }
 }
 
@@ -1294,7 +1387,7 @@ void render_sign(Player *player) {
                 matrix, g->width, g->height,
                 s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
 
-  gl3_render_sign(matrix, x, y, z, face);
+  (*renderer.render_sign)(matrix, x, y, z, face);
 }
 
 void render_players(Player *player) {
@@ -1313,7 +1406,7 @@ void render_players(Player *player) {
       if(other_player->buffer == 0){
         continue;
       }
-      gl3_render_player(other_player);
+      (*renderer.render_player)(other_player);
     }
   }
 }
@@ -1325,7 +1418,7 @@ void render_sky(Player *player, uint32_t buffer) {
                 matrix, g->width, g->height,
                 0, 0, 0, s->rx, s->ry, g->fov, 0, g->render_radius);
 
-  gl3_render_sky(buffer, matrix);
+  (*renderer.render_sky)(buffer, matrix);
 }
 
 void draw_lines(uint32_t buffer, int components, int count) {
@@ -1342,7 +1435,7 @@ void render_wireframe(Player *player) {
   int hx, hy, hz;
   int hw = hit_test(0, s->x, s->y, s->z, s->rx, s->ry, &hx, &hy, &hz);
   if (is_obstacle(hw)) {
-    gl3_render_wireframe(matrix, hx, hy, hz);
+    (*renderer.render_wireframe)(matrix, hx, hy, hz);
   }
 }
 
@@ -1351,7 +1444,7 @@ void render_text(
 {
   float matrix[16];
   set_matrix_2d(matrix, g->width, g->height);
-  gl3_render_text(matrix, justify, x, y, n, text);
+  (*renderer.render_text)(matrix, justify, x, y, n, text);
 }
 
 void add_message(const char *text) {
@@ -2338,6 +2431,13 @@ int main(int argc, char **argv) {
 
     // BEGIN MAIN LOOP //
     double previous = glfwGetTime();
+
+    // use the openGL3.3 renderer
+    // TODO - make this configurable between OpenGL3.3 core profile,
+    // Vulkan, and Apple's Metal
+    renderer = gl3_renderer;
+
+    // the event loop
     while (1) {
       // WINDOW SIZE AND SCALE //
       // set g->scale
@@ -2353,7 +2453,7 @@ int main(int argc, char **argv) {
       }
 
       glfwGetFramebufferSize(g->window, &g->width, &g->height);
-      gl3_viewport(0, 0, g->width, g->height);
+      (*renderer.viewport)(0, 0, g->width, g->height);
 
       // FRAME RATE //
       if (g->time_changed) {
@@ -2398,7 +2498,7 @@ int main(int argc, char **argv) {
       g->observe1 = g->observe1 % g->player_count;
       g->observe2 = g->observe2 % g->player_count;
       delete_chunks();
-      del_buffer(me->buffer);
+      (*renderer.del_buffer)(me->buffer);
       me->buffer = gen_player_buffer(s->x, s->y, s->z, s->rx, s->ry);
       for (int i = 1; i < g->player_count; i++) {
         // interpolate playen
@@ -2425,10 +2525,10 @@ int main(int argc, char **argv) {
 
       // RENDER 3-D SCENE //
 
-      gl3_clear_color_buffer();
-      gl3_clear_depth_buffer();
+      (*renderer.clear_color_buffer)();
+      (*renderer.clear_depth_buffer)();
       render_sky(player, sky_buffer);
-      gl3_clear_depth_buffer();
+      (*renderer.clear_depth_buffer)();
       int face_count = render_chunks(player);
       render_signs(player);
       render_sign(player);
@@ -2438,7 +2538,7 @@ int main(int argc, char **argv) {
       }
 
       // RENDER HUD //
-      gl3_clear_depth_buffer();
+      (*renderer.clear_depth_buffer)();
       if (SHOW_CROSSHAIRS) {
         // render crosshairs
         float matrix[16];
@@ -2453,11 +2553,11 @@ int main(int argc, char **argv) {
                           x, y - p, x, y + p,
                           x - p, y, x + p, y
           };
-          crosshair_buffer = gen_buffer(sizeof(data), data);
+          crosshair_buffer = (*renderer.gen_buffer)(sizeof(data), data);
         }
 
-        gl3_render_crosshairs(crosshair_buffer, matrix);
-        del_buffer(crosshair_buffer);
+        (*renderer.render_crosshairs)(crosshair_buffer, matrix);
+        (*renderer.del_buffer)(crosshair_buffer);
         GL_DEBUG_ASSERT();
       }
       if (SHOW_ITEM) {
@@ -2465,7 +2565,7 @@ int main(int argc, char **argv) {
         float matrix[16];
         set_matrix_item(matrix, g->width, g->height, g->scale);
 
-        gl3_render_item(matrix);
+        (*renderer.render_item)(matrix);
 
         int w = items[g->item_index];
         if (is_plant(w)) {
@@ -2476,11 +2576,11 @@ int main(int argc, char **argv) {
             const float y = 0;
             const float z = 0;
             const float n = 0.5;
-            float *data = malloc_faces(10, 4);
+            float *data = (*renderer.malloc_faces)(10, 4);
             float ao = 0;
             float light = 1;
             make_plant(data, ao, light, x, y, z, n, w, 45);
-            plant_buffer = gen_faces(10, 4, data);
+            plant_buffer = (*renderer.gen_faces)(10, 4, data);
           }
           // TODO -
           // make and initilize the VAO once at initilization time.
@@ -2492,9 +2592,9 @@ int main(int argc, char **argv) {
 
           // draw plant
           if(plant_buffer != 0){
-            gl3_render_plant(plant_buffer);
+            (*renderer.render_plant)(plant_buffer);
           }
-          del_buffer(plant_buffer);
+          (*renderer.del_buffer)(plant_buffer);
         }
         else {
           uint32_t cube_buffer;
@@ -2504,7 +2604,7 @@ int main(int argc, char **argv) {
             const float y = 0;
             const float z = 0;
             const float n = 0.5;
-            float *data = malloc_faces(10, 6);
+            float *data = (*renderer.malloc_faces)(10, 6);
             float ao[6][4] = {0};
             float light[6][4] = {
                                  {0.5, 0.5, 0.5, 0.5},
@@ -2515,13 +2615,13 @@ int main(int argc, char **argv) {
                                  {0.5, 0.5, 0.5, 0.5}
             };
             make_cube(data, ao, light, 1, 1, 1, 1, 1, 1, x, y, z, n, w);
-            cube_buffer = gen_faces(10, 6, data);
+            cube_buffer = (*renderer.gen_faces)(10, 6, data);
           }
           // draw cube buffer
           if(cube_buffer != 0){
-            gl3_render_cube(cube_buffer);
+            (*renderer.render_cube)(cube_buffer);
           }
-          del_buffer(cube_buffer);
+          (*renderer.del_buffer)(cube_buffer);
         }
       }
 
@@ -2583,12 +2683,12 @@ int main(int argc, char **argv) {
         int sw = pw + pad * 2;
         int sh = ph + pad * 2;
 
-        gl3_enable_scissor_test();
-        gl3_scissor(g->width - sw - offset + pad, offset - pad, sw, sh);
-        gl3_clear_color_buffer();
-        gl3_disable_scissor_test();
-        gl3_clear_depth_buffer();
-        gl3_viewport(g->width - pw - offset, offset, pw, ph);
+        (*renderer.enable_scissor_test)();
+        (*renderer.scissor)(g->width - sw - offset + pad, offset - pad, sw, sh);
+        (*renderer.clear_color_buffer)();
+        (*renderer.disable_scissor_test)();
+        (*renderer.clear_depth_buffer)();
+        (*renderer.viewport)(g->width - pw - offset, offset, pw, ph);
 
         g->width = pw;
         g->height = ph;
@@ -2596,11 +2696,11 @@ int main(int argc, char **argv) {
         g->fov = 65;
 
         render_sky(player, sky_buffer);
-        gl3_clear_depth_buffer();
+        (*renderer.clear_depth_buffer)();
         render_chunks(player);
         render_signs(player);
         render_players(player);
-        gl3_clear_depth_buffer();
+        (*renderer.clear_depth_buffer)();
         if (SHOW_PLAYER_NAMES) {
           render_text(ALIGN_CENTER,
                       pw / 2, ts, ts, player->name);
@@ -2626,13 +2726,13 @@ int main(int argc, char **argv) {
     db_disable();
     client_stop();
     client_disable();
-    del_buffer(sky_buffer);
+    (*renderer.del_buffer)(sky_buffer);
     delete_all_chunks();
     // delete all players
     {
       for (int i = 0; i < g->player_count; i++) {
         Player *player = g->players + i;
-        del_buffer(player->buffer);
+        (*renderer.del_buffer)(player->buffer);
       }
       g->player_count = 0;
     }
@@ -2642,3 +2742,10 @@ int main(int argc, char **argv) {
   curl_global_cleanup();
   return 0;
 }
+
+
+
+
+
+
+    
