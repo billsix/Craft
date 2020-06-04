@@ -60,7 +60,6 @@ struct graphics_renderer{
   void (*scissor)(uint32_t x_min, uint32_t y_min, uint32_t x_width, uint32_t y_height);
   uint32_t (*gen_buffer)(size_t size, float *data);
   void (*del_buffer)(uint32_t buffer);
-  float* (*malloc_faces)(int components, int faces);
   uint32_t (*gen_faces)(int components, int faces, float *data);
   uint32_t (*make_shader)(uint32_t type, const char *source);
   uint32_t (*load_shader)(uint32_t type, const char *path);
@@ -96,15 +95,14 @@ struct graphics_renderer gl_renderer = {
 					 .enable_scissor_test = gl_enable_scissor_test,
 					 .disable_scissor_test = gl_disable_scissor_test,
 					 .scissor = gl_scissor,
-					 .gen_buffer = gen_buffer,
-					 .del_buffer = del_buffer,
-					 .malloc_faces = malloc_faces,
-					 .gen_faces = gen_faces,
-					 .make_shader = make_shader,
-					 .load_shader = load_shader,
-					 .make_program = make_program,
-					 .load_program = load_program,
-					 .load_png_texture = load_png_texture,
+					 .gen_buffer = gl_gen_buffer,
+					 .del_buffer = gl_del_buffer,
+					 .gen_faces = gl_gen_faces,
+					 .make_shader = gl_make_shader,
+					 .load_shader = gl_load_shader,
+					 .make_program = gl_make_program,
+					 .load_program = gl_load_program,
+					 .load_png_texture = gl_load_png_texture,
 					 .graphics_loader_init = gl_graphics_loader_init,
 					 .initiliaze_global_state = gl_initiliaze_global_state,
 					 .initiliaze_textures = gl_initiliaze_textures,
@@ -154,14 +152,14 @@ void get_sight_vector(float rx, float ry, float *vx, float *vy, float *vz) {
 uint32_t gen_sky_buffer() {
   float data[12288];
   make_sphere(data, 1, 3);
-  return gen_buffer(sizeof(data), data);
+  return (*renderer.gen_buffer)(sizeof(data), data);
 }
 
 
 uint32_t gen_player_buffer(float x, float y, float z, float rx, float ry) {
   float * const data = malloc_faces(10, 6);
   make_player(data, x, y, z, rx, ry);
-  return gen_faces(10, 6, data);
+  return gl_gen_faces(10, 6, data);
 }
 
 
@@ -195,7 +193,7 @@ void update_player(Player *player,
   else {
     State *s = &player->state;
     s->x = x; s->y = y; s->z = z; s->rx = rx; s->ry = ry;
-    del_buffer(player->buffer);
+    (*renderer.del_buffer)(player->buffer);
     player->buffer = gen_player_buffer(s->x, s->y, s->z, s->rx, s->ry);
   }
 }
@@ -797,8 +795,8 @@ void generate_chunk(Chunk *chunk, WorkerItem *item) {
   chunk->miny = item->miny;
   chunk->maxy = item->maxy;
   chunk->faces = item->faces;
-  del_buffer(chunk->buffer);
-  chunk->buffer = gen_faces(10, item->faces, item->data);
+  (*renderer.del_buffer)(chunk->buffer);
+  chunk->buffer = (*renderer.gen_faces)(10, item->faces, item->data);
 
   // generate sign buffer
   SignList *signs = &chunk->signs;
@@ -819,8 +817,8 @@ void generate_chunk(Chunk *chunk, WorkerItem *item) {
                               data + faces * 30, e->x, e->y, e->z, e->face, e->text);
   }
 
-  del_buffer(chunk->sign_buffer);
-  chunk->sign_buffer = gen_faces(5, faces, data);
+  (*renderer.del_buffer)(chunk->sign_buffer);
+  chunk->sign_buffer = (*renderer.gen_faces)(5, faces, data);
   chunk->sign_faces = faces;
 }
 
@@ -926,8 +924,8 @@ void delete_chunks() {
       map_free(&chunk->map);
       map_free(&chunk->lights);
       sign_list_free(&chunk->signs);
-      del_buffer(chunk->buffer);
-      del_buffer(chunk->sign_buffer);
+      (*renderer.del_buffer)(chunk->buffer);
+      (*renderer.del_buffer)(chunk->sign_buffer);
       Chunk *other_chunk = g->chunks + (--count);
       memcpy(chunk, other_chunk, sizeof(Chunk));
     }
@@ -941,8 +939,8 @@ void delete_all_chunks() {
     map_free(&chunk->map);
     map_free(&chunk->lights);
     sign_list_free(&chunk->signs);
-    del_buffer(chunk->buffer);
-    del_buffer(chunk->sign_buffer);
+    (*renderer.del_buffer)(chunk->buffer);
+    (*renderer.del_buffer)(chunk->sign_buffer);
   }
   g->chunk_count = 0;
 }
@@ -2224,7 +2222,7 @@ void parse_buffer(char *buffer) {
       Player *player = find_player(pid);
       if (player) {
         int count = g->player_count;
-        del_buffer(player->buffer);
+        (*renderer.del_buffer)(player->buffer);
         Player *other_player = g->players + (--count);
         memcpy(player, other_player, sizeof(Player));
         g->player_count = count;
@@ -2582,7 +2580,7 @@ int main(int argc, char **argv) {
             const float y = 0;
             const float z = 0;
             const float n = 0.5;
-            float *data = (*renderer.malloc_faces)(10, 4);
+            float *data = malloc_faces(10, 4);
             float ao = 0;
             float light = 1;
             make_plant(data, ao, light, x, y, z, n, w, 45);
@@ -2610,7 +2608,7 @@ int main(int argc, char **argv) {
             const float y = 0;
             const float z = 0;
             const float n = 0.5;
-            float *data = (*renderer.malloc_faces)(10, 6);
+            float *data = malloc_faces(10, 6);
             float ao[6][4] = {0};
             float light[6][4] = {
                                  {0.5, 0.5, 0.5, 0.5},

@@ -30,15 +30,14 @@ void gl_disable_scissor_test();
 
 void gl_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width, uint32_t y_height);
 
-uint32_t gen_buffer(size_t size, float *data);
-void del_buffer(uint32_t buffer);
-float *malloc_faces(int components, int faces);
-uint32_t gen_faces(int components, int faces, float *data);
-uint32_t make_shader(uint32_t type, const char *source);
-uint32_t load_shader(uint32_t type, const char *path);
-uint32_t make_program(uint32_t shader1, uint32_t shader2);
-uint32_t load_program(const char *path1, const char *path2);
-void load_png_texture(const char *file_name);
+uint32_t gl_gen_buffer(size_t size, float *data);
+void gl_del_buffer(uint32_t buffer);
+uint32_t gl_gen_faces(int components, int faces, float *data);
+uint32_t gl_make_shader(uint32_t type, const char *source);
+uint32_t gl_load_shader(uint32_t type, const char *path);
+uint32_t gl_make_program(uint32_t shader1, uint32_t shader2);
+uint32_t gl_load_program(const char *path1, const char *path2);
+void gl_load_png_texture(const char *file_name);
 
 int gl_graphics_loader_init();
 void gl_initiliaze_global_state();

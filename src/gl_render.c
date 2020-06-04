@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <config.h>
+#include "util.h"
 
 // TEXTURE ids
 uint32_t texture;
@@ -43,9 +44,7 @@ void gl_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width, uint32_t y_hei
 }
 
 
-// TODO -- rename gen_buffer, and all other functions
-// in this file, to have a gl_ prefix
-uint32_t gen_buffer(size_t size, float *data) {
+uint32_t gl_gen_buffer(size_t size, float *data) {
   uint32_t buffer;
   glGenBuffers(1, &buffer);
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -54,22 +53,17 @@ uint32_t gen_buffer(size_t size, float *data) {
   return buffer;
 }
 
-void del_buffer(uint32_t buffer) {
+void gl_del_buffer(uint32_t buffer) {
   glDeleteBuffers(1, &buffer);
 }
 
-float *malloc_faces(int components, int faces) {
-  return malloc(sizeof(float) * 6 * components * faces);
-}
-
-uint32_t gen_faces(int components, int faces, float *data) {
-  uint32_t buffer = gen_buffer(
-                               sizeof(float) * 6 * components * faces, data);
+uint32_t gl_gen_faces(int components, int faces, float *data) {
+  uint32_t buffer = gl_gen_buffer(sizeof(float) * 6 * components * faces, data);
   free(data);
   return buffer;
 }
 
-uint32_t make_shader(uint32_t type, const char *source) {
+uint32_t gl_make_shader(uint32_t type, const char *source) {
   uint32_t shader = glCreateShader(type);
   glShaderSource(shader, 1, &source, NULL);
   glCompileShader(shader);
@@ -87,14 +81,14 @@ uint32_t make_shader(uint32_t type, const char *source) {
   return shader;
 }
 
-uint32_t load_shader(uint32_t type, const char *path) {
+uint32_t gl_load_shader(uint32_t type, const char *path) {
   char *data = load_file(path);
-  uint32_t result = make_shader(type, data);
+  uint32_t result = gl_make_shader(type, data);
   free(data);
   return result;
 }
 
-uint32_t make_program(uint32_t shader1, uint32_t shader2) {
+uint32_t gl_make_program(uint32_t shader1, uint32_t shader2) {
   uint32_t program = glCreateProgram();
   glAttachShader(program, shader1);
   glAttachShader(program, shader2);
@@ -116,14 +110,14 @@ uint32_t make_program(uint32_t shader1, uint32_t shader2) {
   return program;
 }
 
-uint32_t load_program(const char *path1, const char *path2) {
-  uint32_t shader1 = load_shader(GL_VERTEX_SHADER, path1);
-  uint32_t shader2 = load_shader(GL_FRAGMENT_SHADER, path2);
-  uint32_t program = make_program(shader1, shader2);
+uint32_t gl_load_program(const char *path1, const char *path2) {
+  uint32_t shader1 = gl_load_shader(GL_VERTEX_SHADER, path1);
+  uint32_t shader2 = gl_load_shader(GL_FRAGMENT_SHADER, path2);
+  uint32_t program = gl_make_program(shader1, shader2);
   return program;
 }
 
-void load_png_texture(const char *file_name) {
+void gl_load_png_texture(const char *file_name) {
   unsigned int error;
   unsigned char *data;
   unsigned int width, height;
@@ -197,8 +191,8 @@ void gl_initiliaze_global_state(){
 
 #define SHADER_DIR RESOURCE_PATH "/share/craft/shaders/"
 
-  int32_t program = load_program(SHADER_DIR "block_vertex.glsl",
-                                 SHADER_DIR "block_fragment.glsl");
+  int32_t program = gl_load_program(SHADER_DIR "block_vertex.glsl",
+                                    SHADER_DIR "block_fragment.glsl");
   // initiliaze shaders
   block_attrib = (Block_Attributes)
     {
@@ -216,7 +210,7 @@ void gl_initiliaze_global_state(){
      .ortho = glGetUniformLocation(program, "ortho")
     };
 
-  program = load_program(SHADER_DIR "line_vertex.glsl", SHADER_DIR "line_fragment.glsl");
+  program = gl_load_program(SHADER_DIR "line_vertex.glsl", SHADER_DIR "line_fragment.glsl");
   line_attrib = (Line_Attributes)
     {
      .program = program,
@@ -224,8 +218,7 @@ void gl_initiliaze_global_state(){
      .matrix = glGetUniformLocation(program, "matrix")
     };
 
-  program = load_program(
-                         SHADER_DIR "text_vertex.glsl", SHADER_DIR "text_fragment.glsl");
+  program = gl_load_program(SHADER_DIR "text_vertex.glsl", SHADER_DIR "text_fragment.glsl");
   text_attrib = (Text_Attributes)
     {
      .program = program,
@@ -236,8 +229,7 @@ void gl_initiliaze_global_state(){
      .is_sign = glGetUniformLocation(program, "is_sign")
     };
 
-  program = load_program(
-                         SHADER_DIR "sky_vertex.glsl", SHADER_DIR "sky_fragment.glsl");
+  program = gl_load_program(SHADER_DIR "sky_vertex.glsl", SHADER_DIR "sky_fragment.glsl");
   sky_attrib = (Sky_Attributes)
     {
      .program = program,
@@ -258,13 +250,13 @@ void gl_initiliaze_textures(){
   glBindTexture(GL_TEXTURE_2D, texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  load_png_texture(TEXTURE_DIR "texture.png");
+  gl_load_png_texture(TEXTURE_DIR "texture.png");
 
   glGenTextures(1, &font);
   glBindTexture(GL_TEXTURE_2D, font);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  load_png_texture(TEXTURE_DIR "font.png");
+  gl_load_png_texture(TEXTURE_DIR "font.png");
 
   glGenTextures(1, &sky);
   glBindTexture(GL_TEXTURE_2D, sky);
@@ -272,13 +264,13 @@ void gl_initiliaze_textures(){
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  load_png_texture(TEXTURE_DIR "sky.png");
+  gl_load_png_texture(TEXTURE_DIR "sky.png");
 
   glGenTextures(1, &sign);
   glBindTexture(GL_TEXTURE_2D, sign);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  load_png_texture(TEXTURE_DIR "sign.png");
+  gl_load_png_texture(TEXTURE_DIR "sign.png");
 }
 
 void gl_setup_render_chunks(float *matrix, State *s, float light){
@@ -389,7 +381,7 @@ void gl_render_sign(float *matrix, int x, int y, int z, int face){
   text[MAX_SIGN_LENGTH - 1] = '\0';
   float *data = malloc_faces(5, strlen(text));
   int length = _gen_sign_buffer(data, x, y, z, face, text);
-  uint32_t buffer = gen_faces(5, length, data);
+  uint32_t buffer = gl_gen_faces(5, length, data);
 
   // draw sign
   glEnable(GL_POLYGON_OFFSET_FILL);
@@ -397,7 +389,7 @@ void gl_render_sign(float *matrix, int x, int y, int z, int face){
   gl_draw_triangles_3d_text(buffer, length * 6);
   glDisable(GL_POLYGON_OFFSET_FILL);
 
-  del_buffer(buffer);
+  gl_del_buffer(buffer);
 }
 
 
@@ -523,10 +515,10 @@ void gl_render_wireframe(float *matrix, int hx, int hy, int hz){
     // initilize wireframe_buffer
     float data[72];
     make_cube_wireframe(data, hx, hy, hz, 0.53);
-    wireframe_buffer = gen_buffer(sizeof(data), data);
+    wireframe_buffer = gl_gen_buffer(sizeof(data), data);
   }
   gl_draw_lines(wireframe_buffer, 3, 24);
-  del_buffer(wireframe_buffer);
+  gl_del_buffer(wireframe_buffer);
   glDisable(GL_COLOR_LOGIC_OP);
 }
 
@@ -549,7 +541,7 @@ void gl_render_text(float *matrix, int justify, float x, float y, float n, char 
       make_character(data + i * 24, x, y, n / 2, n, text[i]);
       x += n;
     }
-    text_buffer = gen_faces(4, length, data);
+    text_buffer = gl_gen_faces(4, length, data);
   }
   // draw text
   glEnable(GL_BLEND);
@@ -575,7 +567,7 @@ void gl_render_text(float *matrix, int justify, float x, float y, float n, char 
 
   glDisable(GL_BLEND);
 
-  del_buffer(text_buffer);
+  gl_del_buffer(text_buffer);
 }
 
 

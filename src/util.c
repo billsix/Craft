@@ -134,3 +134,7 @@ int wrap(const char *input, int max_width, char *output, int max_length) {
   free(text);
   return line_number;
 }
+
+float *malloc_faces(int components, int faces) {
+  return malloc(sizeof(float) * 6 * components * faces);
+}
