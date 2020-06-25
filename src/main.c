@@ -313,11 +313,19 @@ int highest_block(float x, float z) {
   Chunk *chunk = find_chunk(p, q);
   if (chunk) {
     Map *map = &chunk->map;
-    MAP_FOR_EACH(map, ex, ey, ez, ew) {
+    for (unsigned int i = 0; i <= map->mask; i++) {
+      MapEntry *entry = map->data + i;
+      if (EMPTY_ENTRY(entry)) {
+        continue;
+      }
+      int ex = entry->e.x + map->dx;
+      int ey = entry->e.y + map->dy;
+      int ez = entry->e.z + map->dz;
+      int ew = entry->e.w;
       if (is_obstacle(ew) && ex == nx && ez == nz) {
         result = MAX(result, ey);
       }
-    } END_MAP_FOR_EACH;
+    }
   }
   return result;
 }
@@ -642,7 +650,15 @@ void compute_chunk(WorkerItem *item) {
       if (!map) {
         continue;
       }
-      MAP_FOR_EACH(map, ex, ey, ez, ew) {
+      for (unsigned int i = 0; i <= map->mask; i++) {
+        MapEntry *entry = map->data + i;
+        if (EMPTY_ENTRY(entry)) {
+          continue;
+        }
+        int ex = entry->e.x + map->dx;
+        int ey = entry->e.y + map->dy;
+        int ez = entry->e.z + map->dz;
+        int ew = entry->e.w;
         int x = ex - ox;
         int y = ey - oy;
         int z = ez - oz;
@@ -659,7 +675,7 @@ void compute_chunk(WorkerItem *item) {
         if (opaque[XYZ(x, y, z)]) {
           highest[XZ(x, z)] = MAX(highest[XZ(x, z)], y);
         }
-      } END_MAP_FOR_EACH;
+      }
     }
   }
 
@@ -671,12 +687,20 @@ void compute_chunk(WorkerItem *item) {
         if (!map) {
           continue;
         }
-        MAP_FOR_EACH(map, ex, ey, ez, ew) {
+        for (unsigned int i = 0; i <= map->mask; i++) {
+          MapEntry *entry = map->data + i;
+          if (EMPTY_ENTRY(entry)) {
+            continue;
+          }
+          int ex = entry->e.x + map->dx;
+          int ey = entry->e.y + map->dy;
+          int ez = entry->e.z + map->dz;
+          int ew = entry->e.w;
           int x = ex - ox;
           int y = ey - oy;
           int z = ez - oz;
           light_fill(opaque, light, x, y, z, ew, 1);
-        } END_MAP_FOR_EACH;
+        }
       }
     }
   }
@@ -687,7 +711,15 @@ void compute_chunk(WorkerItem *item) {
   int miny = 256;
   int maxy = 0;
   int faces = 0;
-  MAP_FOR_EACH(map, ex, ey, ez, ew) {
+  for (unsigned int i = 0; i <= map->mask; i++) {
+    MapEntry *entry = map->data + i;
+    if (EMPTY_ENTRY(entry)) {
+      continue;
+    }
+    int ex = entry->e.x + map->dx;
+    int ey = entry->e.y + map->dy;
+    int ez = entry->e.z + map->dz;
+    int ew = entry->e.w;
     if (ew <= 0) {
       continue;
     }
@@ -710,12 +742,20 @@ void compute_chunk(WorkerItem *item) {
     miny = MIN(miny, ey);
     maxy = MAX(maxy, ey);
     faces += total;
-  } END_MAP_FOR_EACH;
+  }
 
   // generate geometry
   float *data = malloc_faces(10, faces);
   int offset = 0;
-  MAP_FOR_EACH(map, ex, ey, ez, ew) {
+  for (unsigned int i = 0; i <= map->mask; i++) {
+    MapEntry *entry = map->data + i;
+    if (EMPTY_ENTRY(entry)) {
+      continue;
+    }
+    int ex = entry->e.x + map->dx;
+    int ey = entry->e.y + map->dy;
+    int ez = entry->e.z + map->dz;
+    int ew = entry->e.w;
     if (ew <= 0) {
       continue;
     }
@@ -779,7 +819,7 @@ void compute_chunk(WorkerItem *item) {
                 ex, ey, ez, 0.5, ew);
     }
     offset += total * 60;
-  } END_MAP_FOR_EACH;
+  }
 
   free(opaque);
   free(light);
