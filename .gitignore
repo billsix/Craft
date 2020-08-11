@@ -8,6 +8,7 @@ craft
 world
 env
 log.txt
+.idea
 *.o
 *.db
 *.exe

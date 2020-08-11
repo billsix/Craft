@@ -164,22 +164,25 @@ void GLMessageCallback(GLenum source,
 
 
 int gl_graphics_loader_init(){
+  int return_code = -1; // error
   if (gl3w_init()) {
-    return -1;
+      goto exit;
   }
   printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
          glGetString(GL_SHADING_LANGUAGE_VERSION));
-  if (!gl3w_is_supported(3, 3)) {
-    fprintf(stderr, "OpenGL 3.3 not supported\n");
-    return -1;
+  if (gl3w_is_supported(3, 3)) {
+      fprintf(stderr, "OpenGL 3.3 is supported\n");
+      return_code = 0;
   }
   if (gl3w_is_supported(4, 3)) {
     fprintf(stderr, "OpenGL 4.3 is supported\n");
     glEnable( GL_DEBUG_OUTPUT );
     glDebugMessageCallback( GLMessageCallback, 0 );
+    return_code = 0;
   }
 
-
+    exit:
+    return return_code;
 }
 
 
