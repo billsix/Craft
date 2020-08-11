@@ -1,17 +1,16 @@
 #include <GLFW/glfw3.h>
-#include <curl/curl.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <time.h>
+
+// N.B - this whitespace is required so that clang-format
+// does not break the build.
+
 #include "auth.h"
 #include "client.h"
 #include "config.h"
 #include "cube.h"
 #include "db.h"
+#include "gl_render.h"
 #include "item.h"
+#include "main.h"
 #include "map.h"
 #include "matrix.h"
 #include "noise.h"
@@ -19,14 +18,18 @@
 #include "tinycthread.h"
 #include "util.h"
 #include "world.h"
-#include "main.h"
-
-#include "gl_render.h"
+#include <curl/curl.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #elif CMAKE_CONFIG
-//do nothing
+// do nothing
 #endif
 
 Model model;
