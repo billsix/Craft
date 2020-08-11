@@ -65,21 +65,53 @@ typedef struct {
   int w;
 } Block;
 
+/* The position of a player, annd it's orientation (which
+ * way it's looking, both side to side, and up or down
+ */
 typedef struct {
+  /*
+   * Position
+   *
+   * The x, y, and z components of the position of
+   * the moving entity, aka a player
+   */
   float x;
   float y;
   float z;
+  /*
+   * Rotation
+   *
+   * the amount of radians rotated around the x axis.
+   * it follows the right hand rule, so positive theta
+   * implies that y rotates towards z, and that z rotates
+   * towards -y
+  */
   float rx;
+  /* the amount of radians rotated around the y axis.
+   * it follows the right hand rule, so z rotates towards
+   * x, and x rotates towards -z
+   *
+   * A sequence of rotations is not commutative, so
+   * the order in which we apply them will matter.
+   *
+   * First, the rotation around the y axis will happen first,
+   * looking side to side.  Then, the rotation around x will be
+   * applied, to look up or down.
+  */
   float ry;
+
+  /*
+   * TODO : figure out what t is and explain it.
+   */
   float t;
-} State;
+} PositionAndOrientation;
 
 typedef struct {
   int id;
   char name[MAX_NAME_LENGTH];
-  State state;
-  State state1;
-  State state2;
+  PositionAndOrientation state;
+  PositionAndOrientation state1;
+  PositionAndOrientation state2;
   uint32_t buffer;
 } Player;
 

@@ -43,7 +43,7 @@ int gl_graphics_loader_init();
 void gl_initiliaze_global_state();
 void gl_initiliaze_textures();
 
-void gl_setup_render_chunks(float *matrix, State * s, float light);
+void gl_setup_render_chunks(float *matrix, PositionAndOrientation * positionAndOrientation, float light);
 
 void gl_render_chunk(Chunk *chunk);
 
@@ -55,7 +55,7 @@ void gl_render_signs(Chunk *chunk);
 
 void gl_render_sign(float *matrix, int x, int y, int z, int face);
 
-void gl_setup_render_players(float *matrix, State *s);
+void gl_setup_render_players(float *matrix, PositionAndOrientation *positionAndOrientation);
 
 void gl_render_player(Player * other_player);
 

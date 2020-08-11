@@ -276,10 +276,10 @@ void gl_initiliaze_textures(){
   gl_load_png_texture(TEXTURE_DIR "sign.png");
 }
 
-void gl_setup_render_chunks(float *matrix, State *s, float light){
+void gl_setup_render_chunks(float *matrix, PositionAndOrientation *positionAndOrientation, float light){
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
-  glUniform3f(block_attrib.camera, s->x, s->y, s->z);
+  glUniform3f(block_attrib.camera, positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
   glUniform1i(block_attrib.sampler, 0);
@@ -396,10 +396,10 @@ void gl_render_sign(float *matrix, int x, int y, int z, int face){
 }
 
 
-void gl_setup_render_players(float *matrix, State *s){
+void gl_setup_render_players(float *matrix, PositionAndOrientation *positionAndOrientation){
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
-  glUniform3f(block_attrib.camera, s->x, s->y, s->z);
+  glUniform3f(block_attrib.camera, positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
   glUniform1i(block_attrib.sampler, 0);
