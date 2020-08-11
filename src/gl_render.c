@@ -1,11 +1,11 @@
 #define GL3W_IMPLEMENTATION 1
-#include "gl_render.h"
 #include "gl3w.h"
-#include "util.h"
+#include "gl_render.h"
 #include <GLFW/glfw3.h>
-#include <config.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <config.h>
+#include "util.h"
 
 // TEXTURE ids
 uint32_t texture;

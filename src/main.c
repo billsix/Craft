@@ -1,4 +1,11 @@
-#include "main.h"
+#include <GLFW/glfw3.h>
+#include <curl/curl.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <time.h>
 #include "auth.h"
 #include "client.h"
 #include "config.h"
@@ -12,21 +19,14 @@
 #include "tinycthread.h"
 #include "util.h"
 #include "world.h"
-#include <GLFW/glfw3.h>
-#include <curl/curl.h>
-#include <math.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include "main.h"
 
 #include "gl_render.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #elif CMAKE_CONFIG
-// do nothing
+//do nothing
 #endif
 
 Model model;
