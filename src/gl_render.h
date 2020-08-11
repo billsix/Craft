@@ -1,26 +1,5 @@
 #ifndef _gl_render_h_
 #define _gl_render_h_
-#include <GLFW/glfw3.h>
-#include "tinycthread.h"
-
-// N.B - this whitespace is required so that clang-format
-// does not break the build.
-
-#include "auth.h"
-#include "client.h"
-#include "config.h"
-#include "cube.h"
-#include "db.h"
-#include "item.h"
-#include "lodepng.h"
-#include "main.h"
-#include "map.h"
-#include "matrix.h"
-#include "noise.h"
-#include "sign.h"
-#include "util.h"
-#include "world.h"
-#include <stdlib.h>
 
 void gl_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min,
                  uint32_t y_max);

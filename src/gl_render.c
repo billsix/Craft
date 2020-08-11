@@ -4,12 +4,32 @@
 // N.B - this whitespace is required so that clang-format
 // does not break the build.
 
-#include "gl_render.h"
-#include "util.h"
+#include "tinycthread.h"
 #include <GLFW/glfw3.h>
+
+// N.B - this whitespace is required so that clang-format
+// does not break the build.
+
+#include "auth.h"
+#include "client.h"
+#include "config.h"
+#include "cube.h"
+#include "db.h"
+#include "item.h"
+#include "lodepng.h"
+#include "main.h"
+#include "map.h"
+#include "matrix.h"
+#include "noise.h"
+#include "sign.h"
+#include "util.h"
+#include "world.h"
 #include <config.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "gl_render.h"
 
 // TEXTURE ids
 uint32_t texture;

@@ -3,20 +3,26 @@
 // N.B - this whitespace is required so that clang-format
 // does not break the build.
 
+#include "config.h"
+
+#include "tinycthread.h"
+
+#include "sign.h"
+
+#include "map.h"
+
+#include "main.h"
+
 #include "auth.h"
 #include "client.h"
-#include "config.h"
 #include "cube.h"
 #include "db.h"
 #include "gl_render.h"
 #include "item.h"
-#include "main.h"
-#include "map.h"
 #include "matrix.h"
 #include "noise.h"
-#include "sign.h"
-#include "tinycthread.h"
 #include "util.h"
+#include "vulkan_render.h"
 #include "world.h"
 #include <curl/curl.h>
 #include <math.h>
@@ -126,6 +132,43 @@ struct graphics_renderer gl_renderer = {
     .render_plant = gl_render_plant,
     .render_cube = gl_render_cube,
     .render_crosshairs = gl_render_crosshairs,
+};
+
+// the Vulkan renderer, currently empty
+struct graphics_renderer vulkan_renderer = {
+    .viewport = vulkan_viewport,
+    .clear_depth_buffer = vulkan_clear_depth_buffer,
+    .clear_color_buffer = vulkan_clear_color_buffer,
+    .enable_scissor_test = vulkan_enable_scissor_test,
+    .disable_scissor_test = vulkan_disable_scissor_test,
+    .scissor = vulkan_scissor,
+    .gen_buffer = vulkan_gen_buffer,
+    .del_buffer = vulkan_del_buffer,
+    .gen_faces = vulkan_gen_faces,
+    .make_shader = vulkan_make_shader,
+    .load_shader = vulkan_load_shader,
+    .make_program = vulkan_make_program,
+    .load_program = vulkan_load_program,
+    .load_png_texture = vulkan_load_png_texture,
+    .graphics_loader_init = vulkan_graphics_loader_init,
+    .initiliaze_global_state = vulkan_initiliaze_global_state,
+    .initiliaze_textures = vulkan_initiliaze_textures,
+    .setup_render_chunks = vulkan_setup_render_chunks,
+    .render_chunk = vulkan_render_chunk,
+    .draw_triangles_3d_text = vulkan_draw_triangles_3d_text,
+    .setup_render_signs = vulkan_setup_render_signs,
+    .render_signs = vulkan_render_signs,
+    .render_sign = vulkan_render_sign,
+    .setup_render_players = vulkan_setup_render_players,
+    .render_player = vulkan_render_player,
+    .render_sky = vulkan_render_sky,
+    .draw_lines = vulkan_draw_lines,
+    .render_wireframe = vulkan_render_wireframe,
+    .render_text = vulkan_render_text,
+    .render_item = vulkan_render_item,
+    .render_plant = vulkan_render_plant,
+    .render_cube = vulkan_render_cube,
+    .render_crosshairs = vulkan_render_crosshairs,
 };
 
 // needs to be initialized before the event loop begins
