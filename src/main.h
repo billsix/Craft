@@ -109,9 +109,9 @@ typedef struct {
 typedef struct {
   int id;
   char name[MAX_NAME_LENGTH];
-  PositionAndOrientation state;
-  PositionAndOrientation state1;
-  PositionAndOrientation state2;
+  PositionAndOrientation positionAndOrientation;
+  PositionAndOrientation positionAndOrientation1;
+  PositionAndOrientation positionAndOrientation2;
   uint32_t buffer;
 } Player;
 

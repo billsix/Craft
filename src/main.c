@@ -178,8 +178,8 @@ void update_player(Player *player,
                    float x, float y, float z, float rx, float ry, int interpolate)
 {
   if (interpolate) {
-    PositionAndOrientation *positionAndOrientation1 = &player->state1;
-    PositionAndOrientation *positionAndOrientation2 = &player->state2;
+    PositionAndOrientation *positionAndOrientation1 = &player->positionAndOrientation1;
+    PositionAndOrientation *positionAndOrientation2 = &player->positionAndOrientation2;
     memcpy(positionAndOrientation1, positionAndOrientation2, sizeof(PositionAndOrientation));
       positionAndOrientation2->x = x; positionAndOrientation2->y = y; positionAndOrientation2->z = z; positionAndOrientation2->rx = rx; positionAndOrientation2->ry = ry;
       positionAndOrientation2->t = glfwGetTime();
@@ -191,7 +191,7 @@ void update_player(Player *player,
     }
   }
   else {
-    PositionAndOrientation *positionAndOrientation = &player->state;
+    PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
       positionAndOrientation->x = x; positionAndOrientation->y = y; positionAndOrientation->z = z; positionAndOrientation->rx = rx; positionAndOrientation->ry = ry;
     (*renderer.del_buffer)(player->buffer);
     player->buffer = gen_player_buffer(positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z, positionAndOrientation->rx, positionAndOrientation->ry);
@@ -212,8 +212,8 @@ Player *player_crosshair(Player *player) {
     float player_other_player_distance;
     {
       // initialize player_other_player_distance
-      const PositionAndOrientation * const positionAndOrientation1 = &player->state;
-      const PositionAndOrientation * const positionAndOrientation2 = &other_player->state;
+      const PositionAndOrientation * const positionAndOrientation1 = &player->positionAndOrientation;
+      const PositionAndOrientation * const positionAndOrientation2 = &other_player->positionAndOrientation;
       const float x = positionAndOrientation2->x - positionAndOrientation1->x;
       const float y = positionAndOrientation2->y - positionAndOrientation1->y;
       const float z = positionAndOrientation2->z - positionAndOrientation1->z;
@@ -222,8 +222,8 @@ Player *player_crosshair(Player *player) {
 
     float player_crosshair_distance;
     { // initialize player crosshair distance
-      PositionAndOrientation *positionAndOrientation1 = &player->state;
-      PositionAndOrientation *positionAndOrientation2 = &other_player->state;
+      PositionAndOrientation *positionAndOrientation1 = &player->positionAndOrientation;
+      PositionAndOrientation *positionAndOrientation2 = &other_player->positionAndOrientation;
       float vx, vy, vz;
       get_sight_vector(positionAndOrientation1->rx, positionAndOrientation1->ry, &vx, &vy, &vz);
       vx *= player_other_player_distance;
@@ -394,7 +394,7 @@ int hit_test(
 }
 
 int hit_test_face(Player *player, int *x, int *y, int *z, int *face) {
-  PositionAndOrientation *positionAndOrientation = &player->state;
+  PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
   int w = hit_test(0, positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z, positionAndOrientation->rx, positionAndOrientation->ry, x, y, z);
   if (is_obstacle(w)) {
     int hx, hy, hz;
@@ -944,15 +944,15 @@ void create_chunk(Chunk *chunk, int p, int q) {
 
 void delete_chunks() {
   int count = g->chunk_count;
-  PositionAndOrientation *positionAndOrientation1 = &g->players->state;
-  PositionAndOrientation *positionAndOrientation2 = &(g->players + g->observe1)->state;
-  PositionAndOrientation *positionAndOrientation3 = &(g->players + g->observe2)->state;
-  PositionAndOrientation *states[3] = {positionAndOrientation1, positionAndOrientation2, positionAndOrientation3};
+  PositionAndOrientation *positionAndOrientation1 = &g->players->positionAndOrientation;
+  PositionAndOrientation *positionAndOrientation2 = &(g->players + g->observe1)->positionAndOrientation;
+  PositionAndOrientation *positionAndOrientation3 = &(g->players + g->observe2)->positionAndOrientation;
+  PositionAndOrientation *positionsAndOrientations[3] = {positionAndOrientation1, positionAndOrientation2, positionAndOrientation3};
   for (int i = 0; i < count; i++) {
     Chunk *chunk = g->chunks + i;
     int delete = 1;
     for (int j = 0; j < 3; j++) {
-      PositionAndOrientation *positionAndOrientation = states[j];
+      PositionAndOrientation *positionAndOrientation = positionsAndOrientations[j];
       int p = chunked(positionAndOrientation->x);
       int q = chunked(positionAndOrientation->z);
       if (chunk_distance(chunk, p, q) < g->delete_radius) {
@@ -1025,7 +1025,7 @@ void check_workers() {
 }
 
 void force_chunks(Player *player) {
-  PositionAndOrientation *positionAndOrientation = &player->state;
+  PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
   int p = chunked(positionAndOrientation->x);
   int q = chunked(positionAndOrientation->z);
   int r = 1;
@@ -1049,15 +1049,15 @@ void force_chunks(Player *player) {
 }
 
 void ensure_chunks_worker(Player *player, Worker *worker) {
-  PositionAndOrientation *s = &player->state;
+  PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(
-                matrix, g->width, g->height,
-                s->x, s->y, s->z, s->rx, s->ry, g->fov, g->ortho, g->render_radius);
+          matrix, g->width, g->height,
+          positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z, positionAndOrientation->rx, positionAndOrientation->ry, g->fov, g->ortho, g->render_radius);
   float planes[6][4];
   frustum_planes(planes, g->render_radius, matrix);
-  int p = chunked(s->x);
-  int q = chunked(s->z);
+  int p = chunked(positionAndOrientation->x);
+  int q = chunked(positionAndOrientation->z);
   int r = g->create_radius;
   int start = 0x0fffffff;
   int best_score = start;
@@ -1328,7 +1328,7 @@ void builder_block(int x, int y, int z, int w) {
 
 int render_chunks(Player *player) {
   int result = 0;
-  PositionAndOrientation *positionAndOrientation = &player->state;
+  PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
   ensure_chunks(player);
   int p = chunked(positionAndOrientation->x);
   int q = chunked(positionAndOrientation->z);
@@ -1385,7 +1385,7 @@ void draw_triangles_3d_text(uint32_t buffer, int count) {
 
 
 void render_signs(Player *player) {
-  PositionAndOrientation *positionAndOrientation = &player->state;
+  PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
   int p = chunked(positionAndOrientation->x);
   int q = chunked(positionAndOrientation->z);
   float matrix[16];
@@ -1419,7 +1419,7 @@ void render_sign(Player *player) {
   if (!hit_test_face(player, &x, &y, &z, &face)) {
     return;
   }
-  PositionAndOrientation *positionAndOrientation = &player->state;
+  PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(
           matrix, g->width, g->height,
@@ -1429,7 +1429,7 @@ void render_sign(Player *player) {
 }
 
 void render_players(Player *player) {
-  PositionAndOrientation *positionAndOrientation = &player->state;
+  PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(
           matrix, g->width, g->height,
@@ -1450,7 +1450,7 @@ void render_players(Player *player) {
 }
 
 void render_sky(Player *player, uint32_t buffer) {
-  PositionAndOrientation *positionAndOrientation = &player->state;
+  PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(
           matrix, g->width, g->height,
@@ -1465,7 +1465,7 @@ void draw_lines(uint32_t buffer, int components, int count) {
 
 
 void render_wireframe(Player *player) {
-  PositionAndOrientation *positionAndOrientation = &player->state;
+  PositionAndOrientation *positionAndOrientation = &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(
           matrix, g->width, g->height,
@@ -1813,7 +1813,7 @@ void parse_command(const char *buffer, int forward) {
 }
 
 void on_light() {
-  PositionAndOrientation *positionAndOrientation = &g->players->state;
+  PositionAndOrientation *positionAndOrientation = &g->players->positionAndOrientation;
   int hx, hy, hz;
   int hw = hit_test(0, positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z, positionAndOrientation->rx, positionAndOrientation->ry, &hx, &hy, &hz);
   if (hy > 0 && hy < 256 && is_destructable(hw)) {
@@ -1822,7 +1822,7 @@ void on_light() {
 }
 
 void on_left_click() {
-  PositionAndOrientation *positionAndOrientation = &g->players->state;
+  PositionAndOrientation *positionAndOrientation = &g->players->positionAndOrientation;
   int hx, hy, hz;
   int hw = hit_test(0, positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z, positionAndOrientation->rx, positionAndOrientation->ry, &hx, &hy, &hz);
   if (hy > 0 && hy < 256 && is_destructable(hw)) {
@@ -1835,7 +1835,7 @@ void on_left_click() {
 }
 
 void on_right_click() {
-  PositionAndOrientation *positionAndOrientation = &g->players->state;
+  PositionAndOrientation *positionAndOrientation = &g->players->positionAndOrientation;
   int hx, hy, hz;
   int hw = hit_test(1, positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z, positionAndOrientation->rx, positionAndOrientation->ry, &hx, &hy, &hz);
   if (hy > 0 && hy < 256 && is_obstacle(hw)) {
@@ -1847,7 +1847,7 @@ void on_right_click() {
 }
 
 void on_middle_click() {
-  PositionAndOrientation *positionAndOrientation = &g->players->state;
+  PositionAndOrientation *positionAndOrientation = &g->players->positionAndOrientation;
   int hx, hy, hz;
   const int hw = hit_test(0, positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z, positionAndOrientation->rx, positionAndOrientation->ry, &hx, &hy, &hz);
   for (int i = 0; i < item_count; i++) {
@@ -2050,7 +2050,7 @@ void handle_mouse_input() {
     glfwGetInputMode(g->window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
   static double px = 0;
   static double py = 0;
-  PositionAndOrientation *positionAndOrientation = &g->players->state;
+  PositionAndOrientation *positionAndOrientation = &g->players->positionAndOrientation;
   if (exclusive && (px || py)) {
     double mx, my;
     glfwGetCursorPos(g->window, &mx, &my);
@@ -2080,7 +2080,7 @@ void handle_mouse_input() {
 
 void handle_movement(double dt) {
   static float dy = 0;
-  PositionAndOrientation *positionAndOrientation = &g->players->state;
+  PositionAndOrientation *positionAndOrientation = &g->players->positionAndOrientation;
   int sz = 0;
   int sx = 0;
   if (!g->typing) {
@@ -2210,7 +2210,7 @@ void handle_movement(double dt) {
 
 void parse_buffer(char *buffer) {
   Player *me = g->players;
-  PositionAndOrientation *positionAndOrientation = &g->players->state;
+  PositionAndOrientation *positionAndOrientation = &g->players->positionAndOrientation;
   char *key;
   char *line = tokenize(buffer, "\n", &key);
   while (line) {
@@ -2468,7 +2468,7 @@ int main(int argc, char **argv) {
     uint32_t sky_buffer = gen_sky_buffer();
 
     Player *me = g->players;
-    PositionAndOrientation *positionAndOrientation = &g->players->state;
+    PositionAndOrientation *positionAndOrientation = &g->players->positionAndOrientation;
     me->id = 0;
     me->name[0] = '\0';
     me->buffer = 0;
@@ -2551,8 +2551,8 @@ int main(int argc, char **argv) {
         // interpolate playen
         {
           Player *player = g->players + i;
-          PositionAndOrientation *positionAndOrientation1 = &player->state1;
-          PositionAndOrientation *positionAndOrientation2 = &player->state2;
+          PositionAndOrientation *positionAndOrientation1 = &player->positionAndOrientation1;
+          PositionAndOrientation *positionAndOrientation2 = &player->positionAndOrientation2;
           float t1 = positionAndOrientation2->t - positionAndOrientation1->t;
           float t2 = glfwGetTime() - positionAndOrientation2->t;
           t1 = MIN(t1, 1);

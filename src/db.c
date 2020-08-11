@@ -49,7 +49,7 @@ int db_init(char *path) {
     ");"
     "create unique index if not exists auth.identity_token_username_idx"
     "   on identity_token (username);"
-    "create table if not exists state ("
+    "create table if not exists positionAndOrientation ("
     "   x float not null,"
     "   y float not null,"
     "   z float not null,"
@@ -278,9 +278,9 @@ void db_save_state(float x, float y, float z, float rx, float ry) {
     return;
   }
   static const char *query =
-    "insert into state (x, y, z, rx, ry) values (?, ?, ?, ?, ?);";
+    "insert into positionAndOrientation (x, y, z, rx, ry) values (?, ?, ?, ?, ?);";
   sqlite3_stmt *stmt;
-  sqlite3_exec(db, "delete from state;", NULL, NULL, NULL);
+  sqlite3_exec(db, "delete from positionAndOrientation;", NULL, NULL, NULL);
   sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
   sqlite3_bind_double(stmt, 1, x);
   sqlite3_bind_double(stmt, 2, y);
@@ -296,7 +296,7 @@ int db_load_state(float *x, float *y, float *z, float *rx, float *ry) {
     return 0;
   }
   static const char *query =
-    "select x, y, z, rx, ry from state;";
+    "select x, y, z, rx, ry from positionAndOrientation;";
   int result = 0;
   sqlite3_stmt *stmt;
   sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
