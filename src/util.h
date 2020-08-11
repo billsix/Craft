@@ -5,8 +5,8 @@
 #include <assert.h>
 
 #define PI 3.14159265359
-#define DEGREES(radians) ((radians) * 180 / PI)
-#define RADIANS(degrees) ((degrees) * PI / 180)
+#define DEGREES(radians) ((radians)*180 / PI)
+#define RADIANS(degrees) ((degrees)*PI / 180)
 #define ABS(x) ((x) < 0 ? (-(x)) : (x))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -28,12 +28,12 @@ int rand_int(int n);
 double rand_double();
 void update_fps(FPS *fps);
 char *load_file(const char *path);
-void flip_image_vertical(unsigned char *data, unsigned int width, unsigned int height);
+void flip_image_vertical(unsigned char *data, unsigned int width,
+                         unsigned int height);
 char *tokenize(char *str, const char *delim, char **key);
 int char_width(char input);
 int string_width(const char *input);
 int wrap(const char *input, int max_width, char *output, int max_length);
 float *malloc_faces(int components, int faces);
-
 
 #endif

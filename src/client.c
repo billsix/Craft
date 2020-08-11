@@ -1,6 +1,6 @@
 #ifdef _WIN32
-#include <winsock2.h>
 #include <windows.h>
+#include <winsock2.h>
 #define close closesocket
 #define sleep Sleep
 #else
@@ -8,11 +8,11 @@
 #include <unistd.h>
 #endif
 
+#include "client.h"
+#include "tinycthread.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "client.h"
-#include "tinycthread.h"
 
 #define QUEUE_SIZE 1048576
 #define RECV_SIZE 4096
@@ -27,17 +27,11 @@ static int qsize = 0;
 static thrd_t recv_thread;
 static mtx_t mutex;
 
-void client_enable() {
-  client_enabled = 1;
-}
+void client_enable() { client_enabled = 1; }
 
-void client_disable() {
-  client_enabled = 0;
-}
+void client_disable() { client_enabled = 0; }
 
-int get_client_enabled() {
-  return client_enabled;
-}
+int get_client_enabled() { return client_enabled; }
 
 int client_sendall(int sd, char *data, int length) {
   if (!client_enabled) {
@@ -89,16 +83,17 @@ void client_position(float x, float y, float z, float rx, float ry) {
     return;
   }
   static float px, py, pz, prx, pry = 0;
-  float distance =
-    (px - x) * (px - x) +
-    (py - y) * (py - y) +
-    (pz - z) * (pz - z) +
-    (prx - rx) * (prx - rx) +
-    (pry - ry) * (pry - ry);
+  float distance = (px - x) * (px - x) + (py - y) * (py - y) +
+                   (pz - z) * (pz - z) + (prx - rx) * (prx - rx) +
+                   (pry - ry) * (pry - ry);
   if (distance < 0.0001) {
     return;
   }
-  px = x; py = y; pz = z; prx = rx; pry = ry;
+  px = x;
+  py = y;
+  pz = z;
+  prx = rx;
+  pry = ry;
   char buffer[1024];
   snprintf(buffer, 1024, "P,%.2f,%.2f,%.2f,%.2f,%.2f\n", x, y, z, rx, ry);
   client_send(buffer);
@@ -184,8 +179,7 @@ int recv_worker(void *arg) {
       if (running) {
         perror("recv");
         exit(1);
-      }
-      else {
+      } else {
         break;
       }
     }

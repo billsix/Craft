@@ -1,6 +1,6 @@
+#include "sign.h"
 #include <stdlib.h>
 #include <string.h>
-#include "sign.h"
 
 void sign_list_alloc(SignList *list, int capacity) {
   list->capacity = capacity;
@@ -8,9 +8,7 @@ void sign_list_alloc(SignList *list, int capacity) {
   list->data = (Sign *)calloc(capacity, sizeof(Sign));
 }
 
-void sign_list_free(SignList *list) {
-  free(list->data);
-}
+void sign_list_free(SignList *list) { free(list->data); }
 
 void sign_list_grow(SignList *list) {
   SignList new_list;
@@ -29,9 +27,8 @@ void _sign_list_add(SignList *list, Sign *sign) {
   memcpy(e, sign, sizeof(Sign));
 }
 
-void sign_list_add(
-                   SignList *list, int x, int y, int z, int face, const char *text)
-{
+void sign_list_add(SignList *list, int x, int y, int z, int face,
+                   const char *text) {
   sign_list_remove(list, x, y, z, face);
   Sign sign;
   sign.x = x;

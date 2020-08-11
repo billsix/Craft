@@ -1,13 +1,7 @@
 #ifndef _ring_h_
 #define _ring_h_
 
-typedef enum {
-              BLOCK,
-              LIGHT,
-              KEY,
-              COMMIT,
-              EXIT
-} RingEntryType;
+typedef enum { BLOCK, LIGHT, KEY, COMMIT, EXIT } RingEntryType;
 
 typedef struct {
   RingEntryType type;

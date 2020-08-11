@@ -1,6 +1,6 @@
+#include "ring.h"
 #include <stdlib.h>
 #include <string.h>
-#include "ring.h"
 
 void ring_alloc(Ring *ring, int capacity) {
   ring->capacity = capacity;
@@ -9,13 +9,9 @@ void ring_alloc(Ring *ring, int capacity) {
   ring->data = (RingEntry *)calloc(capacity, sizeof(RingEntry));
 }
 
-void ring_free(Ring *ring) {
-  free(ring->data);
-}
+void ring_free(Ring *ring) { free(ring->data); }
 
-int ring_empty(Ring *ring) {
-  return ring->start == ring->end;
-}
+int ring_empty(Ring *ring) { return ring->start == ring->end; }
 
 int ring_full(Ring *ring) {
   return ring->start == (ring->end + 1) % ring->capacity;
@@ -24,8 +20,7 @@ int ring_full(Ring *ring) {
 int ring_size(Ring *ring) {
   if (ring->end >= ring->start) {
     return ring->end - ring->start;
-  }
-  else {
+  } else {
     return ring->capacity - (ring->start - ring->end);
   }
 }

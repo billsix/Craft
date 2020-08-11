@@ -3,7 +3,6 @@
 
 #define EMPTY_ENTRY(entry) ((entry)->value == 0)
 
-
 typedef union {
   unsigned int value;
   struct {

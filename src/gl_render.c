@@ -1,11 +1,11 @@
 #define GL3W_IMPLEMENTATION 1
-#include "gl3w.h"
 #include "gl_render.h"
-#include <GLFW/glfw3.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <config.h>
+#include "gl3w.h"
 #include "util.h"
+#include <GLFW/glfw3.h>
+#include <config.h>
+#include <stdint.h>
+#include <stdio.h>
 
 // TEXTURE ids
 uint32_t texture;
@@ -18,31 +18,23 @@ Line_Attributes line_attrib;
 Text_Attributes text_attrib;
 Sky_Attributes sky_attrib;
 
-
-void gl_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min, uint32_t y_max){
+void gl_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min,
+                 uint32_t y_max) {
   glViewport(x_min, x_max, y_min, y_max);
 }
 
-void gl_clear_depth_buffer(){
-  glClear(GL_DEPTH_BUFFER_BIT);
-}
+void gl_clear_depth_buffer() { glClear(GL_DEPTH_BUFFER_BIT); }
 
-void gl_clear_color_buffer(){
-  glClear(GL_COLOR_BUFFER_BIT);
-}
+void gl_clear_color_buffer() { glClear(GL_COLOR_BUFFER_BIT); }
 
-void gl_enable_scissor_test(){
-  glEnable(GL_SCISSOR_TEST);
-}
+void gl_enable_scissor_test() { glEnable(GL_SCISSOR_TEST); }
 
-void gl_disable_scissor_test(){
-  glDisable(GL_SCISSOR_TEST);
-}
+void gl_disable_scissor_test() { glDisable(GL_SCISSOR_TEST); }
 
-void gl_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width, uint32_t y_height){
+void gl_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width,
+                uint32_t y_height) {
   glScissor(x_min, y_min, x_width, y_height);
 }
-
 
 uint32_t gl_gen_buffer(size_t size, float *data) {
   uint32_t buffer;
@@ -53,9 +45,7 @@ uint32_t gl_gen_buffer(size_t size, float *data) {
   return buffer;
 }
 
-void gl_del_buffer(uint32_t buffer) {
-  glDeleteBuffers(1, &buffer);
-}
+void gl_del_buffer(uint32_t buffer) { glDeleteBuffers(1, &buffer); }
 
 uint32_t gl_gen_faces(int components, int faces, float *data) {
   uint32_t buffer = gl_gen_buffer(sizeof(float) * 6 * components * faces, data);
@@ -123,7 +113,8 @@ void gl_load_png_texture(const char *file_name) {
   unsigned int width, height;
   error = lodepng_decode32_file(&data, &width, &height, file_name);
   if (error) {
-    fprintf(stderr, "load_png_texture %s failed, error %u: %s\n", file_name, error, lodepng_error_text(error));
+    fprintf(stderr, "load_png_texture %s failed, error %u: %s\n", file_name,
+            error, lodepng_error_text(error));
     exit(1);
   }
   flip_image_vertical(data, width, height);
@@ -132,61 +123,52 @@ void gl_load_png_texture(const char *file_name) {
   free(data);
 }
 
-void GLMessageCallback(GLenum source,
-                       GLenum type,
-                       GLuint id,
-                       GLenum severity,
-                       GLsizei length,
-                       const GLchar* message,
-                       const void* userParam)
-{
+void GLMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+                       GLsizei length, const GLchar *message,
+                       const void *userParam) {
   char severity_name[100];
-  switch(severity)
-    {
-    case GL_DEBUG_SEVERITY_HIGH:
-      strcpy(severity_name, "SEVERITY HIGH");
-      break;
-    case GL_DEBUG_SEVERITY_MEDIUM:
-      strcpy(severity_name, "SEVERITY MED");
-      break;
-    case GL_DEBUG_SEVERITY_LOW:
-      strcpy(severity_name, "SEVERITY LOW");
-      break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-      strcpy(severity_name, "SEVERITY NOTIFICATION");
-      break;
-
-    }
-  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = %s, message = %s\n",
-           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-            type, severity_name, message );
+  switch (severity) {
+  case GL_DEBUG_SEVERITY_HIGH:
+    strcpy(severity_name, "SEVERITY HIGH");
+    break;
+  case GL_DEBUG_SEVERITY_MEDIUM:
+    strcpy(severity_name, "SEVERITY MED");
+    break;
+  case GL_DEBUG_SEVERITY_LOW:
+    strcpy(severity_name, "SEVERITY LOW");
+    break;
+  case GL_DEBUG_SEVERITY_NOTIFICATION:
+    strcpy(severity_name, "SEVERITY NOTIFICATION");
+    break;
+  }
+  fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = %s, message = %s\n",
+          (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type,
+          severity_name, message);
 }
 
-
-int gl_graphics_loader_init(){
+int gl_graphics_loader_init() {
   int return_code = -1; // error
   if (gl3w_init()) {
-      goto exit;
+    goto exit;
   }
   printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
          glGetString(GL_SHADING_LANGUAGE_VERSION));
   if (gl3w_is_supported(3, 3)) {
-      fprintf(stderr, "OpenGL 3.3 is supported\n");
-      return_code = 0;
+    fprintf(stderr, "OpenGL 3.3 is supported\n");
+    return_code = 0;
   }
   if (gl3w_is_supported(4, 3)) {
     fprintf(stderr, "OpenGL 4.3 is supported\n");
-    glEnable( GL_DEBUG_OUTPUT );
-    glDebugMessageCallback( GLMessageCallback, 0 );
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(GLMessageCallback, 0);
     return_code = 0;
   }
 
-    exit:
-    return return_code;
+exit:
+  return return_code;
 }
 
-
-void gl_initiliaze_global_state(){
+void gl_initiliaze_global_state() {
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
   glLogicOp(GL_INVERT);
@@ -197,55 +179,50 @@ void gl_initiliaze_global_state(){
   int32_t program = gl_load_program(SHADER_DIR "block_vertex.glsl",
                                     SHADER_DIR "block_fragment.glsl");
   // initiliaze shaders
-  block_attrib = (Block_Attributes)
-    {
-     .program = program,
-     .position = glGetAttribLocation(program, "position"),
-     .normal = glGetAttribLocation(program, "normal"),
-     .uv = glGetAttribLocation(program, "uv"),
-     .matrix = glGetUniformLocation(program, "matrix"),
-     .sampler = glGetUniformLocation(program, "sampler"),
-     .camera = glGetUniformLocation(program, "camera"),
-     .timer = glGetUniformLocation(program, "timer"),
-     .sky_sampler = glGetUniformLocation(program, "sky_sampler"),
-     .daylight = glGetUniformLocation(program, "daylight"),
-     .fog_distance = glGetUniformLocation(program, "fog_distance"),
-     .ortho = glGetUniformLocation(program, "ortho")
-    };
+  block_attrib = (Block_Attributes){
+      .program = program,
+      .position = glGetAttribLocation(program, "position"),
+      .normal = glGetAttribLocation(program, "normal"),
+      .uv = glGetAttribLocation(program, "uv"),
+      .matrix = glGetUniformLocation(program, "matrix"),
+      .sampler = glGetUniformLocation(program, "sampler"),
+      .camera = glGetUniformLocation(program, "camera"),
+      .timer = glGetUniformLocation(program, "timer"),
+      .sky_sampler = glGetUniformLocation(program, "sky_sampler"),
+      .daylight = glGetUniformLocation(program, "daylight"),
+      .fog_distance = glGetUniformLocation(program, "fog_distance"),
+      .ortho = glGetUniformLocation(program, "ortho")};
 
-  program = gl_load_program(SHADER_DIR "line_vertex.glsl", SHADER_DIR "line_fragment.glsl");
-  line_attrib = (Line_Attributes)
-    {
-     .program = program,
-     .position = glGetAttribLocation(program, "position"),
-     .matrix = glGetUniformLocation(program, "matrix")
-    };
+  program = gl_load_program(SHADER_DIR "line_vertex.glsl",
+                            SHADER_DIR "line_fragment.glsl");
+  line_attrib =
+      (Line_Attributes){.program = program,
+                        .position = glGetAttribLocation(program, "position"),
+                        .matrix = glGetUniformLocation(program, "matrix")};
 
-  program = gl_load_program(SHADER_DIR "text_vertex.glsl", SHADER_DIR "text_fragment.glsl");
-  text_attrib = (Text_Attributes)
-    {
-     .program = program,
-     .position = glGetAttribLocation(program, "position"),
-     .uv = glGetAttribLocation(program, "uv"),
-     .matrix = glGetUniformLocation(program, "matrix"),
-     .sampler = glGetUniformLocation(program, "sampler"),
-     .is_sign = glGetUniformLocation(program, "is_sign")
-    };
+  program = gl_load_program(SHADER_DIR "text_vertex.glsl",
+                            SHADER_DIR "text_fragment.glsl");
+  text_attrib =
+      (Text_Attributes){.program = program,
+                        .position = glGetAttribLocation(program, "position"),
+                        .uv = glGetAttribLocation(program, "uv"),
+                        .matrix = glGetUniformLocation(program, "matrix"),
+                        .sampler = glGetUniformLocation(program, "sampler"),
+                        .is_sign = glGetUniformLocation(program, "is_sign")};
 
-  program = gl_load_program(SHADER_DIR "sky_vertex.glsl", SHADER_DIR "sky_fragment.glsl");
-  sky_attrib = (Sky_Attributes)
-    {
-     .program = program,
-     .position = glGetAttribLocation(program, "position"),
-     .normal = glGetAttribLocation(program, "normal"),
-     .uv = glGetAttribLocation(program, "uv"),
-     .matrix = glGetUniformLocation(program, "matrix"),
-     .sampler = glGetUniformLocation(program, "sampler"),
-     .timer = glGetUniformLocation(program, "timer")
-    };
+  program = gl_load_program(SHADER_DIR "sky_vertex.glsl",
+                            SHADER_DIR "sky_fragment.glsl");
+  sky_attrib =
+      (Sky_Attributes){.program = program,
+                       .position = glGetAttribLocation(program, "position"),
+                       .normal = glGetAttribLocation(program, "normal"),
+                       .uv = glGetAttribLocation(program, "uv"),
+                       .matrix = glGetUniformLocation(program, "matrix"),
+                       .sampler = glGetUniformLocation(program, "sampler"),
+                       .timer = glGetUniformLocation(program, "timer")};
 }
 
-void gl_initiliaze_textures(){
+void gl_initiliaze_textures() {
 #define TEXTURE_DIR RESOURCE_PATH "/textures/"
   glActiveTexture(GL_TEXTURE0);
   // LOAD TEXTURES //
@@ -276,10 +253,13 @@ void gl_initiliaze_textures(){
   gl_load_png_texture(TEXTURE_DIR "sign.png");
 }
 
-void gl_setup_render_chunks(float *matrix, PositionAndOrientation *positionAndOrientation, float light){
+void gl_setup_render_chunks(float *matrix,
+                            PositionAndOrientation *positionAndOrientation,
+                            float light) {
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
-  glUniform3f(block_attrib.camera, positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z);
+  glUniform3f(block_attrib.camera, positionAndOrientation->x,
+              positionAndOrientation->y, positionAndOrientation->z);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
   glUniform1i(block_attrib.sampler, 0);
@@ -292,7 +272,7 @@ void gl_setup_render_chunks(float *matrix, PositionAndOrientation *positionAndOr
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
-void gl_render_chunk(Chunk *chunk){
+void gl_render_chunk(Chunk *chunk) {
   // TODO -
   // make and initilize the VAO once at initilization time.
   // only thing that should happen here
@@ -304,7 +284,7 @@ void gl_render_chunk(Chunk *chunk){
   // draw chunk
   uint32_t vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
-  glBindVertexArray(vertexArrayID );
+  glBindVertexArray(vertexArrayID);
   glBindBuffer(GL_ARRAY_BUFFER, chunk->buffer);
   glEnableVertexAttribArray(block_attrib.position);
   glEnableVertexAttribArray(block_attrib.normal);
@@ -312,7 +292,7 @@ void gl_render_chunk(Chunk *chunk){
   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, 0);
   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
+                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 3));
   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, chunk->faces * 6);
@@ -321,14 +301,12 @@ void gl_render_chunk(Chunk *chunk){
   glDisableVertexAttribArray(block_attrib.uv);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glDeleteVertexArrays(1, &vertexArrayID);
-
-
 }
 
-void gl_draw_triangles_3d_text(uint32_t buffer, int count){
+void gl_draw_triangles_3d_text(uint32_t buffer, int count) {
   uint32_t vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
-  glBindVertexArray(vertexArrayID );
+  glBindVertexArray(vertexArrayID);
 
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
   glEnableVertexAttribArray(text_attrib.position);
@@ -345,7 +323,7 @@ void gl_draw_triangles_3d_text(uint32_t buffer, int count){
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_setup_render_signs(float *matrix){
+void gl_setup_render_signs(float *matrix) {
   glUseProgram(text_attrib.program);
   glUniformMatrix4fv(text_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -356,21 +334,20 @@ void gl_setup_render_signs(float *matrix){
   glUniform1i(text_attrib.is_sign, 1);
 }
 
-void gl_render_signs(Chunk *chunk){
+void gl_render_signs(Chunk *chunk) {
   // draw signs
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(-8, -1024);
   // TODO
   //  figure out why sign_buffer can ever
   //  be 0
-  if(chunk->sign_buffer != 0){
+  if (chunk->sign_buffer != 0) {
     gl_draw_triangles_3d_text(chunk->sign_buffer, chunk->sign_faces * 6);
   }
   glDisable(GL_POLYGON_OFFSET_FILL);
-
 }
 
-void gl_render_sign(float *matrix, int x, int y, int z, int face){
+void gl_render_sign(float *matrix, int x, int y, int z, int face) {
   glUseProgram(text_attrib.program);
   glUniformMatrix4fv(text_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -395,18 +372,19 @@ void gl_render_sign(float *matrix, int x, int y, int z, int face){
   gl_del_buffer(buffer);
 }
 
-
-void gl_setup_render_players(float *matrix, PositionAndOrientation *positionAndOrientation){
+void gl_setup_render_players(float *matrix,
+                             PositionAndOrientation *positionAndOrientation) {
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
-  glUniform3f(block_attrib.camera, positionAndOrientation->x, positionAndOrientation->y, positionAndOrientation->z);
+  glUniform3f(block_attrib.camera, positionAndOrientation->x,
+              positionAndOrientation->y, positionAndOrientation->z);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
   glUniform1i(block_attrib.sampler, 0);
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
-void gl_render_player(Player *other_player){
+void gl_render_player(Player *other_player) {
   // TODO -
   // make and initilize the VAO once at initilization time.
   // only thing that should happen here
@@ -418,7 +396,7 @@ void gl_render_player(Player *other_player){
   // draw player
   uint32_t vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
-  glBindVertexArray(vertexArrayID );
+  glBindVertexArray(vertexArrayID);
   glBindBuffer(GL_ARRAY_BUFFER, other_player->buffer);
   glEnableVertexAttribArray(block_attrib.position);
   glEnableVertexAttribArray(block_attrib.normal);
@@ -426,7 +404,7 @@ void gl_render_player(Player *other_player){
   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, 0);
   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
+                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 3));
   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -437,7 +415,7 @@ void gl_render_player(Player *other_player){
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_sky(uint32_t buffer, float *matrix){
+void gl_render_sky(uint32_t buffer, float *matrix) {
   glUseProgram(sky_attrib.program);
   glUniformMatrix4fv(sky_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -455,14 +433,14 @@ void gl_render_sky(uint32_t buffer, float *matrix){
 
   uint32_t vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
-  glBindVertexArray(vertexArrayID );
+  glBindVertexArray(vertexArrayID);
 
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
   glEnableVertexAttribArray(sky_attrib.position);
   // TODO
   // Figure out why I have to do this check.
   // If I don't, I will get an OpenGL error
-  if((int) sky_attrib.normal >= 0) {
+  if ((int)sky_attrib.normal >= 0) {
     glEnableVertexAttribArray(sky_attrib.normal);
   }
   glEnableVertexAttribArray(sky_attrib.uv);
@@ -471,18 +449,18 @@ void gl_render_sky(uint32_t buffer, float *matrix){
   // TODO
   // Figure out why I have to do this check.
   // If I don't, I will get an OpenGL error
-  if((int) sky_attrib.normal >= 0) {
+  if ((int)sky_attrib.normal >= 0) {
     glVertexAttribPointer(sky_attrib.normal, 3, GL_FLOAT, GL_FALSE,
                           sizeof(float) * 8, (GLvoid *)(sizeof(float) * 3));
   }
-  glVertexAttribPointer(sky_attrib.uv, 2, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 8, (GLvoid *)(sizeof(float) * 6));
+  glVertexAttribPointer(sky_attrib.uv, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8,
+                        (GLvoid *)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, 512 * 3);
   glDisableVertexAttribArray(sky_attrib.position);
   // TODO
   // Figure out why I have to do this check.
   // If I don't, I will get an OpenGL error
-  if((int) sky_attrib.normal >= 0) {
+  if ((int)sky_attrib.normal >= 0) {
     glDisableVertexAttribArray(sky_attrib.normal);
   }
   glDisableVertexAttribArray(sky_attrib.uv);
@@ -491,16 +469,16 @@ void gl_render_sky(uint32_t buffer, float *matrix){
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_draw_lines(uint32_t buffer, int components, int count){
+void gl_draw_lines(uint32_t buffer, int components, int count) {
 
   uint32_t vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
-  glBindVertexArray(vertexArrayID );
+  glBindVertexArray(vertexArrayID);
 
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
   glEnableVertexAttribArray(line_attrib.position);
-  glVertexAttribPointer(
-                        line_attrib.position, components, GL_FLOAT, GL_FALSE, 0, 0);
+  glVertexAttribPointer(line_attrib.position, components, GL_FLOAT, GL_FALSE, 0,
+                        0);
   glDrawArrays(GL_LINES, 0, count);
   glDisableVertexAttribArray(line_attrib.position);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -508,7 +486,7 @@ void gl_draw_lines(uint32_t buffer, int components, int count){
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_wireframe(float *matrix, int hx, int hy, int hz){
+void gl_render_wireframe(float *matrix, int hx, int hy, int hz) {
   glUseProgram(line_attrib.program);
   glLineWidth(1);
   glEnable(GL_COLOR_LOGIC_OP);
@@ -525,7 +503,8 @@ void gl_render_wireframe(float *matrix, int hx, int hy, int hz){
   glDisable(GL_COLOR_LOGIC_OP);
 }
 
-void gl_render_text(float *matrix, int justify, float x, float y, float n, char *text){
+void gl_render_text(float *matrix, int justify, float x, float y, float n,
+                    char *text) {
   glUseProgram(text_attrib.program);
   glUniformMatrix4fv(text_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -552,7 +531,7 @@ void gl_render_text(float *matrix, int justify, float x, float y, float n, char 
 
   uint32_t vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
-  glBindVertexArray(vertexArrayID );
+  glBindVertexArray(vertexArrayID);
 
   glBindBuffer(GL_ARRAY_BUFFER, text_buffer);
   glEnableVertexAttribArray(text_attrib.position);
@@ -573,8 +552,7 @@ void gl_render_text(float *matrix, int justify, float x, float y, float n, char 
   gl_del_buffer(text_buffer);
 }
 
-
-void gl_render_item(float *matrix){
+void gl_render_item(float *matrix) {
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
   glUniform3f(block_attrib.camera, 0, 0, 5);
@@ -584,10 +562,10 @@ void gl_render_item(float *matrix){
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
-void gl_render_plant(uint32_t plant_buffer){
+void gl_render_plant(uint32_t plant_buffer) {
   uint32_t vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
-  glBindVertexArray(vertexArrayID );
+  glBindVertexArray(vertexArrayID);
   glBindBuffer(GL_ARRAY_BUFFER, plant_buffer);
   glEnableVertexAttribArray(block_attrib.position);
   glEnableVertexAttribArray(block_attrib.normal);
@@ -595,7 +573,7 @@ void gl_render_plant(uint32_t plant_buffer){
   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, 0);
   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
+                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 3));
   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, 24);
@@ -606,7 +584,7 @@ void gl_render_plant(uint32_t plant_buffer){
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_cube(uint32_t cube_buffer){
+void gl_render_cube(uint32_t cube_buffer) {
   // TODO -
   // make and initilize the VAO once at initilization time.
   // only thing that should happen here
@@ -615,10 +593,9 @@ void gl_render_cube(uint32_t cube_buffer){
   // 4) draw arrays 5) cleanup
   // also, remove magic numbers, like 36
 
-
   uint32_t vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
-  glBindVertexArray(vertexArrayID );
+  glBindVertexArray(vertexArrayID);
   glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
   glEnableVertexAttribArray(block_attrib.position);
   glEnableVertexAttribArray(block_attrib.normal);
@@ -626,7 +603,7 @@ void gl_render_cube(uint32_t cube_buffer){
   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, 0);
   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
+                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 3));
   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -637,18 +614,17 @@ void gl_render_cube(uint32_t cube_buffer){
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_crosshairs(uint32_t crosshair_buffer, float *matrix){
+void gl_render_crosshairs(uint32_t crosshair_buffer, float *matrix) {
   glUseProgram(line_attrib.program);
   // TODO -
   //  do something with this, remove it, etc
   //  commented out because in core profile,
   //  a linewidth greater than 1.0 results
   //  in an invalid value error
-  //glLineWidth(4.0 * ((float)g->scale));
+  // glLineWidth(4.0 * ((float)g->scale));
   glEnable(GL_COLOR_LOGIC_OP);
   glUniformMatrix4fv(line_attrib.matrix, 1, GL_FALSE, matrix);
 
   gl_draw_lines(crosshair_buffer, 2, 4);
   glDisable(GL_COLOR_LOGIC_OP);
-
 }

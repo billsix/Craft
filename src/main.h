@@ -1,7 +1,6 @@
 #ifndef _main_h_
 #define _main_h_
 
-
 #define MAX_CHUNKS 8192
 #define MAX_PLAYERS 128
 #define WORKERS 4
@@ -20,7 +19,6 @@
 #define WORKER_IDLE 0
 #define WORKER_BUSY 1
 #define WORKER_DONE 2
-
 
 typedef struct {
   Map map;
@@ -85,7 +83,7 @@ typedef struct {
    * it follows the right hand rule, so positive theta
    * implies that y rotates towards z, and that z rotates
    * towards -y
-  */
+   */
   float rx;
   /* the amount of radians rotated around the y axis.
    * it follows the right hand rule, so z rotates towards
@@ -97,7 +95,7 @@ typedef struct {
    * First, the rotation around the y axis will happen first,
    * looking side to side.  Then, the rotation around x will be
    * applied, to look up or down.
-  */
+   */
   float ry;
 
   /*
@@ -114,7 +112,6 @@ typedef struct {
   PositionAndOrientation positionAndOrientation2;
   uint32_t buffer;
 } Player;
-
 
 typedef struct {
   GLFWwindow *window;
@@ -196,15 +193,10 @@ typedef struct {
   uint32_t timer;
 } Sky_Attributes;
 
-
-extern Model *g ;
+extern Model *g;
 
 float time_of_day();
-int _gen_sign_buffer(float *data,
-                     float x,
-                     float y,
-                     float z,
-                     int face,
+int _gen_sign_buffer(float *data, float x, float y, float z, int face,
                      const char *text);
 
 #endif

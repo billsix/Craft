@@ -1,8 +1,8 @@
+#include "auth.h"
 #include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "auth.h"
 
 #define MAX_POST_LENGTH 1024
 #define MAX_RESPONSE_LENGTH 1024
@@ -18,9 +18,8 @@ size_t write_function(char *data, size_t size, size_t count, void *arg) {
   return length;
 }
 
-int get_access_token(
-                     char *result, int length, char *username, char *identity_token)
-{
+int get_access_token(char *result, int length, char *username,
+                     char *identity_token) {
   static char url[] = "https://craft.michaelfogleman.com/api/1/identity";
   strncpy(result, "", length);
   CURL *curl = curl_easy_init();
@@ -28,8 +27,8 @@ int get_access_token(
     char post[MAX_POST_LENGTH] = {0};
     char response[MAX_RESPONSE_LENGTH] = {0};
     long http_code = 0;
-    snprintf(post, MAX_POST_LENGTH, "username=%s&identity_token=%s",
-             username, identity_token);
+    snprintf(post, MAX_POST_LENGTH, "username=%s&identity_token=%s", username,
+             identity_token);
 #ifdef _WIN32
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
 #endif

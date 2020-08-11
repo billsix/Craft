@@ -1,6 +1,6 @@
+#include "map.h"
 #include <stdlib.h>
 #include <string.h>
-#include "map.h"
 
 int hash_int(int key) {
   key = ~key + (key << 15);
@@ -28,9 +28,7 @@ void map_alloc(Map *map, int dx, int dy, int dz, int mask) {
   map->data = (MapEntry *)calloc(map->mask + 1, sizeof(MapEntry));
 }
 
-void map_free(Map *map) {
-  free(map->data);
-}
+void map_free(Map *map) { free(map->data); }
 
 void map_copy(Map *dst, Map *src) {
   dst->dx = src->dx;
@@ -62,8 +60,7 @@ int map_set(Map *map, int x, int y, int z, int w) {
       entry->e.w = w;
       return 1;
     }
-  }
-  else if (w) {
+  } else if (w) {
     entry->e.x = x;
     entry->e.y = y;
     entry->e.z = z;
@@ -82,9 +79,12 @@ int map_get(Map *map, int x, int y, int z) {
   x -= map->dx;
   y -= map->dy;
   z -= map->dz;
-  if (x < 0 || x > 255) return 0;
-  if (y < 0 || y > 255) return 0;
-  if (z < 0 || z > 255) return 0;
+  if (x < 0 || x > 255)
+    return 0;
+  if (y < 0 || y > 255)
+    return 0;
+  if (z < 0 || z > 255)
+    return 0;
   MapEntry *entry = map->data + index;
   while (!EMPTY_ENTRY(entry)) {
     if (entry->e.x == x && entry->e.y == y && entry->e.z == z) {
