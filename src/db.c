@@ -1,3 +1,6 @@
+#include "map.h"
+#include "sign.h"
+
 #include "db.h"
 #include "ring.h"
 #include "sqlite3.h"

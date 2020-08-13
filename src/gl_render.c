@@ -10,21 +10,16 @@
 // N.B - this whitespace is required so that clang-format
 // does not break the build.
 
-#include "auth.h"
-#include "client.h"
 #include "config.h"
 #include "cube.h"
-#include "db.h"
-#include "item.h"
 #include "lodepng.h"
-#include "main.h"
 #include "map.h"
-#include "matrix.h"
-#include "noise.h"
 #include "sign.h"
 #include "util.h"
-#include "world.h"
-#include <config.h>
+#include "cube.h"
+#include "lodepng.h"
+
+#include "main.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,9 +1,6 @@
 #ifndef _db_h_
 #define _db_h_
 
-#include "map.h"
-#include "sign.h"
-
 void db_enable();
 void db_disable();
 int get_db_enabled();

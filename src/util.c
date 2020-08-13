@@ -1,5 +1,4 @@
 #include "util.h"
-#include "matrix.h"
 #include <GLFW/glfw3.h>
 #include <errno.h>
 #include <math.h>

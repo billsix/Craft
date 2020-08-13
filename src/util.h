@@ -1,9 +1,6 @@
 #ifndef _util_h_
 #define _util_h_
 
-#include "config.h"
-#include <assert.h>
-
 #define PI 3.14159265359
 #define DEGREES(radians) ((radians)*180 / PI)
 #define RADIANS(degrees) ((degrees)*PI / 180)
