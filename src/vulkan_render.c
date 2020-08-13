@@ -1,3 +1,5 @@
+#ifndef MacOS
+
 #include "tinycthread.h"
 #include <GLFW/glfw3.h>
 
@@ -105,3 +107,5 @@ void vulkan_render_plant(uint32_t plant_buffer) {}
 void vulkan_render_cube(uint32_t cube_buffer) {}
 
 void vulkan_render_crosshairs(uint32_t crosshair_buffer, float *matrix) {}
+
+#endif

@@ -22,7 +22,11 @@
 #include "matrix.h"
 #include "noise.h"
 #include "util.h"
+
+#ifndef MacOS
 #include "vulkan_render.h"
+#endif
+
 #include "world.h"
 #include <curl/curl.h>
 #include <math.h>
@@ -134,6 +138,7 @@ struct graphics_renderer gl_renderer = {
     .render_crosshairs = gl_render_crosshairs,
 };
 
+#ifndef MacOS
 // the Vulkan renderer, currently empty
 struct graphics_renderer vulkan_renderer = {
     .viewport = vulkan_viewport,
@@ -170,6 +175,7 @@ struct graphics_renderer vulkan_renderer = {
     .render_cube = vulkan_render_cube,
     .render_crosshairs = vulkan_render_crosshairs,
 };
+#endif
 
 // needs to be initialized before the event loop begins
 struct graphics_renderer renderer;

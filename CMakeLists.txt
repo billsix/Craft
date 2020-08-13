@@ -13,6 +13,19 @@ if(APPLE OR WIN32)
      endif(WIN32)
 endif()
 
+if(UNIX AND NOT APPLE)
+    add_definitions(-DLinux=1) 
+endif()
+
+if(UNIX AND APPLE)
+    add_definitions(-DMacOS=1) 
+endif()
+
+if(WIN32)
+    add_definitions(-DWindows=1) 
+endif()
+
+
 # set SOURCE_FILES to all of the c files
 FILE(GLOB SOURCE_FILES src/*.c)
 

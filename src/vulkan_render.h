@@ -1,6 +1,8 @@
 #ifndef _vulkan_render_h_
 #define _vulkan_render_h_
 
+#ifndef MacOS
+
 void vulkan_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min,
                      uint32_t y_max);
 
@@ -62,4 +64,5 @@ void vulkan_render_cube(uint32_t cube_buffer);
 
 void vulkan_render_crosshairs(uint32_t crosshair_buffer, float *matrix);
 
+#endif
 #endif
