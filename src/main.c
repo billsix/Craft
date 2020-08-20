@@ -9,11 +9,7 @@
 
 #include "config.h"
 
-#ifdef Windows
 #include "tinycthread.h"
-#else
-#include <threads.h>
-#endif
 
 #include "sign.h"
 
