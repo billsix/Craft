@@ -1,6 +1,7 @@
 #ifdef _WIN32
-#include <windows.h>
 #include <winsock2.h>
+
+#include <windows.h>
 #define close closesocket
 #define sleep Sleep
 #else

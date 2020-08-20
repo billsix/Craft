@@ -1,7 +1,11 @@
-#include <GLFW/glfw3.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
-// N.B - this whitespace is required so that clang-format
-// does not break the build.
+#include <GLFW/glfw3.h>
 
 #include "config.h"
 
@@ -29,12 +33,6 @@
 
 #include "world.h"
 #include <curl/curl.h>
-#include <math.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

@@ -1,8 +1,10 @@
 #define GL3W_IMPLEMENTATION 1
-#include "gl3w.h"
 
-// N.B - this whitespace is required so that clang-format
-// does not break the build.
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "gl3w.h"
 
 #include "tinycthread.h"
 #include <GLFW/glfw3.h>
