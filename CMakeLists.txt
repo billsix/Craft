@@ -49,8 +49,8 @@ add_executable(
     deps/sqlite/sqlite3.c
     deps/tinycthread/tinycthread.c)
 
-# build using the C99 standard
-set_property(TARGET craft PROPERTY C_STANDARD 99)
+# build using the C11 standard
+set_property(TARGET craft PROPERTY C_STANDARD 11)
 
 # add include directories for compilation
 if(APPLE)
