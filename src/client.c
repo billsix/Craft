@@ -10,7 +10,13 @@
 #endif
 
 #include "client.h"
+
+#ifdef Windows
 #include "tinycthread.h"
+#else
+#include <threads.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,6 +1,11 @@
 #ifndef MacOS
 
+#ifdef Windows
 #include "tinycthread.h"
+#else
+#include <threads.h>
+#endif
+
 #include <GLFW/glfw3.h>
 
 // N.B - this whitespace is required so that clang-format

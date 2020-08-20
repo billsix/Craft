@@ -4,7 +4,13 @@
 #include "db.h"
 #include "ring.h"
 #include "sqlite3.h"
+
+#ifdef Windows
 #include "tinycthread.h"
+#else
+#include <threads.h>
+#endif
+
 #include <string.h>
 
 static int db_enabled = 0;

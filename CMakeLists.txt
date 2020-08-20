@@ -13,18 +13,6 @@ if(APPLE OR WIN32)
      endif(WIN32)
 endif()
 
-if(UNIX AND NOT APPLE)
-    add_definitions(-DLinux=1) 
-endif()
-
-if(UNIX AND APPLE)
-    add_definitions(-DMacOS=1) 
-endif()
-
-if(WIN32)
-    add_definitions(-DWindows=1) 
-endif()
-
 
 # set SOURCE_FILES to all of the c files
 FILE(GLOB SOURCE_FILES src/*.c)
@@ -37,6 +25,22 @@ ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
   set(RESOURCE_PATH "${CMAKE_INSTALL_PREFIX}/share/craft/")
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
+if(UNIX AND NOT APPLE)
+    add_definitions(-DLinux=1)
+endif()
+
+if(UNIX AND APPLE)
+    add_definitions(-DMacOS=1)
+endif()
+
+if(WIN32)
+  add_definitions(-DWindows=1)
+  include_directories(deps/tinycthread)
+  set(EXTRA_WINDOWS_SRC deps/tinycthread/tinycthread.c)
+endif()
+
+
+
 configure_file(src/config.h.in src/config.h @ONLY)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
 
@@ -47,7 +51,8 @@ add_executable(
     deps/lodepng/lodepng.c
     deps/noise/noise.c
     deps/sqlite/sqlite3.c
-    deps/tinycthread/tinycthread.c)
+    ${EXTRA_WINDOWS_SRC}
+    )
 
 # build using the C99 standard
 set_property(TARGET craft PROPERTY C_STANDARD 99)
@@ -74,7 +79,6 @@ include_directories(deps/gl3w)
 include_directories(deps/lodepng)
 include_directories(deps/noise)
 include_directories(deps/sqlite)
-include_directories(deps/tinycthread)
 
 
 # link against the fetched libraries
