@@ -16,10 +16,20 @@
 #define MODE_OFFLINE 0
 #define MODE_ONLINE 1
 
+/*
+ * Thread states, for tinycthread
+ */
 #define WORKER_IDLE 0
 #define WORKER_BUSY 1
 #define WORKER_DONE 2
 
+/*
+ * A Chunk is a a subsection of the terrain, bound
+ * by a square on the x-z plane.
+ *
+ * To visualize what a chunk is, modify the render_chunks
+ * function in main.c, to only render 1 chunk.
+ */
 typedef struct {
   Map map;
   Map lights;
@@ -56,11 +66,15 @@ typedef struct {
   WorkerItem item;
 } Worker;
 
+/*
+ * Block is a position of a block, in homogeneous coordinates
+ */
 typedef struct {
   int x;
   int y;
   int z;
-  int w;
+  int w; // cartesian x y z need to be divided by the w,
+  // because this is in homogeneous coordinates
 } Block;
 
 /* The position of a player, annd it's orientation (which

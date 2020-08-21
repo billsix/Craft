@@ -3,6 +3,9 @@
 
 #define EMPTY_ENTRY(entry) ((entry)->value == 0)
 
+/*
+ * TODO - figure out what this is
+ */
 typedef union {
   unsigned int value;
   struct {
@@ -13,6 +16,13 @@ typedef union {
   } e;
 } MapEntry;
 
+/*
+ * TODO - figure out what this is, definitively
+ *
+ * I assume Map represents the terrain,
+ * where dx dy dz are relative to the Chunk,
+ * which is a higher level structure than the map
+ */
 typedef struct {
   int dx;
   int dy;

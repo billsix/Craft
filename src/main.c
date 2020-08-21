@@ -1327,6 +1327,13 @@ void _set_block(int p, int q, int x, int y, int z, int w, int dirty) {
   }
 }
 
+/*
+ * TODO - figure out what these values are
+ * I assume that x y z are positions within
+ * a map, and w looks like it set's the type
+ * of block.  I had first assumed that the
+ * w was homogeneous coordinates
+ */
 void set_block(int x, int y, int z, int w) {
   int p = chunked(x);
   int q = chunked(z);
@@ -1410,6 +1417,10 @@ int render_chunks(Player *player) {
 
   gl_setup_render_chunks(matrix, positionAndOrientation, light);
 
+  // N.B.
+  // To See what a chunk is, change this loop to
+  // only iterate once
+  //for (int i = 0; i < 1; i++) {
   for (int i = 0; i < g->chunk_count; i++) {
     Chunk *chunk = g->chunks + i;
     if (chunk_distance(chunk, p, q) > g->render_radius) {

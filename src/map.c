@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*
+ * Hash an integer.
+ *
+ * https://en.wikipedia.org/wiki/Hash_function
+ */
 int hash_int(int key) {
   key = ~key + (key << 15);
   key = key ^ (key >> 12);
@@ -12,6 +17,11 @@ int hash_int(int key) {
   return key;
 }
 
+/*
+ * Hash a triplet of x y and z
+ *
+ * https://en.wikipedia.org/wiki/Hash_function
+ */
 int hash(int x, int y, int z) {
   x = hash_int(x);
   y = hash_int(y);
@@ -19,6 +29,11 @@ int hash(int x, int y, int z) {
   return x ^ y ^ z;
 }
 
+/*
+ * Allocate memory on the heap for a Map's data.
+ * Initialize the struct.
+ *
+ */
 void map_alloc(Map *map, int dx, int dy, int dz, int mask) {
   map->dx = dx;
   map->dy = dy;
@@ -28,8 +43,15 @@ void map_alloc(Map *map, int dx, int dy, int dz, int mask) {
   map->data = (MapEntry *)calloc(map->mask + 1, sizeof(MapEntry));
 }
 
+/*
+ * Free the map's data from the heap.
+ */
 void map_free(Map *map) { free(map->data); }
 
+/*
+ * Copy the source map into a destination map.
+ * The map data needs to be heap allocated.
+ */
 void map_copy(Map *dst, Map *src) {
   dst->dx = src->dx;
   dst->dy = src->dy;
@@ -40,6 +62,10 @@ void map_copy(Map *dst, Map *src) {
   memcpy(dst->data, src->data, (dst->mask + 1) * sizeof(MapEntry));
 }
 
+/*
+ *
+ *
+ */
 int map_set(Map *map, int x, int y, int z, int w) {
   unsigned int index = hash(x, y, z) & map->mask;
   x -= map->dx;
