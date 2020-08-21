@@ -95,8 +95,12 @@ else()
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
 endif()
 
+#gcc -std=c99 -O3 -fPIC -shared -o world -I src -I deps/noise deps/noise/noise.c src/world.c
+add_library(world SHARED deps/noise/noise.c src/world.c)
 
 # Install
 install(TARGETS craft DESTINATION bin)
 install(DIRECTORY textures/ DESTINATION share/craft/textures)
 install(DIRECTORY shaders/ DESTINATION share/craft/shaders)
+install(FILES world.py server.py builder.py DESTINATION server)
+install(TARGETS world DESTINATION server)

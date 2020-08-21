@@ -4,7 +4,8 @@
 from ctypes import CDLL, CFUNCTYPE, c_float, c_int, c_void_p
 from collections import OrderedDict
 
-dll = CDLL('./world')
+# TODO - make this work on windows and on macos
+dll = CDLL('./libworld.so')
 
 WORLD_FUNC = CFUNCTYPE(None, c_int, c_int, c_int, c_int, c_void_p)
 
