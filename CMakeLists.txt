@@ -3,6 +3,24 @@ cmake_minimum_required(VERSION 3.0)
 # project name, using just the C language
 project(craft LANGUAGES C)
 
+option(OPENGL_CORE_PROFILE_RENDERER_ENABLE "Build the OpenGL Core Profile 3.3+ Renderer" ON)
+option(VULKAN_RENDERER_ENABLE "Build the Vulkan Renderer" OFF)
+
+if(OPENGL_CORE_PROFILE_RENDERER_ENABLE)
+  set(OPENGL_ENABLED "1")
+  set(IMGUI_RENDERERS
+    deps/imgui/examples/imgui_impl_glfw.cpp)
+endif()
+
+if(VULKAN_RENDERER_ENABLE)
+  set(VULKAN_ENABLED "1")
+  set(IMGUI_RENDERERS
+    ${IMGUI_RENDERERS}
+    deps/imgui/examples/imgui_impl_vulkan.cpp)
+endif()
+
+
+
 # TODO - make the fetching and building of these static libraries
 # possible on linux through an option
 if(APPLE OR WIN32)
@@ -11,18 +29,6 @@ if(APPLE OR WIN32)
          # no console on start
          set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
      endif(WIN32)
-endif()
-
-if(UNIX AND NOT APPLE)
-    add_definitions(-DLinux=1) 
-endif()
-
-if(UNIX AND APPLE)
-    add_definitions(-DMacOS=1) 
-endif()
-
-if(WIN32)
-    add_definitions(-DWindows=1) 
 endif()
 
 
@@ -37,8 +43,11 @@ ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
   set(RESOURCE_PATH "${CMAKE_INSTALL_PREFIX}/share/craft/")
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
-configure_file(src/config.h.in src/config.h @ONLY)
+configure_file(src/config.h.in src/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
+
+
+
 
 # definition of the craft, and its dependent sources
 add_executable(
@@ -47,7 +56,14 @@ add_executable(
     deps/lodepng/lodepng.c
     deps/noise/noise.c
     deps/sqlite/sqlite3.c
-    deps/tinycthread/tinycthread.c)
+    deps/tinycthread/tinycthread.c
+    deps/imgui/imgui.cpp
+    deps/imgui/imgui_demo.cpp
+    deps/imgui/imgui_draw.cpp
+    deps/imgui/imgui_widgets.cpp
+    deps/imgui/examples/imgui_impl_opengl3.cpp
+    ${IMGUI_RENDERERS}
+)
 
 # build using the C11 standard
 set_property(TARGET craft PROPERTY C_STANDARD 11)
@@ -75,6 +91,7 @@ include_directories(deps/lodepng)
 include_directories(deps/noise)
 include_directories(deps/sqlite)
 include_directories(deps/tinycthread)
+include_directories(deps/imgui)
 
 
 # link against the fetched libraries

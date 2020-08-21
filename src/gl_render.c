@@ -1,3 +1,7 @@
+#include "config.h"
+
+#ifdef OPENGL_ENABLED
+
 #define GL3W_IMPLEMENTATION 1
 
 #include <stdint.h>
@@ -12,7 +16,6 @@
 // N.B - this whitespace is required so that clang-format
 // does not break the build.
 
-#include "config.h"
 #include "cube.h"
 #include "lodepng.h"
 #include "map.h"
@@ -647,3 +650,5 @@ void gl_render_crosshairs(uint32_t crosshair_buffer, float *matrix) {
   gl_draw_lines(crosshair_buffer, 2, 4);
   glDisable(GL_COLOR_LOGIC_OP);
 }
+
+#endif

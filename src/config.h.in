@@ -53,5 +53,7 @@
 
 
 #cmakedefine RESOURCE_PATH "@RESOURCE_PATH@"
+#cmakedefine OPENGL_ENABLED @OPENGL_ENABLED@
+#cmakedefine VULKAN_ENABLED @VULKAN_ENABLED@
 
 #endif

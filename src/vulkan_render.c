@@ -1,11 +1,10 @@
-#ifndef MacOS
+#include "config.h"
+
+#ifdef VULKAN_ENABLED
 
 #include "tinycthread.h"
 #include <GLFW/glfw3.h>
 
-// N.B - this whitespace is required so that clang-format
-// does not break the build.
-#include "config.h"
 #include "cube.h"
 #include "lodepng.h"
 #include "map.h"

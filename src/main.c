@@ -27,9 +27,7 @@
 #include "noise.h"
 #include "util.h"
 
-#ifndef MacOS
 #include "vulkan_render.h"
-#endif
 
 #include "world.h"
 #include <curl/curl.h>
@@ -99,6 +97,7 @@ struct graphics_renderer {
   void (*render_crosshairs)(uint32_t crosshair_buffer, float *matrix);
 };
 
+#ifdef OPENGL_ENABLED
 // the OpenGL 3.3 Core Profile renderer
 struct graphics_renderer gl_renderer = {
     .viewport = gl_viewport,
@@ -135,8 +134,9 @@ struct graphics_renderer gl_renderer = {
     .render_cube = gl_render_cube,
     .render_crosshairs = gl_render_crosshairs,
 };
+#endif
 
-#ifndef MacOS
+#ifdef VULKAN_ENABLED
 // the Vulkan renderer, currently empty
 struct graphics_renderer vulkan_renderer = {
     .viewport = vulkan_viewport,
@@ -1420,7 +1420,7 @@ int render_chunks(Player *player) {
   // N.B.
   // To See what a chunk is, change this loop to
   // only iterate once
-  //for (int i = 0; i < 1; i++) {
+  // for (int i = 0; i < 1; i++) {
   for (int i = 0; i < g->chunk_count; i++) {
     Chunk *chunk = g->chunks + i;
     if (chunk_distance(chunk, p, q) > g->render_radius) {
