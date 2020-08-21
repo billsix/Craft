@@ -2770,8 +2770,7 @@ int main(int argc, char **argv) {
         }
       }
       if (g->typing) {
-        snprintf(text_buffer, 1024, "> %positionAndOrientation",
-                 g->typing_buffer);
+        snprintf(text_buffer, 1024, "> %s", g->typing_buffer);
         render_text(ALIGN_LEFT, tx, ty, ts, text_buffer);
         ty -= ts * 2;
       }
