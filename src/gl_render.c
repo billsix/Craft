@@ -18,8 +18,6 @@
 #include "map.h"
 #include "sign.h"
 #include "util.h"
-#include "cube.h"
-#include "lodepng.h"
 
 #include "main.h"
 #include <stdint.h>

@@ -33,44 +33,27 @@ void vulkan_disable_scissor_test() {}
 void vulkan_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width,
                     uint32_t y_height) {}
 
-uint32_t vulkan_gen_buffer(size_t size, float *data) {
-    return 0;
-}
+uint32_t vulkan_gen_buffer(size_t size, float *data) { return 0; }
 
 void vulkan_del_buffer(uint32_t buffer) {}
 
-uint32_t vulkan_gen_faces(int components, int faces, float *data) {
-    return 0;
-}
+uint32_t vulkan_gen_faces(int components, int faces, float *data) { return 0; }
 
-uint32_t vulkan_make_shader(uint32_t type, const char *source) {
-    return 0;
-}
+uint32_t vulkan_make_shader(uint32_t type, const char *source) { return 0; }
 
-uint32_t vulkan_load_shader(uint32_t type, const char *path) {
-    return 0;
-}
+uint32_t vulkan_load_shader(uint32_t type, const char *path) { return 0; }
 
-uint32_t vulkan_make_program(uint32_t shader1, uint32_t shader2) {
-    return 0;
-}
+uint32_t vulkan_make_program(uint32_t shader1, uint32_t shader2) { return 0; }
 
-uint32_t vulkan_load_program(const char *path1, const char *path2) {
-    return 0;
-}
+uint32_t vulkan_load_program(const char *path1, const char *path2) { return 0; }
 
 void vulkan_load_png_texture(const char *file_name) {}
 
-int vulkan_graphics_loader_init() {
-    return 0;
-}
+int vulkan_graphics_loader_init() { return 0; }
 
 void vulkan_initiliaze_global_state() {}
 
-
-void vulkan_initiliaze_textures() {
-
-}
+void vulkan_initiliaze_textures() {}
 
 void vulkan_setup_render_chunks(float *matrix,
                                 PositionAndOrientation *positionAndOrientation,
