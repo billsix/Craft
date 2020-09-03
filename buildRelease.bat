@@ -1,8 +1,8 @@
-mkdir build
-mkdir buildInstall
-cd build
+mkdir releaseBuild
+mkdir releaseBuildInstall
+cd releaseBuild
 REM create the visual studio solution and project files
-cmake -DCMAKE_INSTALL_PREFIX=..\buildInstall -DCMAKE_BUILD_TYPE=Release ..\
-cmake --build . --target INSTALL
-cd ..\buildInstall
-.\bin\craft
+cmake -DCMAKE_INSTALL_PREFIX=..\releaseBuildInstall -DCMAKE_BUILD_TYPE=Release ..\
+cmake --build . --config Release
+cmake --build . --config Release --target INSTALL 
+cd ..

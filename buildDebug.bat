@@ -1,6 +1,8 @@
-mkdir build
-mkdir buildInstall
-cd build
+mkdir debugBuild
+mkdir debugBuildInstall
+cd debugBuild
 REM create the visual studio solution and project files
-cmake -DCMAKE_INSTALL_PREFIX=..\buildInstall -DCMAKE_BUILD_TYPE=Debug ..\
-cmake --build . --target INSTALL
+cmake -DCMAKE_INSTALL_PREFIX=..\debugBuildInstall ..\
+cmake --build . --target ALL_BUILD --config Debug
+cmake --build . --target INSTALL 
+cd ..
