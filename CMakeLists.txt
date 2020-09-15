@@ -46,6 +46,14 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 configure_file(src/config.h.in src/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
 
+if(WIN32)
+  set(SQLITE_SOURCE "deps/sqlite/sqlite3.c")
+elseif(APPLE)
+  set(SQLITE_SOURCE "deps/sqlite/sqlite3.c")
+else()
+  set(SQLITE_SOURCE "")
+endif()
+
 
 
 
@@ -55,7 +63,7 @@ add_executable(
     ${SOURCE_FILES}
     deps/lodepng/lodepng.c
     deps/noise/noise.c
-    deps/sqlite/sqlite3.c
+    ${SQLITE_SOURCE}
     deps/tinycthread/tinycthread.c
     deps/imgui/imgui.cpp
     deps/imgui/imgui_demo.cpp
@@ -75,6 +83,7 @@ if(APPLE)
     option(GLFW_INSTALL "Generate installation target" OFF)
     add_subdirectory(deps/glfw)
     include_directories(deps/glfw/include)
+    include_directories(deps/sqlite)
 endif(APPLE)
 if(WIN32)
     option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" OFF)
@@ -84,12 +93,12 @@ if(WIN32)
     include_directories(deps/glfw/include)
     add_subdirectory(deps/curl)
     include_directories(deps/curl/include)
+    include_directories(deps/sqlite)
 endif(WIN32)
 
 include_directories(deps/gl3w)
 include_directories(deps/lodepng)
 include_directories(deps/noise)
-include_directories(deps/sqlite)
 include_directories(deps/tinycthread)
 include_directories(deps/imgui)
 
@@ -106,10 +115,11 @@ else()
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(GLFW REQUIRED glfw3)
     pkg_check_modules(CURL REQUIRED libcurl)
+    pkg_check_modules(SQLITE REQUIRED sqlite3)
 
     include_directories(${GLFW_INCLUDE_DIR})
     target_link_libraries(craft dl m pthread
-        ${GLFW_LIBRARIES} ${CURL_LIBRARIES})
+        ${GLFW_LIBRARIES} ${CURL_LIBRARIES} ${SQLITE_LIBRARIES})
 endif()
 
 #gcc -std=c99 -O3 -fPIC -shared -o world -I src -I deps/noise deps/noise/noise.c src/world.c
