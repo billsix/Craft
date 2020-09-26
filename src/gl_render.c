@@ -22,7 +22,7 @@
 
 #include "config.h"
 
-#ifdef OPENGL_ENABLED
+#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
 
 #define GL3W_IMPLEMENTATION 1
 

@@ -49,8 +49,8 @@
  * A Chunk is a a subsection of the terrain, bound
  * by a square on the x-z plane.
  *
- * To visualize what a chunk is, modify the render_chunks
- * function in main.c, to only render 1 chunk.
+ * To visualize what a chunk is, build with cmake,
+ * setting -DENABLE_ONLY_RENDER_ONE_CHUNK=YES
  */
 typedef struct {
   Map map;

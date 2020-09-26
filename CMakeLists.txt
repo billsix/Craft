@@ -3,17 +3,17 @@ cmake_minimum_required(VERSION 3.0)
 # project name, using just the C language
 project(craft LANGUAGES C)
 
-option(OPENGL_CORE_PROFILE_RENDERER_ENABLE "Build the OpenGL Core Profile 3.3+ Renderer" ON)
-option(VULKAN_RENDERER_ENABLE "Build the Vulkan Renderer" OFF)
+option(ENABLE_OPENGL_CORE_PROFILE_RENDERER "Build the OpenGL Core Profile 3.3+ Renderer" ON)
+option(ENABLE_VULKAN_RENDERER "Build the Vulkan Renderer" OFF)
+option(ENABLE_ONLY_RENDER_ONE_CHUNK "Only render one chunk" OFF)
 
-if(OPENGL_CORE_PROFILE_RENDERER_ENABLE)
-  set(OPENGL_ENABLED "1")
+
+if(ENABLE_OPENGL_CORE_PROFILE_RENDERER)
   set(IMGUI_RENDERERS
     deps/imgui/examples/imgui_impl_glfw.cpp)
 endif()
 
-if(VULKAN_RENDERER_ENABLE)
-  set(VULKAN_ENABLED "1")
+if(ENABLE_VULKAN_RENDERER)
   set(IMGUI_RENDERERS
     ${IMGUI_RENDERERS}
     deps/imgui/examples/imgui_impl_vulkan.cpp)

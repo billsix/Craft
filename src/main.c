@@ -119,7 +119,7 @@ struct graphics_renderer {
   void (*render_crosshairs)(uint32_t crosshair_buffer, float *matrix);
 };
 
-#ifdef OPENGL_ENABLED
+#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
 // the OpenGL 3.3 Core Profile renderer
 struct graphics_renderer gl_renderer = {
     .viewport = gl_viewport,
@@ -158,7 +158,7 @@ struct graphics_renderer gl_renderer = {
 };
 #endif
 
-#ifdef VULKAN_ENABLED
+#ifdef ENABLE_VULKAN_RENDERER
 // the Vulkan renderer, currently empty
 struct graphics_renderer vulkan_renderer = {
     .viewport = vulkan_viewport,
@@ -1442,8 +1442,11 @@ int render_chunks(Player *player) {
   // N.B.
   // To See what a chunk is, change this loop to
   // only iterate once
-  // for (int i = 0; i < 1; i++) {
+#ifdef ENABLE_ONLY_RENDER_ONE_CHUNK
+  for (int i = 0; i < 1; i++) {
+#else
   for (int i = 0; i < g->chunk_count; i++) {
+#endif
     Chunk *chunk = g->chunks + i;
     if (chunk_distance(chunk, p, q) > g->render_radius) {
       continue;

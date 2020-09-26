@@ -22,7 +22,7 @@
 
 #include "config.h"
 
-#ifdef VULKAN_ENABLED
+#ifdef ENABLE_VULKAN_RENDERER
 
 #include "tinycthread.h"
 #include <GLFW/glfw3.h>
