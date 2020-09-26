@@ -6,6 +6,7 @@ project(craft LANGUAGES C)
 option(ENABLE_OPENGL_CORE_PROFILE_RENDERER "Build the OpenGL Core Profile 3.3+ Renderer" ON)
 option(ENABLE_VULKAN_RENDERER "Build the Vulkan Renderer" OFF)
 option(ENABLE_ONLY_RENDER_ONE_CHUNK "Only render one chunk" OFF)
+option(ENABLE_NO_THREADS "Don't use threads.  This increases the framerate on old hardware significantly, at the cost of poor user experience" OFF)
 
 
 if(ENABLE_OPENGL_CORE_PROFILE_RENDERER)

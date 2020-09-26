@@ -2473,6 +2473,8 @@ int initialize_craft(int argc, char **argv) {
   g->delete_radius = DELETE_CHUNK_RADIUS;
   g->sign_radius = RENDER_SIGN_RADIUS;
 
+#ifdef ENABLE_NO_THREADS
+#else
   // INITIALIZE WORKER THREADS
   for (int i = 0; i < WORKERS; i++) {
     Worker *worker = g->workers + i;
@@ -2482,6 +2484,7 @@ int initialize_craft(int argc, char **argv) {
     cnd_init(&worker->cnd);
     thrd_create(&worker->thrd, worker_run, worker);
   }
+#endif
   return 0;
 }
 
