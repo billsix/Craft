@@ -35,7 +35,7 @@ void gl_disable_scissor_test();
 void gl_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width,
                 uint32_t y_height);
 
-uint32_t gl_gen_buffer(size_t size, const float * const data);
+uint32_t gl_gen_buffer(size_t size, const float *const data);
 void gl_del_buffer(uint32_t buffer);
 uint32_t gl_gen_faces(int components, int faces, float *data);
 uint32_t gl_make_shader(uint32_t type, const char *source);
@@ -48,40 +48,41 @@ int gl_graphics_loader_init();
 void gl_initiliaze_global_state();
 void gl_initiliaze_textures();
 
-void gl_setup_render_chunks(const float *matrix,
-                            const PositionAndOrientation * const positionAndOrientation,
-                            float light);
+void gl_setup_render_chunks(
+    const float *matrix,
+    const PositionAndOrientation *const positionAndOrientation, float light);
 
-void gl_render_chunk(const Chunk * const chunk);
+void gl_render_chunk(const Chunk *const chunk);
 
 void gl_draw_triangles_3d_text(uint32_t buffer, int count);
 
-void gl_setup_render_signs(const float * const matrix);
+void gl_setup_render_signs(const float *const matrix);
 
-void gl_render_signs(const Chunk * const chunk);
+void gl_render_signs(const Chunk *const chunk);
 
-void gl_render_sign(const float * const matrix, int x, int y, int z, int face);
+void gl_render_sign(const float *const matrix, int x, int y, int z, int face);
 
-void gl_setup_render_players(const float * const matrix,
-                             const PositionAndOrientation * const positionAndOrientation);
+void gl_setup_render_players(
+    const float *const matrix,
+    const PositionAndOrientation *const positionAndOrientation);
 
-void gl_render_player(const Player * const other_player);
+void gl_render_player(const Player *const other_player);
 
-void gl_render_sky(uint32_t buffer, const float * const matrix);
+void gl_render_sky(uint32_t buffer, const float *const matrix);
 
 void gl_draw_lines(uint32_t buffer, int components, int count);
 
-void gl_render_wireframe(const float * const matrix, int hx, int hy, int hz);
+void gl_render_wireframe(const float *const matrix, int hx, int hy, int hz);
 
-void gl_render_text(const float * const matrix, int justify, float x, float y, float n,
-                    const char * const text);
+void gl_render_text(const float *const matrix, int justify, float x, float y,
+                    float n, const char *const text);
 
-void gl_render_item(const float * const matrix);
+void gl_render_item(const float *const matrix);
 
 void gl_render_plant(uint32_t plant_buffer);
 
 void gl_render_cube(uint32_t cube_buffer);
 
-void gl_render_crosshairs(uint32_t crosshair_buffer, const float * const matrix);
+void gl_render_crosshairs(uint32_t crosshair_buffer, const float *const matrix);
 
 #endif

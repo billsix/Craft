@@ -31,8 +31,8 @@
 
 size_t write_function(char *data, size_t size, size_t count, void *arg) {
   const size_t length = size * count;
-  char * const dst = (char *)arg;
-  char * const src = malloc(length + 1);
+  char *const dst = (char *)arg;
+  char *const src = malloc(length + 1);
   memcpy(src, data, length);
   src[length] = '\0';
   strncat(dst, src, MAX_RESPONSE_LENGTH - strlen(dst) - 1);

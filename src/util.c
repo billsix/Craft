@@ -49,7 +49,7 @@ void update_fps(FPS *fps) {
 }
 
 char *load_file(const char *path) {
-  FILE * const file = fopen(path, "rb");
+  FILE *const file = fopen(path, "rb");
   if (!file) {
     fprintf(stderr, "fopen %s failed: %d %s\n", path, errno, strerror(errno));
     exit(1);
@@ -57,7 +57,7 @@ char *load_file(const char *path) {
   fseek(file, 0, SEEK_END);
   int length = ftell(file);
   rewind(file);
-  char * const data = calloc(length + 1, sizeof(char));
+  char *const data = calloc(length + 1, sizeof(char));
   fread(data, 1, length, file);
   fclose(file);
   return data;
@@ -67,7 +67,7 @@ void flip_image_vertical(unsigned char *data, unsigned int width,
                          unsigned int height) {
   const unsigned int size = width * height * 4;
   const unsigned int stride = sizeof(char) * width * 4;
-  unsigned char * const new_data = malloc(sizeof(unsigned char) * size);
+  unsigned char *const new_data = malloc(sizeof(unsigned char) * size);
   for (unsigned int i = 0; i < height; i++) {
     unsigned int j = height - i - 1;
     memcpy(new_data + j * stride, data + i * stride, stride);
@@ -77,7 +77,7 @@ void flip_image_vertical(unsigned char *data, unsigned int width,
 }
 
 char *tokenize(char *str, const char *delim, char **key) {
-  char * result;
+  char *result;
   if (str == NULL) {
     str = *key;
   }
@@ -116,11 +116,11 @@ int string_width(const char *input) {
 
 int wrap(const char *input, int max_width, char *output, int max_length) {
   *output = '\0';
-  char * const text = malloc(sizeof(char) * (strlen(input) + 1));
+  char *const text = malloc(sizeof(char) * (strlen(input) + 1));
   strcpy(text, input);
   const int space_width = char_width(' ');
   int line_number = 0;
-  char * key1, *key2;
+  char *key1, *key2;
   char *line = tokenize(text, "\r\n", &key1);
   while (line) {
     int line_width = 0;

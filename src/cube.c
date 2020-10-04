@@ -296,8 +296,10 @@ void make_character_3d(float *data, float x, float y, float z, float n,
   }
 }
 
-int _make_sphere(float *data, float r, int detail, const float * const a, const float * const b, const float * const c,
-                 const float * const ta, const float * const tb, const float * const tc) {
+int _make_sphere(float *data, float r, int detail, const float *const a,
+                 const float *const b, const float *const c,
+                 const float *const ta, const float *const tb,
+                 const float *const tc) {
   if (detail == 0) {
     float *d = data;
     *(d++) = a[0] * r;
@@ -371,11 +373,11 @@ void make_sphere(float *data, float r, int detail) {
   // 6, 32768, 786432
   // 7, 131072, 3145728
   static const int indices[8][3] = {{4, 3, 0}, {1, 4, 0}, {3, 4, 5}, {4, 1, 5},
-                              {0, 3, 2}, {0, 2, 1}, {5, 2, 3}, {5, 1, 2}};
+                                    {0, 3, 2}, {0, 2, 1}, {5, 2, 3}, {5, 1, 2}};
   static const float positions[6][3] = {{0, 0, -1}, {1, 0, 0}, {0, -1, 0},
-                                  {-1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+                                        {-1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
   static const float uvs[6][3] = {{0, 0.5}, {0, 0.5}, {0, 0},
-                            {0, 0.5}, {0, 1},   {0, 0.5}};
+                                  {0, 0.5}, {0, 1},   {0, 0.5}};
   int total = 0;
   for (int i = 0; i < 8; i++) {
     int n = _make_sphere(data, r, detail, positions[indices[i][0]],
