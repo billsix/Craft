@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include <GLFW/glfw3.h>
 
@@ -86,9 +87,9 @@ struct graphics_renderer {
   void (*disable_scissor_test)();
   void (*scissor)(uint32_t x_min, uint32_t y_min, uint32_t x_width,
                   uint32_t y_height);
-  uint32_t (*gen_buffer)(size_t size, float *data);
+  uint32_t (*gen_buffer)(size_t size, const float * const data);
   void (*del_buffer)(uint32_t buffer);
-  uint32_t (*gen_faces)(int components, int faces, float *data);
+  uint32_t (*gen_faces)(int components, int faces, float * data);
   uint32_t (*make_shader)(uint32_t type, const char *source);
   uint32_t (*load_shader)(uint32_t type, const char *path);
   uint32_t (*make_program)(uint32_t shader1, uint32_t shader2);
@@ -97,26 +98,26 @@ struct graphics_renderer {
   int (*graphics_loader_init)();
   void (*initiliaze_global_state)();
   void (*initiliaze_textures)();
-  void (*setup_render_chunks)(float *matrix,
-                              PositionAndOrientation *positionAndOrientation,
+  void (*setup_render_chunks)(const float *matrix,
+                              const PositionAndOrientation * const positionAndOrientation,
                               float light);
-  void (*render_chunk)(Chunk *chunk);
+  void (*render_chunk)(const Chunk * const chunk);
   void (*draw_triangles_3d_text)(uint32_t buffer, int count);
-  void (*setup_render_signs)(float *matrix);
-  void (*render_signs)(Chunk *chunk);
-  void (*render_sign)(float *matrix, int x, int y, int z, int face);
-  void (*setup_render_players)(float *matrix,
-                               PositionAndOrientation *positionAndOrientation);
-  void (*render_player)(Player *other_player);
-  void (*render_sky)(uint32_t buffer, float *matrix);
+  void (*setup_render_signs)(const float * const matrix);
+  void (*render_signs)(const Chunk * const chunk);
+  void (*render_sign)(const float * const matrix, int x, int y, int z, int face);
+  void (*setup_render_players)(const float * const matrix,
+                               const PositionAndOrientation * const positionAndOrientation);
+  void (*render_player)(const Player * const other_player);
+  void (*render_sky)(uint32_t buffer, const float * const matrix);
   void (*draw_lines)(uint32_t buffer, int components, int count);
-  void (*render_wireframe)(float *matrix, int hx, int hy, int hz);
-  void (*render_text)(float *matrix, int justify, float x, float y, float n,
-                      char *text);
-  void (*render_item)(float *matrix);
+  void (*render_wireframe)(const float * const matrix, int hx, int hy, int hz);
+  void (*render_text)(const float * const matrix, int justify, float x, float y, float n,
+                      const char * const text);
+  void (*render_item)(const float * const matrix);
   void (*render_plant)(uint32_t plant_buffer);
   void (*render_cube)(uint32_t cube_buffer);
-  void (*render_crosshairs)(uint32_t crosshair_buffer, float *matrix);
+  void (*render_crosshairs)(uint32_t crosshair_buffer, const float * const matrix);
 };
 
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
@@ -344,21 +345,21 @@ Chunk *find_chunk(int p, int q) {
   return 0;
 }
 
-int chunk_distance(Chunk *chunk, int p, int q) {
-  int dp = ABS(chunk->p - p);
-  int dq = ABS(chunk->q - q);
+int chunk_distance(const Chunk * const chunk, int p, int q) {
+  const int dp = ABS(chunk->p - p);
+  const int dq = ABS(chunk->q - q);
   return MAX(dp, dq);
 }
 
 int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy) {
-  int x = p * CHUNK_SIZE - 1;
-  int z = q * CHUNK_SIZE - 1;
-  int d = CHUNK_SIZE + 1;
+  const int x = p * CHUNK_SIZE - 1;
+  const int z = q * CHUNK_SIZE - 1;
+  const int d = CHUNK_SIZE + 1;
   float points[8][3] = {{x + 0, miny, z + 0}, {x + d, miny, z + 0},
                         {x + 0, miny, z + d}, {x + d, miny, z + d},
                         {x + 0, maxy, z + 0}, {x + d, maxy, z + 0},
                         {x + 0, maxy, z + d}, {x + d, maxy, z + d}};
-  int n = g->ortho ? 4 : 6;
+  const int n = g->ortho ? 4 : 6;
   for (int i = 0; i < n; i++) {
     int in = 0;
     int out = 0;
@@ -383,22 +384,22 @@ int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy) {
 
 int highest_block(float x, float z) {
   int result = -1;
-  int nx = roundf(x);
-  int nz = roundf(z);
-  int p = chunked(x);
-  int q = chunked(z);
-  Chunk *chunk = find_chunk(p, q);
+  const int nx = roundf(x);
+  const int nz = roundf(z);
+  const int p = chunked(x);
+  const int q = chunked(z);
+  const Chunk * const chunk = find_chunk(p, q);
   if (chunk) {
-    Map *map = &chunk->map;
+    const Map * const map = &chunk->map;
     for (unsigned int i = 0; i <= map->mask; i++) {
-      MapEntry *entry = map->data + i;
+      const MapEntry * const entry = map->data + i;
       if (EMPTY_ENTRY(entry)) {
         continue;
       }
-      int ex = entry->e.x + map->dx;
-      int ey = entry->e.y + map->dy;
-      int ez = entry->e.z + map->dz;
-      int ew = entry->e.w;
+      const int ex = entry->e.x + map->dx;
+      const int ey = entry->e.y + map->dy;
+      const int ez = entry->e.z + map->dz;
+      const int ew = entry->e.w;
       if (is_obstacle(ew) && ex == nx && ez == nz) {
         result = MAX(result, ey);
       }
@@ -407,17 +408,17 @@ int highest_block(float x, float z) {
   return result;
 }
 
-int _hit_test(Map *map, float max_distance, int previous, float x, float y,
+int _hit_test(const Map * const map, float max_distance, int previous, float x, float y,
               float z, float vx, float vy, float vz, int *hx, int *hy,
               int *hz) {
-  int m = 32;
+  const int m = 32;
   int px = 0;
   int py = 0;
   int pz = 0;
   for (int i = 0; i < max_distance * m; i++) {
-    int nx = roundf(x);
-    int ny = roundf(y);
-    int nz = roundf(z);
+    const int nx = roundf(x);
+    const int ny = roundf(y);
+    const int nz = roundf(z);
     if (nx != px || ny != py || nz != pz) {
       int hw = map_get(map, nx, ny, nz);
       if (hw > 0) {
@@ -447,12 +448,14 @@ int hit_test(int previous, float x, float y, float z, float rx, float ry,
              int *bx, int *by, int *bz) {
   int result = 0;
   float best = 0;
-  int p = chunked(x);
-  int q = chunked(z);
+  const int p = chunked(x);
+  const int q = chunked(z);
   float vx, vy, vz;
-  get_sight_vector(rx, ry, &vx, &vy, &vz);
+    {
+        get_sight_vector(rx, ry, &vx, &vy, &vz);
+    }
   for (int i = 0; i < g->chunk_count; i++) {
-    Chunk *chunk = g->chunks + i;
+    const Chunk * const chunk = g->chunks + i;
     if (chunk_distance(chunk, p, q) > 1) {
       continue;
     }
@@ -460,7 +463,7 @@ int hit_test(int previous, float x, float y, float z, float rx, float ry,
     int hw =
         _hit_test(&chunk->map, 8, previous, x, y, z, vx, vy, vz, &hx, &hy, &hz);
     if (hw > 0) {
-      float d = sqrtf(powf(hx - x, 2) + powf(hy - y, 2) + powf(hz - z, 2));
+      const float d = sqrtf(powf(hx - x, 2) + powf(hy - y, 2) + powf(hz - z, 2));
       if (best == 0 || d < best) {
         best = d;
         *bx = hx;
@@ -473,8 +476,8 @@ int hit_test(int previous, float x, float y, float z, float rx, float ry,
   return result;
 }
 
-int hit_test_face(Player *player, int *x, int *y, int *z, int *face) {
-  PositionAndOrientation *positionAndOrientation =
+int hit_test_face(const Player * const player, int *x, int *y, int *z, int *face) {
+  const PositionAndOrientation * const positionAndOrientation =
       &player->positionAndOrientation;
   int w = hit_test(0, positionAndOrientation->x, positionAndOrientation->y,
                    positionAndOrientation->z, positionAndOrientation->rx,
@@ -484,9 +487,9 @@ int hit_test_face(Player *player, int *x, int *y, int *z, int *face) {
     hit_test(1, positionAndOrientation->x, positionAndOrientation->y,
              positionAndOrientation->z, positionAndOrientation->rx,
              positionAndOrientation->ry, &hx, &hy, &hz);
-    int dx = hx - *x;
-    int dy = hy - *y;
-    int dz = hz - *z;
+    const int dx = hx - *x;
+    const int dy = hy - *y;
+    const int dz = hz - *z;
     if (dx == -1 && dy == 0 && dz == 0) {
       *face = 0;
       return 1;
@@ -506,10 +509,12 @@ int hit_test_face(Player *player, int *x, int *y, int *z, int *face) {
     if (dx == 0 && dy == 1 && dz == 0) {
       int degrees = roundf(DEGREES(atan2f(positionAndOrientation->x - hx,
                                           positionAndOrientation->z - hz)));
-      if (degrees < 0) {
-        degrees += 360;
-      }
-      int top = ((degrees + 45) / 90) % 4;
+        {
+            if (degrees < 0) {
+                degrees += 360;
+            }
+        }
+      const int top = ((degrees + 45) / 90) % 4;
       *face = 4 + top;
       return 1;
     }
@@ -519,9 +524,9 @@ int hit_test_face(Player *player, int *x, int *y, int *z, int *face) {
 
 int player_intersects_block(int height, float x, float y, float z, int hx,
                             int hy, int hz) {
-  int nx = roundf(x);
-  int ny = roundf(y);
-  int nz = roundf(z);
+  const int nx = roundf(x);
+  const int ny = roundf(y);
+  const int nz = roundf(z);
   for (int i = 0; i < height; i++) {
     if (nx == hx && ny - i == hy && nz == hz) {
       return 1;
@@ -541,31 +546,35 @@ int _gen_sign_buffer(float *data, float x, float y, float z, int face,
     return 0;
   }
   int count = 0;
-  float max_width = 64;
-  float line_height = 1.25;
+  const float max_width = 64;
+  const float line_height = 1.25;
   char lines[1024];
   int rows = wrap(text, max_width, lines, 1024);
-  rows = MIN(rows, 5);
-  int dx = glyph_dx[face];
-  int dz = glyph_dz[face];
-  int ldx = line_dx[face];
-  int ldy = line_dy[face];
-  int ldz = line_dz[face];
-  float n = 1.0 / (max_width / 10);
+    {
+        rows = MIN(rows, 5);
+    }
+  const int dx = glyph_dx[face];
+  const int dz = glyph_dz[face];
+  const int ldx = line_dx[face];
+  const int ldy = line_dy[face];
+  const int ldz = line_dz[face];
+  const float n = 1.0 / (max_width / 10);
   float sx = x - n * (rows - 1) * (line_height / 2) * ldx;
   float sy = y - n * (rows - 1) * (line_height / 2) * ldy;
   float sz = z - n * (rows - 1) * (line_height / 2) * ldz;
-  char *key;
-  char *line = tokenize(lines, "\n", &key);
+  char * key;
+  char * line = tokenize(lines, "\n", &key);
   while (line) {
-    int length = strlen(line);
+    const int length = strlen(line);
     int line_width = string_width(line);
-    line_width = MIN(line_width, max_width);
+      {
+          line_width = MIN(line_width, max_width);
+      }
     float rx = sx - dx * line_width / max_width / 2;
     float ry = sy;
     float rz = sz - dz * line_width / max_width / 2;
     for (int i = 0; i < length; i++) {
-      int width = char_width(line[i]);
+      const int width = char_width(line[i]);
       line_width -= width;
       if (line_width < 0) {
         break;
@@ -591,20 +600,19 @@ int _gen_sign_buffer(float *data, float x, float y, float z, int face,
   return count;
 }
 
-int has_lights(Chunk *chunk) {
+int has_lights(const Chunk * const chunk) {
   if (!SHOW_LIGHTS) {
     return 0;
   }
   for (int dp = -1; dp <= 1; dp++) {
     for (int dq = -1; dq <= 1; dq++) {
-      Chunk *other_chunk = chunk;
-      if (dp || dq) {
-        other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
-      }
+      const Chunk * const other_chunk = (dp || dq)
+              ? find_chunk(chunk->p + dp, chunk->q + dq)
+              :chunk;
       if (!other_chunk) {
         continue;
       }
-      Map *map = &other_chunk->lights;
+      const Map * const map = &other_chunk->lights;
       if (map->size) {
         return 1;
       }
@@ -613,12 +621,12 @@ int has_lights(Chunk *chunk) {
   return 0;
 }
 
-void dirty_chunk(Chunk *chunk) {
+void dirty_chunk(Chunk * const chunk) {
   chunk->dirty = 1;
   if (has_lights(chunk)) {
     for (int dp = -1; dp <= 1; dp++) {
       for (int dq = -1; dq <= 1; dq++) {
-        Chunk *other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
+        Chunk * const other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
         if (other_chunk) {
           other_chunk->dirty = 1;
         }
@@ -646,13 +654,13 @@ void occlusion(char neighbors[27], char lights[27], float shades[27],
   static const float curve[4] = {0.0, 0.25, 0.5, 0.75};
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 4; j++) {
-      int corner = neighbors[lookup3[i][j][0]];
-      int side1 = neighbors[lookup3[i][j][1]];
-      int side2 = neighbors[lookup3[i][j][2]];
-      int value = side1 && side2 ? 3 : corner + side1 + side2;
+      const int corner = neighbors[lookup3[i][j][0]];
+      const int side1 = neighbors[lookup3[i][j][1]];
+      const int side2 = neighbors[lookup3[i][j][2]];
+      const int value = side1 && side2 ? 3 : corner + side1 + side2;
       float shade_sum = 0;
       float light_sum = 0;
-      int is_light = lights[13] == 15;
+      const int is_light = lights[13] == 15;
       for (int k = 0; k < 4; k++) {
         shade_sum += shades[lookup4[i][j][k]];
         light_sum += lights[lookup4[i][j][k]];
@@ -660,7 +668,7 @@ void occlusion(char neighbors[27], char lights[27], float shades[27],
       if (is_light) {
         light_sum = 15 * 4 * 10;
       }
-      float total = curve[value] + shade_sum / 4.0;
+      const float total = curve[value] + shade_sum / 4.0;
       ao[i][j] = MIN(total, 1.0);
       light[i][j] = light_sum / 15.0 / 4.0;
     }
@@ -674,7 +682,7 @@ void occlusion(char neighbors[27], char lights[27], float shades[27],
 #define XYZ(x, y, z) ((y)*XZ_SIZE * XZ_SIZE + (x)*XZ_SIZE + (z))
 #define XZ(x, z) ((x)*XZ_SIZE + (z))
 
-void light_fill(char *opaque, char *light, int x, int y, int z, int w,
+void light_fill(const char * const opaque, char * light, int x, int y, int z, int w,
                 int force) {
   if (x + w < XZ_LO || z + w < XZ_LO) {
     return;
@@ -701,13 +709,13 @@ void light_fill(char *opaque, char *light, int x, int y, int z, int w,
 }
 
 void compute_chunk(WorkerItem *item) {
-  char *opaque = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
-  char *light = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
-  char *highest = (char *)calloc(XZ_SIZE * XZ_SIZE, sizeof(char));
+  char * const opaque = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
+  char * const light = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
+  char * const highest = (char *)calloc(XZ_SIZE * XZ_SIZE, sizeof(char));
 
-  int ox = item->p * CHUNK_SIZE - CHUNK_SIZE - 1;
-  int oy = -1;
-  int oz = item->q * CHUNK_SIZE - CHUNK_SIZE - 1;
+  const int ox = item->p * CHUNK_SIZE - CHUNK_SIZE - 1;
+  const int oy = -1;
+  const int oz = item->q * CHUNK_SIZE - CHUNK_SIZE - 1;
 
   // check for lights
   int has_light = 0;
@@ -725,23 +733,23 @@ void compute_chunk(WorkerItem *item) {
   // populate opaque array
   for (int a = 0; a < 3; a++) {
     for (int b = 0; b < 3; b++) {
-      Map *map = item->block_maps[a][b];
+      const Map * const map = item->block_maps[a][b];
       if (!map) {
         continue;
       }
       for (unsigned int i = 0; i <= map->mask; i++) {
-        MapEntry *entry = map->data + i;
+        const MapEntry * const entry = map->data + i;
         if (EMPTY_ENTRY(entry)) {
           continue;
         }
-        int ex = entry->e.x + map->dx;
-        int ey = entry->e.y + map->dy;
-        int ez = entry->e.z + map->dz;
-        int ew = entry->e.w;
-        int x = ex - ox;
-        int y = ey - oy;
-        int z = ez - oz;
-        int w = ew;
+        const int ex = entry->e.x + map->dx;
+        const int ey = entry->e.y + map->dy;
+        const int ez = entry->e.z + map->dz;
+        const int ew = entry->e.w;
+        const int x = ex - ox;
+        const int y = ey - oy;
+        const int z = ez - oz;
+        const int w = ew;
         // TODO: this should be unnecessary
         if (x < 0 || y < 0 || z < 0) {
           continue;
@@ -762,92 +770,89 @@ void compute_chunk(WorkerItem *item) {
   if (has_light) {
     for (int a = 0; a < 3; a++) {
       for (int b = 0; b < 3; b++) {
-        Map *map = item->light_maps[a][b];
+        const Map * const map = item->light_maps[a][b];
         if (!map) {
           continue;
         }
         for (unsigned int i = 0; i <= map->mask; i++) {
-          MapEntry *entry = map->data + i;
+          const MapEntry * const entry = map->data + i;
           if (EMPTY_ENTRY(entry)) {
             continue;
           }
-          int ex = entry->e.x + map->dx;
-          int ey = entry->e.y + map->dy;
-          int ez = entry->e.z + map->dz;
-          int ew = entry->e.w;
-          int x = ex - ox;
-          int y = ey - oy;
-          int z = ez - oz;
+          const int ex = entry->e.x + map->dx;
+          const int ey = entry->e.y + map->dy;
+          const int ez = entry->e.z + map->dz;
+          const int ew = entry->e.w;
+          const int x = ex - ox;
+          const int y = ey - oy;
+          const int z = ez - oz;
           light_fill(opaque, light, x, y, z, ew, 1);
         }
       }
     }
   }
 
-  Map *map = item->block_maps[1][1];
+  const Map * const map = item->block_maps[1][1];
 
   // count exposed faces
   int miny = 256;
   int maxy = 0;
   int faces = 0;
   for (unsigned int i = 0; i <= map->mask; i++) {
-    MapEntry *entry = map->data + i;
+    const MapEntry * const entry = map->data + i;
     if (EMPTY_ENTRY(entry)) {
       continue;
     }
-    int ex = entry->e.x + map->dx;
-    int ey = entry->e.y + map->dy;
-    int ez = entry->e.z + map->dz;
-    int ew = entry->e.w;
+    const int ex = entry->e.x + map->dx;
+    const int ey = entry->e.y + map->dy;
+    const int ez = entry->e.z + map->dz;
+    const int ew = entry->e.w;
     if (ew <= 0) {
       continue;
     }
-    int x = ex - ox;
-    int y = ey - oy;
-    int z = ez - oz;
-    int f1 = !opaque[XYZ(x - 1, y, z)];
-    int f2 = !opaque[XYZ(x + 1, y, z)];
-    int f3 = !opaque[XYZ(x, y + 1, z)];
-    int f4 = !opaque[XYZ(x, y - 1, z)] && (ey > 0);
-    int f5 = !opaque[XYZ(x, y, z - 1)];
-    int f6 = !opaque[XYZ(x, y, z + 1)];
-    int total = f1 + f2 + f3 + f4 + f5 + f6;
+    const int x = ex - ox;
+    const int y = ey - oy;
+    const int z = ez - oz;
+    const int f1 = !opaque[XYZ(x - 1, y, z)];
+    const int f2 = !opaque[XYZ(x + 1, y, z)];
+    const int f3 = !opaque[XYZ(x, y + 1, z)];
+    const int f4 = !opaque[XYZ(x, y - 1, z)] && (ey > 0);
+    const int f5 = !opaque[XYZ(x, y, z - 1)];
+    const int f6 = !opaque[XYZ(x, y, z + 1)];
+    const int total = f1 + f2 + f3 + f4 + f5 + f6;
     if (total == 0) {
       continue;
     }
-    if (is_plant(ew)) {
-      total = 4;
-    }
     miny = MIN(miny, ey);
     maxy = MAX(maxy, ey);
-    faces += total;
+    faces += is_plant(ew) ? 4 : total;
   }
 
   // generate geometry
-  float *data = malloc_faces(10, faces);
+  float * const data = malloc_faces(10, faces);
   int offset = 0;
   for (unsigned int i = 0; i <= map->mask; i++) {
-    MapEntry *entry = map->data + i;
+    const MapEntry * const entry = map->data + i;
     if (EMPTY_ENTRY(entry)) {
       continue;
     }
-    int ex = entry->e.x + map->dx;
-    int ey = entry->e.y + map->dy;
-    int ez = entry->e.z + map->dz;
-    int ew = entry->e.w;
+    const int ex = entry->e.x + map->dx;
+    const int ey = entry->e.y + map->dy;
+    const int ez = entry->e.z + map->dz;
+    const int ew = entry->e.w;
     if (ew <= 0) {
       continue;
     }
-    int x = ex - ox;
-    int y = ey - oy;
-    int z = ez - oz;
-    int f1 = !opaque[XYZ(x - 1, y, z)];
-    int f2 = !opaque[XYZ(x + 1, y, z)];
-    int f3 = !opaque[XYZ(x, y + 1, z)];
-    int f4 = !opaque[XYZ(x, y - 1, z)] && (ey > 0);
-    int f5 = !opaque[XYZ(x, y, z - 1)];
-    int f6 = !opaque[XYZ(x, y, z + 1)];
-    int total = f1 + f2 + f3 + f4 + f5 + f6;
+    const int x = ex - ox;
+    const int y = ey - oy;
+    const int z = ez - oz;
+    const int f1 = !opaque[XYZ(x - 1, y, z)];
+    const int f2 = !opaque[XYZ(x + 1, y, z)];
+    const int f3 = !opaque[XYZ(x, y + 1, z)];
+    const int f4 = !opaque[XYZ(x, y - 1, z)] && (ey > 0);
+    const int f5 = !opaque[XYZ(x, y, z - 1)];
+    const int f6 = !opaque[XYZ(x, y, z + 1)];
+    const int total = f1 + f2 + f3 + f4 + f5 + f6;
     if (total == 0) {
       continue;
     }
@@ -877,7 +882,6 @@ void compute_chunk(WorkerItem *item) {
     float light[6][4];
     occlusion(neighbors, lights, shades, ao, light);
     if (is_plant(ew)) {
-      total = 4;
       float min_ao = 1;
       float max_light = 0;
       for (int a = 0; a < 6; a++) {
@@ -893,7 +897,7 @@ void compute_chunk(WorkerItem *item) {
       make_cube(data + offset, ao, light, f1, f2, f3, f4, f5, f6, ex, ey, ez,
                 0.5, ew);
     }
-    offset += total * 60;
+    offset += (is_plant(ew) ? 4 : total) * 60;
   }
 
   free(opaque);
@@ -906,7 +910,7 @@ void compute_chunk(WorkerItem *item) {
   item->data = data;
 }
 
-void generate_chunk(Chunk *chunk, WorkerItem *item) {
+void generate_chunk(Chunk * const chunk, WorkerItem * const item) {
   chunk->miny = item->miny;
   chunk->maxy = item->maxy;
   chunk->faces = item->faces;
@@ -914,20 +918,20 @@ void generate_chunk(Chunk *chunk, WorkerItem *item) {
   chunk->buffer = (*renderer.gen_faces)(10, item->faces, item->data);
 
   // generate sign buffer
-  SignList *signs = &chunk->signs;
+  const SignList * const signs = &chunk->signs;
 
   // first pass - count characters
   int maxFaces = 0;
   for (int i = 0; i < signs->size; i++) {
-    Sign *e = signs->data + i;
+    const Sign * const e = signs->data + i;
     maxFaces += strlen(e->text);
   }
 
   // second pass - generate geometry
-  float *data = malloc_faces(5, maxFaces);
+  float * const data = malloc_faces(5, maxFaces);
   int faces = 0;
   for (int i = 0; i < signs->size; i++) {
-    Sign *e = signs->data + i;
+    const Sign * const e = signs->data + i;
     faces +=
         _gen_sign_buffer(data + faces * 30, e->x, e->y, e->z, e->face, e->text);
   }
@@ -937,17 +941,18 @@ void generate_chunk(Chunk *chunk, WorkerItem *item) {
   chunk->sign_faces = faces;
 }
 
-void gen_chunk_buffer(Chunk *chunk) {
+void gen_chunk_buffer(Chunk * const chunk) {
   WorkerItem _item;
-  WorkerItem *item = &_item;
-  item->p = chunk->p;
-  item->q = chunk->q;
+  WorkerItem * const item = &_item;
+    {
+        item->p = chunk->p;
+        item->q = chunk->q;
+    }
   for (int dp = -1; dp <= 1; dp++) {
     for (int dq = -1; dq <= 1; dq++) {
-      Chunk *other_chunk = chunk;
-      if (dp || dq) {
-        other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
-      }
+      Chunk * const other_chunk = (dp || dq)
+              ? find_chunk(chunk->p + dp, chunk->q + dq)
+              :chunk;
       if (other_chunk) {
         item->block_maps[dp + 1][dq + 1] = &other_chunk->map;
         item->light_maps[dp + 1][dq + 1] = &other_chunk->lights;
@@ -968,49 +973,54 @@ void map_set_func(int x, int y, int z, int w, void *arg) {
 }
 
 void load_chunk(WorkerItem *item) {
-  int p = item->p;
-  int q = item->q;
-  Map *block_map = item->block_maps[1][1];
-  Map *light_map = item->light_maps[1][1];
+  const int p = item->p;
+  const int q = item->q;
+  Map * const block_map = item->block_maps[1][1];
+  Map * const light_map = item->light_maps[1][1];
   create_world(p, q, map_set_func, block_map);
   db_load_blocks(block_map, p, q);
   db_load_lights(light_map, p, q);
 }
 
 void request_chunk(int p, int q) {
-  int key = db_get_key(p, q);
+  const int key = db_get_key(p, q);
   client_chunk(p, q, key);
 }
 
 void init_chunk(Chunk *chunk, int p, int q) {
-  chunk->p = p;
-  chunk->q = q;
-  chunk->faces = 0;
-  chunk->sign_faces = 0;
-  chunk->buffer = 0;
-  chunk->sign_buffer = 0;
+    // initilize the chunk's values
+    {
+        chunk->p = p;
+        chunk->q = q;
+        chunk->faces = 0;
+        chunk->sign_faces = 0;
+        chunk->buffer = 0;
+        chunk->sign_buffer = 0;
+    }
   dirty_chunk(chunk);
-  SignList *signs = &chunk->signs;
+  SignList * const signs = &chunk->signs;
   sign_list_alloc(signs, 16);
   db_load_signs(signs, p, q);
-  Map *block_map = &chunk->map;
-  Map *light_map = &chunk->lights;
-  int dx = p * CHUNK_SIZE - 1;
-  int dy = 0;
-  int dz = q * CHUNK_SIZE - 1;
+  Map * const block_map = &chunk->map;
+  Map * const light_map = &chunk->lights;
+  const int dx = p * CHUNK_SIZE - 1;
+  const int dy = 0;
+  const int dz = q * CHUNK_SIZE - 1;
   map_alloc(block_map, dx, dy, dz, 0x7fff);
   map_alloc(light_map, dx, dy, dz, 0xf);
 }
 
-void create_chunk(Chunk *chunk, int p, int q) {
+void create_chunk(Chunk * chunk, int p, int q) {
   init_chunk(chunk, p, q);
 
   WorkerItem _item;
   WorkerItem *item = &_item;
-  item->p = chunk->p;
-  item->q = chunk->q;
-  item->block_maps[1][1] = &chunk->map;
-  item->light_maps[1][1] = &chunk->lights;
+    {
+        item->p = chunk->p;
+        item->q = chunk->q;
+        item->block_maps[1][1] = &chunk->map;
+        item->light_maps[1][1] = &chunk->lights;
+    }
   load_chunk(item);
 
   request_chunk(p, q);
@@ -1018,23 +1028,23 @@ void create_chunk(Chunk *chunk, int p, int q) {
 
 void delete_chunks() {
   int count = g->chunk_count;
-  PositionAndOrientation *positionAndOrientation1 =
+  PositionAndOrientation * const positionAndOrientation1 =
       &g->players->positionAndOrientation;
-  PositionAndOrientation *positionAndOrientation2 =
+  PositionAndOrientation * const positionAndOrientation2 =
       &(g->players + g->observe1)->positionAndOrientation;
-  PositionAndOrientation *positionAndOrientation3 =
+  PositionAndOrientation * const positionAndOrientation3 =
       &(g->players + g->observe2)->positionAndOrientation;
-  PositionAndOrientation *positionsAndOrientations[3] = {
+  PositionAndOrientation * const positionsAndOrientations[3] = {
       positionAndOrientation1, positionAndOrientation2,
       positionAndOrientation3};
   for (int i = 0; i < count; i++) {
-    Chunk *chunk = g->chunks + i;
+    Chunk * const chunk = g->chunks + i;
     int delete = 1;
     for (int j = 0; j < 3; j++) {
       PositionAndOrientation *positionAndOrientation =
           positionsAndOrientations[j];
-      int p = chunked(positionAndOrientation->x);
-      int q = chunked(positionAndOrientation->z);
+      const int p = chunked(positionAndOrientation->x);
+      const int q = chunked(positionAndOrientation->z);
       if (chunk_distance(chunk, p, q) < g->delete_radius) {
         delete = 0;
         break;
@@ -1055,7 +1065,7 @@ void delete_chunks() {
 
 void delete_all_chunks() {
   for (int i = 0; i < g->chunk_count; i++) {
-    Chunk *chunk = g->chunks + i;
+    Chunk * const chunk = g->chunks + i;
     map_free(&chunk->map);
     map_free(&chunk->lights);
     sign_list_free(&chunk->signs);
@@ -1067,11 +1077,11 @@ void delete_all_chunks() {
 
 void check_workers() {
   for (int i = 0; i < WORKERS; i++) {
-    Worker *worker = g->workers + i;
+    Worker * const worker = g->workers + i;
     mtx_lock(&worker->mtx);
     if (worker->state == WORKER_DONE) {
-      WorkerItem *item = &worker->item;
-      Chunk *chunk = find_chunk(item->p, item->q);
+      WorkerItem * const item = &worker->item;
+      Chunk * const chunk = find_chunk(item->p, item->q);
       if (chunk) {
         if (item->load) {
           Map *block_map = item->block_maps[1][1];
@@ -1086,8 +1096,8 @@ void check_workers() {
       }
       for (int a = 0; a < 3; a++) {
         for (int b = 0; b < 3; b++) {
-          Map *block_map = item->block_maps[a][b];
-          Map *light_map = item->light_maps[a][b];
+          Map * const block_map = item->block_maps[a][b];
+          Map * const light_map = item->light_maps[a][b];
           if (block_map) {
             map_free(block_map);
             free(block_map);
@@ -1105,16 +1115,16 @@ void check_workers() {
 }
 
 void force_chunks(Player *player) {
-  PositionAndOrientation *positionAndOrientation =
+  const PositionAndOrientation * const positionAndOrientation =
       &player->positionAndOrientation;
-  int p = chunked(positionAndOrientation->x);
-  int q = chunked(positionAndOrientation->z);
-  int r = 1;
+  const int p = chunked(positionAndOrientation->x);
+  const int q = chunked(positionAndOrientation->z);
+  const int r = 1;
   for (int dp = -r; dp <= r; dp++) {
     for (int dq = -r; dq <= r; dq++) {
-      int a = p + dp;
-      int b = q + dq;
-      Chunk *chunk = find_chunk(a, b);
+      const int a = p + dp;
+      const int b = q + dq;
+      Chunk * chunk = find_chunk(a, b);
       if (chunk) {
         if (chunk->dirty) {
           gen_chunk_buffer(chunk);
@@ -1129,7 +1139,7 @@ void force_chunks(Player *player) {
 }
 
 void ensure_chunks_worker(Player *player, Worker *worker) {
-  PositionAndOrientation *positionAndOrientation =
+  const PositionAndOrientation * const positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(matrix, g->width, g->height, positionAndOrientation->x,
@@ -1138,18 +1148,18 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
                 g->ortho, g->render_radius);
   float planes[6][4];
   frustum_planes(planes, g->render_radius, matrix);
-  int p = chunked(positionAndOrientation->x);
-  int q = chunked(positionAndOrientation->z);
-  int r = g->create_radius;
-  int start = 0x0fffffff;
+  const int p = chunked(positionAndOrientation->x);
+  const int q = chunked(positionAndOrientation->z);
+  const int r = g->create_radius;
+  const int start = 0x0fffffff;
   int best_score = start;
   int best_a = 0;
   int best_b = 0;
   for (int dp = -r; dp <= r; dp++) {
     for (int dq = -r; dq <= r; dq++) {
-      int a = p + dp;
-      int b = q + dq;
-      int index = (ABS(a) ^ ABS(b)) % WORKERS;
+      const int a = p + dp;
+      const int b = q + dq;
+      const int index = (ABS(a) ^ ABS(b)) % WORKERS;
       if (index != worker->index) {
         continue;
       }
@@ -1157,8 +1167,8 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
       if (chunk && !chunk->dirty) {
         continue;
       }
-      int distance = MAX(ABS(dp), ABS(dq));
-      int invisible = !chunk_visible(planes, a, b, 0, 256);
+      const int distance = MAX(ABS(dp), ABS(dq));
+      const int invisible = !chunk_visible(planes, a, b, 0, 256);
       int priority = 0;
       if (chunk) {
         priority = chunk->buffer && chunk->dirty;
@@ -1174,10 +1184,10 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
   if (best_score == start) {
     return;
   }
-  int a = best_a;
-  int b = best_b;
+  const int a = best_a;
+  const int b = best_b;
   int load = 0;
-  Chunk *chunk = find_chunk(a, b);
+  Chunk * chunk = find_chunk(a, b);
   if (!chunk) {
     load = 1;
     if (g->chunk_count < MAX_CHUNKS) {
@@ -1187,21 +1197,29 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
       return;
     }
   }
-  WorkerItem *item = &worker->item;
-  item->p = chunk->p;
-  item->q = chunk->q;
-  item->load = load;
+  WorkerItem * const item = &worker->item;
+    {
+        item->p = chunk->p;
+        item->q = chunk->q;
+        item->load = load;
+    }
   for (int dp = -1; dp <= 1; dp++) {
     for (int dq = -1; dq <= 1; dq++) {
-      Chunk *other_chunk = chunk;
+      Chunk * other_chunk = chunk;
       if (dp || dq) {
         other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
       }
       if (other_chunk) {
-        Map *block_map = malloc(sizeof(Map));
-        map_copy(block_map, &other_chunk->map);
-        Map *light_map = malloc(sizeof(Map));
-        map_copy(light_map, &other_chunk->lights);
+        Map *const block_map = malloc(sizeof(Map));
+          {
+              // initialize the map
+              map_copy(block_map, &other_chunk->map);
+          }
+        Map * const light_map = malloc(sizeof(Map));
+          {
+              // initialize the map
+              map_copy(light_map, &other_chunk->lights);
+          }
         item->block_maps[dp + 1][dq + 1] = block_map;
         item->light_maps[dp + 1][dq + 1] = light_map;
       } else {
@@ -1219,7 +1237,7 @@ void ensure_chunks(Player *player) {
   check_workers();
   force_chunks(player);
   for (int i = 0; i < WORKERS; i++) {
-    Worker *worker = g->workers + i;
+    Worker * const worker = g->workers + i;
     mtx_lock(&worker->mtx);
     if (worker->state == WORKER_IDLE) {
       ensure_chunks_worker(player, worker);
@@ -1229,7 +1247,7 @@ void ensure_chunks(Player *player) {
 }
 
 int worker_run(void *arg) {
-  Worker *worker = (Worker *)arg;
+  Worker * const worker = (Worker *)arg;
   int running = 1;
   while (running) {
     mtx_lock(&worker->mtx);
@@ -1250,11 +1268,11 @@ int worker_run(void *arg) {
 }
 
 void unset_sign(int x, int y, int z) {
-  int p = chunked(x);
-  int q = chunked(z);
-  Chunk *chunk = find_chunk(p, q);
+  const int p = chunked(x);
+  const int q = chunked(z);
+  Chunk * const chunk = find_chunk(p, q);
   if (chunk) {
-    SignList *signs = &chunk->signs;
+    SignList * const signs = &chunk->signs;
     if (sign_list_remove_all(signs, x, y, z)) {
       chunk->dirty = 1;
       db_delete_signs(x, y, z);
@@ -1265,11 +1283,11 @@ void unset_sign(int x, int y, int z) {
 }
 
 void unset_sign_face(int x, int y, int z, int face) {
-  int p = chunked(x);
-  int q = chunked(z);
-  Chunk *chunk = find_chunk(p, q);
+  const int p = chunked(x);
+  const int q = chunked(z);
+  Chunk * const chunk = find_chunk(p, q);
   if (chunk) {
-    SignList *signs = &chunk->signs;
+    SignList * const signs = &chunk->signs;
     if (sign_list_remove(signs, x, y, z, face)) {
       chunk->dirty = 1;
       db_delete_sign(x, y, z, face);
@@ -1285,9 +1303,9 @@ void _set_sign(int p, int q, int x, int y, int z, int face, const char *text,
     unset_sign_face(x, y, z, face);
     return;
   }
-  Chunk *chunk = find_chunk(p, q);
+  Chunk * const chunk = find_chunk(p, q);
   if (chunk) {
-    SignList *signs = &chunk->signs;
+    SignList * const signs = &chunk->signs;
     sign_list_add(signs, x, y, z, face, text);
     if (dirty) {
       chunk->dirty = 1;
@@ -1297,19 +1315,19 @@ void _set_sign(int p, int q, int x, int y, int z, int face, const char *text,
 }
 
 void set_sign(int x, int y, int z, int face, const char *text) {
-  int p = chunked(x);
-  int q = chunked(z);
+  const int p = chunked(x);
+  const int q = chunked(z);
   _set_sign(p, q, x, y, z, face, text, 1);
   client_sign(x, y, z, face, text);
 }
 
 void toggle_light(int x, int y, int z) {
-  int p = chunked(x);
-  int q = chunked(z);
-  Chunk *chunk = find_chunk(p, q);
+  const int p = chunked(x);
+  const int q = chunked(z);
+  Chunk * const chunk = find_chunk(p, q);
   if (chunk) {
     Map *map = &chunk->lights;
-    int w = map_get(map, x, y, z) ? 0 : 15;
+    const int w = map_get(map, x, y, z) ? 0 : 15;
     map_set(map, x, y, z, w);
     db_insert_light(p, q, x, y, z, w);
     client_light(x, y, z, w);
@@ -1318,9 +1336,9 @@ void toggle_light(int x, int y, int z) {
 }
 
 void set_light(int p, int q, int x, int y, int z, int w) {
-  Chunk *chunk = find_chunk(p, q);
+  Chunk * const chunk = find_chunk(p, q);
   if (chunk) {
-    Map *map = &chunk->lights;
+    Map * const map = &chunk->lights;
     if (map_set(map, x, y, z, w)) {
       dirty_chunk(chunk);
       db_insert_light(p, q, x, y, z, w);
@@ -1331,7 +1349,7 @@ void set_light(int p, int q, int x, int y, int z, int w) {
 }
 
 void _set_block(int p, int q, int x, int y, int z, int w, int dirty) {
-  Chunk *chunk = find_chunk(p, q);
+  Chunk * const chunk = find_chunk(p, q);
   if (chunk) {
     Map *map = &chunk->map;
     if (map_set(map, x, y, z, w)) {
@@ -1357,8 +1375,8 @@ void _set_block(int p, int q, int x, int y, int z, int w, int dirty) {
  * w was homogeneous coordinates
  */
 void set_block(int x, int y, int z, int w) {
-  int p = chunked(x);
-  int q = chunked(z);
+  const int p = chunked(x);
+  const int q = chunked(z);
   _set_block(p, q, x, y, z, w, 1);
   for (int dx = -1; dx <= 1; dx++) {
     for (int dz = -1; dz <= 1; dz++) {
@@ -1386,11 +1404,11 @@ void record_block(int x, int y, int z, int w) {
 }
 
 int get_block(int x, int y, int z) {
-  int p = chunked(x);
-  int q = chunked(z);
-  Chunk *chunk = find_chunk(p, q);
+  const int p = chunked(x);
+  const int q = chunked(z);
+  const Chunk * const chunk = find_chunk(p, q);
   if (chunk) {
-    Map *map = &chunk->map;
+    const Map * const map = &chunk->map;
     return map_get(map, x, y, z);
   }
   return 0;
@@ -1410,11 +1428,11 @@ void builder_block(int x, int y, int z, int w) {
 
 int render_chunks(Player *player) {
   int result = 0;
-  PositionAndOrientation *positionAndOrientation =
+  const PositionAndOrientation * const positionAndOrientation =
       &player->positionAndOrientation;
   ensure_chunks(player);
-  int p = chunked(positionAndOrientation->x);
-  int q = chunked(positionAndOrientation->z);
+  const int p = chunked(positionAndOrientation->x);
+  const int q = chunked(positionAndOrientation->z);
 
   float light;
   // initilize light
@@ -1447,7 +1465,7 @@ int render_chunks(Player *player) {
 #else
   for (int i = 0; i < g->chunk_count; i++) {
 #endif
-    Chunk *chunk = g->chunks + i;
+    const Chunk * const chunk = g->chunks + i;
     if (chunk_distance(chunk, p, q) > g->render_radius) {
       continue;
     }

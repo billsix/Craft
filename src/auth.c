@@ -30,9 +30,9 @@
 #define MAX_RESPONSE_LENGTH 1024
 
 size_t write_function(char *data, size_t size, size_t count, void *arg) {
-  size_t length = size * count;
-  char *dst = (char *)arg;
-  char *src = malloc(length + 1);
+  const size_t length = size * count;
+  char * const dst = (char *)arg;
+  char * const src = malloc(length + 1);
   memcpy(src, data, length);
   src[length] = '\0';
   strncat(dst, src, MAX_RESPONSE_LENGTH - strlen(dst) - 1);

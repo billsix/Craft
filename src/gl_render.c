@@ -80,7 +80,7 @@ void gl_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width,
   glScissor(x_min, y_min, x_width, y_height);
 }
 
-uint32_t gl_gen_buffer(size_t size, float *data) {
+uint32_t gl_gen_buffer(size_t size, const float * const data) {
   uint32_t buffer;
   glGenBuffers(1, &buffer);
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -97,7 +97,7 @@ uint32_t gl_gen_faces(int components, int faces, float *data) {
   return buffer;
 }
 
-uint32_t gl_make_shader(uint32_t type, const char *source) {
+uint32_t gl_make_shader(uint32_t type, const char * const source) {
   uint32_t shader = glCreateShader(type);
   glShaderSource(shader, 1, &source, NULL);
   glCompileShader(shader);
@@ -115,7 +115,7 @@ uint32_t gl_make_shader(uint32_t type, const char *source) {
   return shader;
 }
 
-uint32_t gl_load_shader(uint32_t type, const char *path) {
+uint32_t gl_load_shader(uint32_t type, const char * const path) {
   char *data = load_file(path);
   uint32_t result = gl_make_shader(type, data);
   free(data);
@@ -151,7 +151,7 @@ uint32_t gl_load_program(const char *path1, const char *path2) {
   return program;
 }
 
-void gl_load_png_texture(const char *file_name) {
+void gl_load_png_texture(const char * const file_name) {
   unsigned int error;
   unsigned char *data;
   unsigned int width, height;
@@ -297,8 +297,8 @@ void gl_initiliaze_textures() {
   gl_load_png_texture(TEXTURE_DIR "sign.png");
 }
 
-void gl_setup_render_chunks(float *matrix,
-                            PositionAndOrientation *positionAndOrientation,
+void gl_setup_render_chunks(const float *  const matrix,
+                            const PositionAndOrientation * const positionAndOrientation,
                             float light) {
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
@@ -316,7 +316,7 @@ void gl_setup_render_chunks(float *matrix,
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
-void gl_render_chunk(Chunk *chunk) {
+void gl_render_chunk(const Chunk * const chunk) {
   // TODO -
   // make and initilize the VAO once at initilization time.
   // only thing that should happen here
@@ -367,7 +367,7 @@ void gl_draw_triangles_3d_text(uint32_t buffer, int count) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_setup_render_signs(float *matrix) {
+void gl_setup_render_signs(const float * const matrix) {
   glUseProgram(text_attrib.program);
   glUniformMatrix4fv(text_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -378,7 +378,7 @@ void gl_setup_render_signs(float *matrix) {
   glUniform1i(text_attrib.is_sign, 1);
 }
 
-void gl_render_signs(Chunk *chunk) {
+void gl_render_signs(const Chunk * const chunk) {
   // draw signs
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(-8, -1024);
@@ -391,7 +391,7 @@ void gl_render_signs(Chunk *chunk) {
   glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
-void gl_render_sign(float *matrix, int x, int y, int z, int face) {
+void gl_render_sign(const float * const matrix, int x, int y, int z, int face) {
   glUseProgram(text_attrib.program);
   glUniformMatrix4fv(text_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -416,8 +416,8 @@ void gl_render_sign(float *matrix, int x, int y, int z, int face) {
   gl_del_buffer(buffer);
 }
 
-void gl_setup_render_players(float *matrix,
-                             PositionAndOrientation *positionAndOrientation) {
+void gl_setup_render_players(const float * const matrix,
+                             const PositionAndOrientation * const positionAndOrientation) {
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
   glUniform3f(block_attrib.camera, positionAndOrientation->x,
@@ -428,7 +428,7 @@ void gl_setup_render_players(float *matrix,
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
-void gl_render_player(Player *other_player) {
+void gl_render_player(const Player * const other_player) {
   // TODO -
   // make and initilize the VAO once at initilization time.
   // only thing that should happen here
@@ -459,7 +459,7 @@ void gl_render_player(Player *other_player) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_sky(uint32_t buffer, float *matrix) {
+void gl_render_sky(uint32_t buffer, const float * const matrix) {
   glUseProgram(sky_attrib.program);
   glUniformMatrix4fv(sky_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -530,7 +530,7 @@ void gl_draw_lines(uint32_t buffer, int components, int count) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_wireframe(float *matrix, int hx, int hy, int hz) {
+void gl_render_wireframe(const float * const matrix, int hx, int hy, int hz) {
   glUseProgram(line_attrib.program);
   glLineWidth(1);
   glEnable(GL_COLOR_LOGIC_OP);
@@ -547,8 +547,8 @@ void gl_render_wireframe(float *matrix, int hx, int hy, int hz) {
   glDisable(GL_COLOR_LOGIC_OP);
 }
 
-void gl_render_text(float *matrix, int justify, float x, float y, float n,
-                    char *text) {
+void gl_render_text(const float * const matrix, int justify, float x, float y, float n,
+                    const char * const text) {
   glUseProgram(text_attrib.program);
   glUniformMatrix4fv(text_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -596,7 +596,7 @@ void gl_render_text(float *matrix, int justify, float x, float y, float n,
   gl_del_buffer(text_buffer);
 }
 
-void gl_render_item(float *matrix) {
+void gl_render_item(const float * const matrix) {
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
   glUniform3f(block_attrib.camera, 0, 0, 5);
@@ -658,7 +658,7 @@ void gl_render_cube(uint32_t cube_buffer) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_crosshairs(uint32_t crosshair_buffer, float *matrix) {
+void gl_render_crosshairs(uint32_t crosshair_buffer, const float * const matrix) {
   glUseProgram(line_attrib.program);
   // TODO -
   //  do something with this, remove it, etc

@@ -50,18 +50,18 @@ void make_cube_faces(float *data, float ao[6][4], float light[6][4], int left,
                                       {0, 1, 2, 1, 3, 2}, {0, 2, 1, 2, 3, 1},
                                       {0, 1, 2, 1, 3, 2}, {0, 2, 1, 2, 3, 1}};
   float *d = data;
-  float s = 0.0625;
-  float a = 0 + 1 / 2048.0;
-  float b = s - 1 / 2048.0;
-  int faces[6] = {left, right, top, bottom, front, back};
-  int tiles[6] = {wleft, wright, wtop, wbottom, wfront, wback};
+  const float s = 0.0625;
+  const float a = 0 + 1 / 2048.0;
+  const float b = s - 1 / 2048.0;
+  const int faces[6] = {left, right, top, bottom, front, back};
+  const int tiles[6] = {wleft, wright, wtop, wbottom, wfront, wback};
   for (int i = 0; i < 6; i++) {
     if (faces[i] == 0) {
       continue;
     }
-    float du = (tiles[i] % 16) * s;
-    float dv = (tiles[i] / 16) * s;
-    int flip = ao[i][0] + ao[i][3] > ao[i][1] + ao[i][2];
+    const float du = (tiles[i] % 16) * s;
+    const float dv = (tiles[i] / 16) * s;
+    const int flip = ao[i][0] + ao[i][3] > ao[i][1] + ao[i][2];
     for (int v = 0; v < 6; v++) {
       int j = flip ? flipped[i][v] : indices[i][v];
       *(d++) = x + n * positions[i][j][0];
@@ -109,14 +109,14 @@ void make_plant(float *data, float ao, float light, float px, float py,
                                       {0, 3, 2, 0, 1, 3},
                                       {0, 3, 1, 0, 2, 3}};
   float *d = data;
-  float s = 0.0625;
-  float a = 0;
-  float b = s;
-  float du = (plants[w] % 16) * s;
-  float dv = (plants[w] / 16) * s;
+  const float s = 0.0625;
+  const float a = 0;
+  const float b = s;
+  const float du = (plants[w] % 16) * s;
+  const float dv = (plants[w] / 16) * s;
   for (int i = 0; i < 4; i++) {
     for (int v = 0; v < 6; v++) {
-      int j = indices[i][v];
+      const int j = indices[i][v];
       *(d++) = n * positions[i][j][0];
       *(d++) = n * positions[i][j][1];
       *(d++) = n * positions[i][j][2];
@@ -177,12 +177,12 @@ void make_cube_wireframe(float *data, float x, float y, float z, float n) {
 
 void make_character(float *data, float x, float y, float n, float m, char c) {
   float *d = data;
-  float s = 0.0625;
-  float a = s;
-  float b = s * 2;
-  int w = c - 32;
-  float du = (w % 16) * a;
-  float dv = 1 - (w / 16) * b - b;
+  const float s = 0.0625;
+  const float a = s;
+  const float b = s * 2;
+  const int w = c - 32;
+  const float du = (w % 16) * a;
+  const float dv = 1 - (w / 16) * b - b;
   *(d++) = x - n;
   *(d++) = y - m;
   *(d++) = du + 0;
@@ -274,16 +274,16 @@ void make_character_3d(float *data, float x, float y, float z, float n,
   };
   float *d = data;
   float s = 0.0625;
-  float pu = s / 5;
-  float pv = s / 2.5;
-  float u1 = pu;
-  float v1 = pv;
-  float u2 = s - pu;
-  float v2 = s * 2 - pv;
-  float p = 0.5;
-  int w = c - 32;
-  float du = (w % 16) * s;
-  float dv = 1 - (w / 16 + 1) * s * 2;
+  const float pu = s / 5;
+  const float pv = s / 2.5;
+  const float u1 = pu;
+  const float v1 = pv;
+  const float u2 = s - pu;
+  const float v2 = s * 2 - pv;
+  const float p = 0.5;
+  const int w = c - 32;
+  const float du = (w % 16) * s;
+  const float dv = 1 - (w / 16 + 1) * s * 2;
   x += p * offsets[face][0];
   y += p * offsets[face][1];
   z += p * offsets[face][2];
@@ -296,8 +296,8 @@ void make_character_3d(float *data, float x, float y, float z, float n,
   }
 }
 
-int _make_sphere(float *data, float r, int detail, float *a, float *b, float *c,
-                 float *ta, float *tb, float *tc) {
+int _make_sphere(float *data, float r, int detail, const float * const a, const float * const b, const float * const c,
+                 const float * const ta, const float * const tb, const float * const tc) {
   if (detail == 0) {
     float *d = data;
     *(d++) = a[0] * r;
@@ -370,11 +370,11 @@ void make_sphere(float *data, float r, int detail) {
   // 5, 8192, 196608
   // 6, 32768, 786432
   // 7, 131072, 3145728
-  static int indices[8][3] = {{4, 3, 0}, {1, 4, 0}, {3, 4, 5}, {4, 1, 5},
+  static const int indices[8][3] = {{4, 3, 0}, {1, 4, 0}, {3, 4, 5}, {4, 1, 5},
                               {0, 3, 2}, {0, 2, 1}, {5, 2, 3}, {5, 1, 2}};
-  static float positions[6][3] = {{0, 0, -1}, {1, 0, 0}, {0, -1, 0},
+  static const float positions[6][3] = {{0, 0, -1}, {1, 0, 0}, {0, -1, 0},
                                   {-1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-  static float uvs[6][3] = {{0, 0.5}, {0, 0.5}, {0, 0},
+  static const float uvs[6][3] = {{0, 0.5}, {0, 0.5}, {0, 0},
                             {0, 0.5}, {0, 1},   {0, 0.5}};
   int total = 0;
   for (int i = 0; i < 8; i++) {
