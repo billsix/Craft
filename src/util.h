@@ -55,4 +55,12 @@ int string_width(const char *input);
 int wrap(const char *input, int max_width, char *output, int max_length);
 float *malloc_faces(int components, int faces);
 
+#ifdef __cplusplus
+#define BEGIN_C_DECL extern "C" {
+#define END_C_DECL }
+#else
+#define BEGIN_C_DECL
+#define END_C_DECL
+#endif
+
 #endif

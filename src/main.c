@@ -50,6 +50,8 @@
 #include "noise.h"
 #include "util.h"
 
+#include "gui.h"
+
 #include "vulkan_render.h"
 
 #include "world.h"
@@ -63,6 +65,8 @@
 
 Model model;
 Model *g = &model;
+
+bool escape_pressed = false;
 
 // Interface for multiple rendering backends
 // currently, only OpenGL3.3 core profile is supported.
@@ -1956,6 +1960,7 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
     return;
   }
   if (key == GLFW_KEY_ESCAPE) {
+    escape_pressed = true;
     const int exclusive =
         glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
 
@@ -2096,7 +2101,7 @@ void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
         on_left_click();
       }
     } else {
-      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+      // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
   }
   if (button == GLFW_MOUSE_BUTTON_RIGHT) {
@@ -2508,6 +2513,9 @@ int main(int argc, char **argv) {
     return -1;
   }
 
+  // initialize IMGUI
+  gui_init(g->window);
+
   // OUTER LOOP //
   int running = 1;
   while (running) {
@@ -2585,6 +2593,9 @@ int main(int argc, char **argv) {
 
       glfwGetFramebufferSize(g->window, &g->width, &g->height);
       (*renderer.viewport)(0, 0, g->width, g->height);
+
+      gui_create_frame();
+      gui_show_demo_window();
 
       // FRAME RATE //
       if (g->time_changed) {
@@ -2839,6 +2850,8 @@ int main(int argc, char **argv) {
         }
       }
 
+      gui_render_frame();
+
       // SWAP AND POLL //
       glfwSwapBuffers(g->window);
       glfwPollEvents();
@@ -2851,6 +2864,8 @@ int main(int argc, char **argv) {
         break;
       }
     }
+
+    gui_cleanup();
 
     // SHUTDOWN //
     db_save_state(positionAndOrientation->x, positionAndOrientation->y,

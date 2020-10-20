@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 
-# project name, using just the C language
-project(craft LANGUAGES C)
+project(craft LANGUAGES C CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+
+add_compile_definitions(IMGUI_IMPL_OPENGL_LOADER_GL3W=1)
+
 
 option(ENABLE_OPENGL_CORE_PROFILE_RENDERER "Build the OpenGL Core Profile 3.3+ Renderer" ON)
 option(ENABLE_VULKAN_RENDERER "Build the Vulkan Renderer" OFF)
@@ -35,6 +39,7 @@ endif()
 
 # set SOURCE_FILES to all of the c files
 FILE(GLOB SOURCE_FILES src/*.c)
+FILE(GLOB CPLUSPLUS_FILES src/*.cpp)
 
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Debug mode")
@@ -45,7 +50,7 @@ ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 configure_file(src/config.h.in src/config.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/src deps/imgui/ deps/imgui/examples)
 
 if(WIN32)
   set(SQLITE_SOURCE "deps/sqlite/sqlite3.c")
@@ -71,6 +76,7 @@ add_executable(
     deps/imgui/imgui_draw.cpp
     deps/imgui/imgui_widgets.cpp
     deps/imgui/examples/imgui_impl_opengl3.cpp
+    ${CPLUSPLUS_FILES}
     ${IMGUI_RENDERERS}
 )
 
@@ -123,7 +129,6 @@ else()
         ${GLFW_LIBRARIES} ${CURL_LIBRARIES} ${SQLITE_LIBRARIES})
 endif()
 
-#gcc -std=c99 -O3 -fPIC -shared -o world -I src -I deps/noise deps/noise/noise.c src/world.c
 add_library(world SHARED deps/noise/noise.c src/world.c)
 
 # Install

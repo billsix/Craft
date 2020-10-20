@@ -231,6 +231,9 @@ typedef struct {
 
 extern Model *g;
 
+// TODO - put this into the Model struct
+extern bool escape_pressed;
+
 float time_of_day();
 int _gen_sign_buffer(float *data, float x, float y, float z, int face,
                      const char *text);
