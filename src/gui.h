@@ -5,7 +5,7 @@
 
 BEGIN_C_DECL
 
-void gui_init(GLFWwindow *w);
+void gui_init();
 void gui_create_frame();
 void gui_show_demo_window();
 void gui_render_frame();

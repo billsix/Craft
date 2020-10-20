@@ -15,13 +15,18 @@ option(ENABLE_NO_THREADS "Don't use threads.  This increases the framerate on ol
 
 if(ENABLE_OPENGL_CORE_PROFILE_RENDERER)
   set(IMGUI_RENDERERS
-    deps/imgui/backends/imgui_impl_opengl3.cpp)
+    deps/imgui/backends/imgui_impl_opengl3.cpp
+    src/gl_render.c
+    src/gui-gl.cpp
+    )
 endif()
 
 if(ENABLE_VULKAN_RENDERER)
   set(IMGUI_RENDERERS
-    ${IMGUI_RENDERERS}
-    deps/imgui/backends/imgui_impl_vulkan.cpp)
+    deps/imgui/backends/imgui_impl_vulkan.cpp
+    src/vulkan_render.c
+    src/gui-vulkan.cpp
+    )
 endif()
 
 
@@ -38,8 +43,36 @@ endif()
 
 
 # set SOURCE_FILES to all of the c files
-FILE(GLOB SOURCE_FILES src/*.c)
-FILE(GLOB CPLUSPLUS_FILES src/*.cpp)
+set(SOURCE_FILES
+  src/auth.c
+  src/auth.h
+  src/client.c
+  src/client.h
+  src/cube.c
+  src/cube.h
+  src/db.c
+  src/db.h
+  src/item.c
+  src/item.h
+  src/main.c
+  src/main.h
+  src/map.c
+  src/map.h
+  src/matrix.c
+  src/matrix.h
+  src/ring.c
+  src/ring.h
+  src/sign.c
+  src/sign.h
+  src/util.c
+  src/util.h
+  src/world.c
+  src/world.h
+)
+set(CPLUSPLUS_FILES
+  src/gui.h
+  src/gui.cpp
+)
 
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
   message("Debug mode")

@@ -67,6 +67,16 @@ Model model;
 Model *g = &model;
 
 bool escape_pressed = false;
+bool do_render_chunks = true;
+bool do_render_signs = true;
+bool do_render_sky = true;
+bool do_render_wireframe = true;
+bool do_render_text = true;
+bool do_render_item = true;
+bool do_render_plant = true;
+bool do_render_cube = true;
+bool do_render_crosshairs = true;
+
 
 // Interface for multiple rendering backends
 // currently, only OpenGL3.3 core profile is supported.
@@ -1427,6 +1437,9 @@ void builder_block(int x, int y, int z, int w) {
 }
 
 int render_chunks(Player *player) {
+  if (!do_render_chunks){
+    return 0;
+  }
   int result = 0;
   const PositionAndOrientation *const positionAndOrientation =
       &player->positionAndOrientation;
@@ -1557,6 +1570,10 @@ void render_players(Player *player) {
 }
 
 void render_sky(Player *player, uint32_t buffer) {
+  if(!do_render_sky)
+    {
+      return;
+    }
   PositionAndOrientation *positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
@@ -1572,6 +1589,11 @@ void draw_lines(uint32_t buffer, int components, int count) {
 }
 
 void render_wireframe(Player *player) {
+    if(!do_render_wireframe)
+    {
+      return;
+    }
+
   PositionAndOrientation *positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
@@ -1589,6 +1611,11 @@ void render_wireframe(Player *player) {
 }
 
 void render_text(int justify, float x, float y, float n, char *text) {
+    if(!do_render_text)
+    {
+      return;
+    }
+
   float matrix[16];
   set_matrix_2d(matrix, g->width, g->height);
   (*renderer.render_text)(matrix, justify, x, y, n, text);
@@ -2709,7 +2736,9 @@ int main(int argc, char **argv) {
           crosshair_buffer = (*renderer.gen_buffer)(sizeof(data), data);
         }
 
-        (*renderer.render_crosshairs)(crosshair_buffer, matrix);
+        if(do_render_crosshairs){
+          (*renderer.render_crosshairs)(crosshair_buffer, matrix);
+        }
         (*renderer.del_buffer)(crosshair_buffer);
       }
       if (SHOW_ITEM) {
@@ -2717,7 +2746,11 @@ int main(int argc, char **argv) {
         float matrix[16];
         set_matrix_item(matrix, g->width, g->height, g->scale);
 
-        (*renderer.render_item)(matrix);
+        if(do_render_item)
+          {
+            (*renderer.render_item)(matrix);
+          }
+
 
         int w = items[g->item_index];
         if (is_plant(w)) {
@@ -2744,7 +2777,10 @@ int main(int argc, char **argv) {
 
           // draw plant
           if (plant_buffer != 0) {
-            (*renderer.render_plant)(plant_buffer);
+            if(do_render_plant)
+              {
+                (*renderer.render_plant)(plant_buffer);
+              }
           }
           (*renderer.del_buffer)(plant_buffer);
         } else {
@@ -2765,7 +2801,9 @@ int main(int argc, char **argv) {
           }
           // draw cube buffer
           if (cube_buffer != 0) {
-            (*renderer.render_cube)(cube_buffer);
+            if(do_render_cube){
+              (*renderer.render_cube)(cube_buffer);
+            }
           }
           (*renderer.del_buffer)(cube_buffer);
         }

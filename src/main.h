@@ -233,6 +233,17 @@ extern Model *g;
 
 // TODO - put this into the Model struct
 extern bool escape_pressed;
+extern bool do_render_chunks;
+extern bool do_render_signs;
+extern bool do_render_sky;
+extern bool do_render_wireframe;
+extern bool do_render_text;
+extern bool do_render_item;
+extern bool do_render_plant;
+extern bool do_render_cube;
+extern bool do_render_crosshairs;
+
+
 
 float time_of_day();
 int _gen_sign_buffer(float *data, float x, float y, float z, int face,
