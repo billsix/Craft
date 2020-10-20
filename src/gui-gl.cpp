@@ -23,8 +23,6 @@
 
 const char *glsl_version = "#version 330";
 
-
-
 void gui_init() {
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
@@ -71,7 +69,6 @@ void gui_create_frame() {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
 }
-
 
 void gui_render_frame() {
 

@@ -243,8 +243,6 @@ extern bool do_render_plant;
 extern bool do_render_cube;
 extern bool do_render_crosshairs;
 
-
-
 float time_of_day();
 int _gen_sign_buffer(float *data, float x, float y, float z, int face,
                      const char *text);

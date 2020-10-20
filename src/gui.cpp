@@ -23,7 +23,6 @@ bool show_demo_window = true;
 bool show_another_window = false;
 ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-
 void gui_show_demo_window() {
   ImGui::NewFrame();
 
@@ -36,55 +35,32 @@ void gui_show_demo_window() {
     }
 
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
-    if (ImGui::BeginTabBar("Options", tab_bar_flags))
-      {
-        if (ImGui::BeginTabItem("Rendering Suppression"))
-          {
-            ImGui::Checkbox(
-                            "Render Chunks",
-                            &do_render_chunks);
-            ImGui::Checkbox(
-                            "Render Signs",
-                            &do_render_signs);
+    if (ImGui::BeginTabBar("Options", tab_bar_flags)) {
+      if (ImGui::BeginTabItem("Rendering Suppression")) {
+        ImGui::Checkbox("Render Chunks", &do_render_chunks);
+        ImGui::Checkbox("Render Signs", &do_render_signs);
 
-            ImGui::Checkbox(
-                            "Render Sky",
-                            &do_render_sky);
-            ImGui::Checkbox(
-                            "Render Wireframe",
-                            &do_render_wireframe);
-            ImGui::Checkbox(
-                            "Render Text",
-                            &do_render_text);
-            if (ImGui::TreeNode("Items in bottom left"))
-              {
-                ImGui::Checkbox(
-                                "Render Item",
-                                &do_render_item);
-                ImGui::Checkbox(
-                                "Render Plant Item",
-                                &do_render_plant);
-                ImGui::Checkbox(
-                                "Render Cube Item",
-                                &do_render_cube);
+        ImGui::Checkbox("Render Sky", &do_render_sky);
+        ImGui::Checkbox("Render Wireframe", &do_render_wireframe);
+        ImGui::Checkbox("Render Text", &do_render_text);
+        if (ImGui::TreeNode("Items in bottom left")) {
+          ImGui::Checkbox("Render Item", &do_render_item);
+          ImGui::Checkbox("Render Plant Item", &do_render_plant);
+          ImGui::Checkbox("Render Cube Item", &do_render_cube);
 
-                ImGui::TreePop();
-              }
+          ImGui::TreePop();
+        }
 
-            if(!do_render_item)
-              {
-                do_render_plant = false;
-                do_render_cube = false;
-              }
-            ImGui::Checkbox(
-                            "Render Crosshairs",
-                            &do_render_crosshairs);
+        if (!do_render_item) {
+          do_render_plant = false;
+          do_render_cube = false;
+        }
+        ImGui::Checkbox("Render Crosshairs", &do_render_crosshairs);
 
-            ImGui::EndTabItem();
-          }
-        ImGui::EndTabBar();
+        ImGui::EndTabItem();
       }
-
+      ImGui::EndTabBar();
+    }
 
     ImGui::End();
   }
