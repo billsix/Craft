@@ -15,13 +15,13 @@ option(ENABLE_NO_THREADS "Don't use threads.  This increases the framerate on ol
 
 if(ENABLE_OPENGL_CORE_PROFILE_RENDERER)
   set(IMGUI_RENDERERS
-    deps/imgui/examples/imgui_impl_glfw.cpp)
+    deps/imgui/backends/imgui_impl_opengl3.cpp)
 endif()
 
 if(ENABLE_VULKAN_RENDERER)
   set(IMGUI_RENDERERS
     ${IMGUI_RENDERERS}
-    deps/imgui/examples/imgui_impl_vulkan.cpp)
+    deps/imgui/backends/imgui_impl_vulkan.cpp)
 endif()
 
 
@@ -50,7 +50,7 @@ ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 configure_file(src/config.h.in src/config.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/src deps/imgui/ deps/imgui/examples)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/src deps/imgui/ deps/imgui/backends/)
 
 if(WIN32)
   set(SQLITE_SOURCE "deps/sqlite/sqlite3.c")
@@ -75,7 +75,7 @@ add_executable(
     deps/imgui/imgui_demo.cpp
     deps/imgui/imgui_draw.cpp
     deps/imgui/imgui_widgets.cpp
-    deps/imgui/examples/imgui_impl_opengl3.cpp
+    deps/imgui/backends/imgui_impl_glfw.cpp
     ${CPLUSPLUS_FILES}
     ${IMGUI_RENDERERS}
 )
