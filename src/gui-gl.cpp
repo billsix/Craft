@@ -79,11 +79,6 @@ void gui_render_frame() {
   glViewport(0, 0, display_w, display_h);
   // glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
   // glClear(GL_COLOR_BUFFER_BIT);
-
-  // only show when the user presses escape
-  if (!escape_pressed)
-    return;
-
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 

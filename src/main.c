@@ -2617,8 +2617,12 @@ int main(int argc, char **argv) {
       glfwGetFramebufferSize(g->window, &g->width, &g->height);
       (*renderer.viewport)(0, 0, g->width, g->height);
 
-      gui_create_frame();
-      gui_show_demo_window();
+
+      bool show_gui_this_frame = escape_pressed;
+      if(show_gui_this_frame){
+        gui_create_frame();
+        gui_show_demo_window();
+      }
 
       // FRAME RATE //
       if (g->time_changed) {
@@ -2881,7 +2885,9 @@ int main(int argc, char **argv) {
         }
       }
 
-      gui_render_frame();
+      if(show_gui_this_frame){
+        gui_render_frame();
+      }
 
       // SWAP AND POLL //
       glfwSwapBuffers(g->window);
