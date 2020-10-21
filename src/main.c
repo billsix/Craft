@@ -1436,9 +1436,6 @@ void builder_block(int x, int y, int z, int w) {
 }
 
 int render_chunks(Player *player) {
-  if (!do_render_chunks) {
-    return 0;
-  }
   int result = 0;
   const PositionAndOrientation *const positionAndOrientation =
       &player->positionAndOrientation;
@@ -1569,9 +1566,6 @@ void render_players(Player *player) {
 }
 
 void render_sky(Player *player, uint32_t buffer) {
-  if (!do_render_sky) {
-    return;
-  }
   PositionAndOrientation *positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
@@ -1587,10 +1581,6 @@ void draw_lines(uint32_t buffer, int components, int count) {
 }
 
 void render_wireframe(Player *player) {
-  if (!do_render_wireframe) {
-    return;
-  }
-
   PositionAndOrientation *positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
@@ -2617,9 +2607,8 @@ int main(int argc, char **argv) {
       glfwGetFramebufferSize(g->window, &g->width, &g->height);
       (*renderer.viewport)(0, 0, g->width, g->height);
 
-
       bool show_gui_this_frame = escape_pressed;
-      if(show_gui_this_frame){
+      if (show_gui_this_frame) {
         gui_create_frame();
         gui_show_demo_window();
       }
@@ -2710,14 +2699,21 @@ int main(int argc, char **argv) {
 
       (*renderer.clear_color_buffer)();
       (*renderer.clear_depth_buffer)();
-      render_sky(player, sky_buffer);
+      if (do_render_sky) {
+        render_sky(player, sky_buffer);
+      }
       (*renderer.clear_depth_buffer)();
-      int face_count = render_chunks(player);
+      int face_count = 0; // default value
+      if (do_render_chunks) {
+        face_count = render_chunks(player);
+      }
       render_signs(player);
       render_sign(player);
       render_players(player);
       if (SHOW_WIREFRAME) {
-        render_wireframe(player);
+        if (do_render_wireframe) {
+          render_wireframe(player);
+        }
       }
 
       // RENDER HUD //
@@ -2874,9 +2870,13 @@ int main(int argc, char **argv) {
         g->ortho = 0;
         g->fov = 65;
 
-        render_sky(player, sky_buffer);
+        if (do_render_sky) {
+          render_sky(player, sky_buffer);
+        }
         (*renderer.clear_depth_buffer)();
-        render_chunks(player);
+        if (do_render_chunks) {
+          render_chunks(player);
+        }
         render_signs(player);
         render_players(player);
         (*renderer.clear_depth_buffer)();
@@ -2885,7 +2885,7 @@ int main(int argc, char **argv) {
         }
       }
 
-      if(show_gui_this_frame){
+      if (show_gui_this_frame) {
         gui_render_frame();
       }
 
