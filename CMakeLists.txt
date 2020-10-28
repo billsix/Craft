@@ -142,10 +142,22 @@ include_directories(deps/noise)
 include_directories(deps/tinycthread)
 include_directories(deps/imgui)
 
+if(ENABLE_VULKAN_RENDERER)
+    # Libraries
+    find_package(Vulkan REQUIRED)
+    add_dependencies(craft Vulkan::Vulkan)
+    set(VULKAN_LIBRARIES "Vulkan::Vulkan")
+
+else()
+    set(VULKAN_LIBRARIES "")
+    set(Vulkan_INCLUDE_DIR "")
+endif()
+
+
 
 # link against the fetched libraries
 if(WIN32)
-    target_link_libraries(craft libcurl glfw opengl32 )
+    target_link_libraries(craft libcurl glfw opengl32 ${VULKAN_LIBRARIES})
 elseif(APPLE)
     find_package(OpenGL REQUIRED)
     target_link_libraries(craft curl glfw ${GLFW_LIBRARIES})
@@ -157,9 +169,9 @@ else()
     pkg_check_modules(CURL REQUIRED libcurl)
     pkg_check_modules(SQLITE REQUIRED sqlite3)
 
-    include_directories(${GLFW_INCLUDE_DIR})
+    include_directories(${GLFW_INCLUDE_DIR} ${Vulkan_INCLUDE_DIR})
     target_link_libraries(craft dl m pthread
-        ${GLFW_LIBRARIES} ${CURL_LIBRARIES} ${SQLITE_LIBRARIES})
+        ${GLFW_LIBRARIES} ${CURL_LIBRARIES} ${SQLITE_LIBRARIES} ${VULKAN_LIBRARIES})
 endif()
 
 add_library(world SHARED deps/noise/noise.c src/world.c)

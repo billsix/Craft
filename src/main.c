@@ -28,9 +28,20 @@
 #include <string.h>
 #include <time.h>
 
+#include "config.h"
+
+#ifdef ENABLE_VULKAN_RENDERER
+
+#define GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_VULKAN
+
 #include <GLFW/glfw3.h>
 
-#include "config.h"
+#include <vulkan/vulkan.h>
+
+#else
+#include <GLFW/glfw3.h>
+#endif
 
 #include "tinycthread.h"
 
@@ -245,7 +256,7 @@ uint32_t gen_sky_buffer() {
 uint32_t gen_player_buffer(float x, float y, float z, float rx, float ry) {
   float *const data = malloc_faces(10, 6);
   make_player(data, x, y, z, rx, ry);
-  return gl_gen_faces(10, 6, data);
+  return (*renderer.gen_faces)(10, 6, data);
 }
 
 Player *find_player(int id) {
@@ -1464,7 +1475,7 @@ int render_chunks(Player *player) {
   float planes[6][4];
   frustum_planes(planes, g->render_radius, matrix);
 
-  gl_setup_render_chunks(matrix, positionAndOrientation, light);
+  (*renderer.setup_render_chunks)(matrix, positionAndOrientation, light);
 
   // N.B.
   // To See what a chunk is, change this loop to
@@ -1493,7 +1504,7 @@ int render_chunks(Player *player) {
 }
 
 void draw_triangles_3d_text(uint32_t buffer, int count) {
-  gl_draw_triangles_3d_text(buffer, count);
+  (*renderer.draw_triangles_3d_text)(buffer, count);
 }
 
 void render_signs(Player *player) {
@@ -1509,7 +1520,7 @@ void render_signs(Player *player) {
   float planes[6][4];
   frustum_planes(planes, g->render_radius, matrix);
 
-  gl_setup_render_signs(matrix);
+  (*renderer.setup_render_signs)(matrix);
 
   for (int i = 0; i < g->chunk_count; i++) {
     Chunk *chunk = g->chunks + i;
@@ -1551,7 +1562,7 @@ void render_players(Player *player) {
                 positionAndOrientation->rx, positionAndOrientation->ry, g->fov,
                 g->ortho, g->render_radius);
 
-  gl_setup_render_players(matrix, positionAndOrientation);
+  (*renderer.setup_render_players)(matrix, positionAndOrientation);
 
   for (int i = 0; i < g->player_count; i++) {
     Player *other_player = g->players + i;
@@ -1577,7 +1588,7 @@ void render_sky(Player *player, uint32_t buffer) {
 }
 
 void draw_lines(uint32_t buffer, int components, int count) {
-  gl_draw_lines(buffer, components, count);
+  (*renderer.draw_lines)(buffer, components, count);
 }
 
 void render_wireframe(Player *player) {
@@ -2474,6 +2485,18 @@ int initialize_craft(int argc, char **argv) {
   }
   // create window
   {
+
+#ifdef ENABLE_VULKAN_RENDERER
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    g->window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+Vulkan example",
+                                 NULL, NULL);
+
+    // Setup Vulkan
+    if (!glfwVulkanSupported()) {
+      printf("GLFW: Vulkan Not Supported\n");
+      return -1;
+    }
+#else
     // initialize g->window
     int window_width = WINDOW_WIDTH;
     int window_height = WINDOW_HEIGHT;
@@ -2504,57 +2527,64 @@ int initialize_craft(int argc, char **argv) {
         return -1;
       }
     }
-  }
+#endif
 
-  glfwMakeContextCurrent(g->window);
-  glfwSwapInterval(VSYNC);
-  glfwSetInputMode(g->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  glfwSetKeyCallback(g->window, on_key);
-  glfwSetCharCallback(g->window, on_char);
-  glfwSetMouseButtonCallback(g->window, on_mouse_button);
-  glfwSetScrollCallback(g->window, on_scroll);
+    glfwMakeContextCurrent(g->window);
+    glfwSwapInterval(VSYNC);
+    glfwSetInputMode(g->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetKeyCallback(g->window, on_key);
+    glfwSetCharCallback(g->window, on_char);
+    glfwSetMouseButtonCallback(g->window, on_mouse_button);
+    glfwSetScrollCallback(g->window, on_scroll);
 
-  if (-1 == gl_graphics_loader_init()) {
-    return -1;
-  }
+    if (-1 == (*renderer.graphics_loader_init)()) {
+      return -1;
+    }
 
-  gl_initiliaze_global_state();
+    (*renderer.initiliaze_global_state)();
 
-  gl_initiliaze_textures();
+    (*renderer.initiliaze_textures)();
 
-  // CHECK COMMAND LINE ARGUMENTS //
-  if (argc == 2 || argc == 3) {
-    g->mode = MODE_ONLINE;
-    strncpy(g->server_addr, argv[1], MAX_ADDR_LENGTH);
-    g->server_port = argc == 3 ? atoi(argv[2]) : DEFAULT_PORT;
-    snprintf(g->db_path, MAX_PATH_LENGTH, "cache.%s.%d.db", g->server_addr,
-             g->server_port);
-  } else {
-    g->mode = MODE_OFFLINE;
-    snprintf(g->db_path, MAX_PATH_LENGTH, "%s", DB_PATH);
-  }
+    // CHECK COMMAND LINE ARGUMENTS //
+    if (argc == 2 || argc == 3) {
+      g->mode = MODE_ONLINE;
+      strncpy(g->server_addr, argv[1], MAX_ADDR_LENGTH);
+      g->server_port = argc == 3 ? atoi(argv[2]) : DEFAULT_PORT;
+      snprintf(g->db_path, MAX_PATH_LENGTH, "cache.%s.%d.db", g->server_addr,
+               g->server_port);
+    } else {
+      g->mode = MODE_OFFLINE;
+      snprintf(g->db_path, MAX_PATH_LENGTH, "%s", DB_PATH);
+    }
 
-  g->create_radius = CREATE_CHUNK_RADIUS;
-  g->render_radius = RENDER_CHUNK_RADIUS;
-  g->delete_radius = DELETE_CHUNK_RADIUS;
-  g->sign_radius = RENDER_SIGN_RADIUS;
+    g->create_radius = CREATE_CHUNK_RADIUS;
+    g->render_radius = RENDER_CHUNK_RADIUS;
+    g->delete_radius = DELETE_CHUNK_RADIUS;
+    g->sign_radius = RENDER_SIGN_RADIUS;
 
 #ifdef ENABLE_NO_THREADS
 #else
-  // INITIALIZE WORKER THREADS
-  for (int i = 0; i < WORKERS; i++) {
-    Worker *worker = g->workers + i;
-    worker->index = i;
-    worker->state = WORKER_IDLE;
-    mtx_init(&worker->mtx, mtx_plain);
-    cnd_init(&worker->cnd);
-    thrd_create(&worker->thrd, worker_run, worker);
-  }
+    // INITIALIZE WORKER THREADS
+    for (int i = 0; i < WORKERS; i++) {
+      Worker *worker = g->workers + i;
+      worker->index = i;
+      worker->state = WORKER_IDLE;
+      mtx_init(&worker->mtx, mtx_plain);
+      cnd_init(&worker->cnd);
+      thrd_create(&worker->thrd, worker_run, worker);
+    }
 #endif
-  return 0;
+    return 0;
+  }
 }
 
 int main(int argc, char **argv) {
+
+#ifdef ENABLE_VULKAN_RENDERER
+  renderer = vulkan_renderer;
+#else
+  renderer = gl_renderer;
+#endif
 
   if (-1 == initialize_craft(argc, argv)) {
     return -1;
@@ -2592,11 +2622,6 @@ int main(int argc, char **argv) {
     FPS fps = {0, 0, 0};
     double last_commit = glfwGetTime();
     double last_update = glfwGetTime();
-
-    // use the openGL3.3 renderer
-    // TODO - make this configurable between OpenGL3.3 core profile,
-    // Vulkan, and Apple'positionAndOrientation Metal
-    renderer = gl_renderer;
 
     uint32_t sky_buffer = gen_sky_buffer();
 
@@ -2640,6 +2665,8 @@ int main(int argc, char **argv) {
 
       glfwGetFramebufferSize(g->window, &g->width, &g->height);
       (*renderer.viewport)(0, 0, g->width, g->height);
+
+      glfwPollEvents();
 
       bool show_gui_this_frame = escape_pressed;
       if (show_gui_this_frame) {
@@ -2925,7 +2952,6 @@ int main(int argc, char **argv) {
 
       // SWAP AND POLL //
       glfwSwapBuffers(g->window);
-      glfwPollEvents();
       if (glfwWindowShouldClose(g->window)) {
         running = 0;
         break;
@@ -2958,6 +2984,7 @@ int main(int argc, char **argv) {
     }
   }
 
+  glfwDestroyWindow(g->window);
   glfwTerminate();
   curl_global_cleanup();
   return 0;

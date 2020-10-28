@@ -11,7 +11,10 @@ cd build
 #  being built too slowly, and the user can end up falling through
 #  empty spaces, getting stuck.
 # -DENABLE_NO_THREADS=YES
-cmake -DCMAKE_INSTALL_PREFIX=../buildInstall -DCMAKE_BUILD_TYPE=Debug ../
+
+# use vulkan by doing the following
+# -DENABLE_VULKAN_RENDERER=YES -DENABLE_OPENGL_CORE_PROFILE_RENDERER=NO
+cmake -DCMAKE_INSTALL_PREFIX=../buildInstall -DENABLE_VULKAN_RENDERER=NO -DENABLE_OPENGL_CORE_PROFILE_RENDERER=YES -DCMAKE_BUILD_TYPE=Debug ../
 cmake --build  . --target all
 cmake --build  . --target install
 cd ../buildInstall

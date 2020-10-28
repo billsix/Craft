@@ -25,6 +25,10 @@
 #ifdef ENABLE_VULKAN_RENDERER
 
 #include "tinycthread.h"
+
+#define GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_VULKAN
+
 #include <GLFW/glfw3.h>
 
 #include "cube.h"
@@ -33,12 +37,16 @@
 #include "sign.h"
 #include "util.h"
 
+#include <stdbool.h>
+
 #include "main.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "vulkan_render.h"
+
+#include <vulkan/vulkan.h>
 
 void vulkan_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min,
                      uint32_t y_max) {}
