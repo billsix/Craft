@@ -2156,19 +2156,18 @@ void handle_orientation_input() {
 
       // get input from controller 1
       int count;
-      const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+      const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
 
       // 2 is left trigger
-      if(count >= 5){
-        if(fabsf(axes[3]) > 0.19){
+      if (count >= 5) {
+        if (fabsf(axes[3]) > 0.19) {
           positionAndOrientation->rx += 0.05 * axes[3];
         }
-        if(fabsf(axes[4]) > 0.19){
+        if (fabsf(axes[4]) > 0.19) {
           positionAndOrientation->ry += -0.05 * axes[4];
         }
       }
     }
-
 
     if (positionAndOrientation->rx < 0) {
       positionAndOrientation->rx += RADIANS(360);
@@ -2215,18 +2214,17 @@ void handle_movement(double dt) {
     {
       // get input from controller 1
       int count;
-      const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+      const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
 
-      if(count >= 1 && fabsf(axes[0]) > 0.19){
+      if (count >= 1 && fabsf(axes[0]) > 0.19) {
         // vertical
-        sx += axes[0]* 50.0;
+        sx += axes[0] * 50.0;
       }
-      if(count >= 2 && fabsf(axes[1]) > 0.19){
+      if (count >= 2 && fabsf(axes[1]) > 0.19) {
         // horizontal
         sz += axes[1] * 50.0;
       }
     }
-
   }
   // motion vector vx, vy, vz
   float vx = 0.0, vy = 0.0, vz = 0.0;
@@ -2555,7 +2553,6 @@ int initialize_craft(int argc, char **argv) {
 #endif
   return 0;
 }
-
 
 int main(int argc, char **argv) {
 
