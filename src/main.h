@@ -23,6 +23,13 @@
 #ifndef _main_h_
 #define _main_h_
 
+// TODO - perhaps don't do a recursive include, but ensure that anything that imports
+// main.h imports util.h
+
+#include "util.h"
+
+BEGIN_C_DECL
+
 #define MAX_CHUNKS 8192
 #define MAX_PLAYERS 128
 #define WORKERS 4
@@ -246,5 +253,7 @@ extern bool do_render_crosshairs;
 float time_of_day();
 int _gen_sign_buffer(float *data, float x, float y, float z, int face,
                      const char *text);
+
+END_C_DECL
 
 #endif

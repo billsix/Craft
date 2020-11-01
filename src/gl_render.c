@@ -174,18 +174,30 @@ void GLMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                        const void *userParam) {
   char severity_name[100];
   switch (severity) {
-  case GL_DEBUG_SEVERITY_HIGH:
-    strcpy(severity_name, "SEVERITY HIGH");
-    break;
-  case GL_DEBUG_SEVERITY_MEDIUM:
-    strcpy(severity_name, "SEVERITY MED");
-    break;
-  case GL_DEBUG_SEVERITY_LOW:
-    strcpy(severity_name, "SEVERITY LOW");
-    break;
-  case GL_DEBUG_SEVERITY_NOTIFICATION:
-    strcpy(severity_name, "SEVERITY NOTIFICATION");
-    break;
+    case GL_DEBUG_SEVERITY_HIGH:
+    {
+        const char name[] = "SEVERITY HIGH";
+        strncpy(severity_name, name, strlen(name));
+        break;
+    }
+    case GL_DEBUG_SEVERITY_MEDIUM:
+    {
+        const char name[] = "SEVERITY MED";
+        strncpy(severity_name, name, strlen(name));
+        break;
+    }
+    case GL_DEBUG_SEVERITY_LOW:
+    {
+        const char name[] = "SEVERITY LOW";
+        strncpy(severity_name, name, strlen(name));
+        break;
+    }
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+    {
+        const char name[] = "SEVERITY NOTIFICATION";
+        strncpy(severity_name, name, strlen(name));
+        break;
+    }
   }
   fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = %s, message = %s\n",
           (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type,
@@ -313,7 +325,7 @@ void gl_setup_render_chunks(
   glBindTexture(GL_TEXTURE_2D, sky);
   glUniform1i(block_attrib.sky_sampler, 1);
   glUniform1f(block_attrib.daylight, light);
-  glUniform1f(block_attrib.fog_distance, g->render_radius * CHUNK_SIZE);
+  glUniform1f(block_attrib.fog_distance, (float) g->render_radius * CHUNK_SIZE);
   glUniform1i(block_attrib.ortho, g->ortho);
   glUniform1f(block_attrib.timer, time_of_day());
 }
@@ -405,8 +417,8 @@ void gl_render_sign(const float *const matrix, int x, int y, int z, int face) {
   char text[MAX_SIGN_LENGTH];
   strncpy(text, g->typing_buffer + 1, MAX_SIGN_LENGTH);
   text[MAX_SIGN_LENGTH - 1] = '\0';
-  float *data = malloc_faces(5, strlen(text));
-  int length = _gen_sign_buffer(data, x, y, z, face, text);
+  float *data = malloc_faces(5, (int) strlen(text));
+  int length = _gen_sign_buffer(data, (float) x, (float) y, (float) z, face, text);
   uint32_t buffer = gl_gen_faces(5, length, data);
 
   // draw sign
@@ -542,7 +554,7 @@ void gl_render_wireframe(const float *const matrix, int hx, int hy, int hz) {
   {
     // initilize wireframe_buffer
     float data[72];
-    make_cube_wireframe(data, hx, hy, hz, 0.53);
+    make_cube_wireframe(data, (float) hx, (float) hy, (float) hz, (float) 0.53);
     wireframe_buffer = gl_gen_buffer(sizeof(data), data);
   }
   gl_draw_lines(wireframe_buffer, 3, 24);
@@ -559,12 +571,12 @@ void gl_render_text(const float *const matrix, int justify, float x, float y,
   glUniform1i(text_attrib.sampler, 0);
   // extra1 = is_sign
   glUniform1i(text_attrib.is_sign, 0);
-  int length = strlen(text);
+  int length = (int) strlen(text);
   x -= n * justify * (length - 1) / 2;
   uint32_t text_buffer;
   {
     // initialize text_buffer
-    const int length = strlen(text);
+    const int length = (int)strlen(text);
     float *data = malloc_faces(4, length);
     for (int i = 0; i < length; i++) {
       make_character(data + i * 24, x, y, n / 2, n, text[i]);
