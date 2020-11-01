@@ -23,8 +23,8 @@
 #ifndef _main_h_
 #define _main_h_
 
-// TODO - perhaps don't do a recursive include, but ensure that anything that imports
-// main.h imports util.h
+// TODO - perhaps don't do a recursive include, but ensure that anything that
+// imports main.h imports util.h
 
 #include "util.h"
 

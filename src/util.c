@@ -149,5 +149,5 @@ int wrap(const char *input, int max_width, char *output, int max_length) {
 }
 
 float *malloc_faces(int components, int faces) {
-  return (float*) malloc(sizeof(float) * 6 * components * faces);
+  return (float *)malloc(sizeof(float) * 6 * components * faces);
 }
