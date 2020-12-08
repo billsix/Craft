@@ -108,6 +108,7 @@ add_executable(
     deps/imgui/imgui_demo.cpp
     deps/imgui/imgui_draw.cpp
     deps/imgui/imgui_widgets.cpp
+    deps/imgui/imgui_tables.cpp
     deps/imgui/backends/imgui_impl_glfw.cpp
     ${CPLUSPLUS_FILES}
     ${IMGUI_RENDERERS}
