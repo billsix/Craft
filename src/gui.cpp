@@ -98,6 +98,7 @@ void gui_show_demo_window() {
         do_render_cube = false;
       }
       ImGui::Checkbox("Render Crosshairs", &do_render_crosshairs);
+      ImGui::Checkbox("Amient Occlusion", &enable_ambient_occlusion);
 
       ImGui::EndTabItem();
     }

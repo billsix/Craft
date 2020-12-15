@@ -6,6 +6,7 @@ uniform sampler2D sky_sampler;
 uniform float timer;
 uniform float daylight;
 uniform int ortho;
+uniform bool enable_ambient_occlusion;
 
 
 in VS_OUT {
@@ -32,7 +33,10 @@ void main() {
     }
     float df = cloud ? 1.0 - fs_in.diffuse * 0.2 : fs_in.diffuse;
     float ambient_occlusion = cloud ? 1.0 - (1.0 - fs_in.fragment_ambient_occlusion) * 0.2 : fs_in.fragment_ambient_occlusion;
-    ambient_occlusion = min(1.0, ambient_occlusion + fs_in.fragment_light);
+    if(enable_ambient_occlusion)
+        ambient_occlusion = min(1.0, ambient_occlusion + fs_in.fragment_light);
+    else
+        ambient_occlusion = 1.0;
     df = min(1.0, df + fs_in.fragment_light);
     float value = min(1.0, daylight + fs_in.fragment_light);
     vec3 light_color = vec3(value * 0.3 + 0.2);

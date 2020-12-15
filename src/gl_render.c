@@ -245,7 +245,9 @@ void gl_initiliaze_global_state() {
       .sky_sampler = glGetUniformLocation(program, "sky_sampler"),
       .daylight = glGetUniformLocation(program, "daylight"),
       .fog_distance = glGetUniformLocation(program, "fog_distance"),
-      .ortho = glGetUniformLocation(program, "ortho")};
+      .ortho = glGetUniformLocation(program, "ortho"),
+      .enable_ambient_occlusion =
+          glGetUniformLocation(program, "enable_ambient_occlusion")};
 
   program = gl_load_program(SHADER_DIR "line_vertex.glsl",
                             SHADER_DIR "line_fragment.glsl");
@@ -323,6 +325,7 @@ void gl_setup_render_chunks(
   glUniform1f(block_attrib.daylight, light);
   glUniform1f(block_attrib.fog_distance, (float)g->render_radius * CHUNK_SIZE);
   glUniform1i(block_attrib.ortho, g->ortho);
+  glUniform1i(block_attrib.enable_ambient_occlusion, enable_ambient_occlusion);
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
@@ -436,6 +439,7 @@ void gl_setup_render_players(
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
   glUniform1i(block_attrib.sampler, 0);
+  glUniform1i(block_attrib.enable_ambient_occlusion, enable_ambient_occlusion);
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
@@ -614,6 +618,7 @@ void gl_render_item(const float *const matrix) {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
   glUniform1i(block_attrib.sampler, 0);
+  glUniform1i(block_attrib.enable_ambient_occlusion, enable_ambient_occlusion);
   glUniform1f(block_attrib.timer, time_of_day());
 }
 

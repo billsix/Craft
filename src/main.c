@@ -87,6 +87,7 @@ bool do_render_item = true;
 bool do_render_plant = true;
 bool do_render_cube = true;
 bool do_render_crosshairs = true;
+bool enable_ambient_occlusion = true;
 
 // Interface for multiple rendering backends
 // currently, only OpenGL3.3 core profile is supported.

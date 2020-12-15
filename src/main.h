@@ -209,6 +209,7 @@ typedef struct {
   uint32_t daylight;
   uint32_t fog_distance;
   uint32_t ortho;
+  uint32_t enable_ambient_occlusion;
 } Block_Attributes;
 
 typedef struct {
@@ -249,6 +250,7 @@ extern bool do_render_item;
 extern bool do_render_plant;
 extern bool do_render_cube;
 extern bool do_render_crosshairs;
+extern bool enable_ambient_occlusion;
 
 float time_of_day();
 int _gen_sign_buffer(float *data, float x, float y, float z, int face,
