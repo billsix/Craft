@@ -12,7 +12,7 @@ layout (location = 2) in vec4 uv;
 
 out VS_OUT {
     vec2 fragment_uv;
-    float fragment_ao;
+    float fragment_ambient_occlusion;
     float fragment_light;
     float fog_factor;
     float fog_height;
@@ -26,7 +26,7 @@ const vec3 light_direction = normalize(vec3(-1.0, 1.0, -1.0));
 void main() {
     gl_Position = matrix * position;
     vs_out.fragment_uv = uv.xy;
-    vs_out.fragment_ao = 0.3 + (1.0 - uv.z) * 0.7;
+    vs_out.fragment_ambient_occlusion = 0.3 + (1.0 - uv.z) * 0.7;
     vs_out.fragment_light = uv.w;
     vs_out.diffuse = max(0.0, dot(normal, light_direction));
     if (bool(ortho)) {
