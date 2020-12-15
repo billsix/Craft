@@ -656,46 +656,6 @@ void dirty_chunk(Chunk *const chunk) {
   }
 }
 
-void occlusion(char neighbors[27], char lights[27], float shades[27],
-               float ao[6][4], float light[6][4]) {
-  static const int lookup3[6][4][3] = {
-      {{0, 1, 3}, {2, 1, 5}, {6, 3, 7}, {8, 5, 7}},
-      {{18, 19, 21}, {20, 19, 23}, {24, 21, 25}, {26, 23, 25}},
-      {{6, 7, 15}, {8, 7, 17}, {24, 15, 25}, {26, 17, 25}},
-      {{0, 1, 9}, {2, 1, 11}, {18, 9, 19}, {20, 11, 19}},
-      {{0, 3, 9}, {6, 3, 15}, {18, 9, 21}, {24, 15, 21}},
-      {{2, 5, 11}, {8, 5, 17}, {20, 11, 23}, {26, 17, 23}}};
-  static const int lookup4[6][4][4] = {
-      {{0, 1, 3, 4}, {1, 2, 4, 5}, {3, 4, 6, 7}, {4, 5, 7, 8}},
-      {{18, 19, 21, 22}, {19, 20, 22, 23}, {21, 22, 24, 25}, {22, 23, 25, 26}},
-      {{6, 7, 15, 16}, {7, 8, 16, 17}, {15, 16, 24, 25}, {16, 17, 25, 26}},
-      {{0, 1, 9, 10}, {1, 2, 10, 11}, {9, 10, 18, 19}, {10, 11, 19, 20}},
-      {{0, 3, 9, 12}, {3, 6, 12, 15}, {9, 12, 18, 21}, {12, 15, 21, 24}},
-      {{2, 5, 11, 14}, {5, 8, 14, 17}, {11, 14, 20, 23}, {14, 17, 23, 26}}};
-  static const float curve[4] = {0.0, 0.25, 0.5, 0.75};
-  for (int i = 0; i < 6; i++) {
-    for (int j = 0; j < 4; j++) {
-      const int corner = neighbors[lookup3[i][j][0]];
-      const int side1 = neighbors[lookup3[i][j][1]];
-      const int side2 = neighbors[lookup3[i][j][2]];
-      const int value = side1 && side2 ? 3 : corner + side1 + side2;
-      float shade_sum = 0;
-      float light_sum = 0;
-      const int is_light = lights[13] == 15;
-      for (int k = 0; k < 4; k++) {
-        shade_sum += shades[lookup4[i][j][k]];
-        light_sum += lights[lookup4[i][j][k]];
-      }
-      if (is_light) {
-        light_sum = 15 * 4 * 10;
-      }
-      const float total = curve[value] + shade_sum / 4.0;
-      ao[i][j] = MIN(total, 1.0);
-      light[i][j] = light_sum / 15.0 / 4.0;
-    }
-  }
-}
-
 #define XZ_SIZE (CHUNK_SIZE * 3 + 2)
 #define XZ_LO (CHUNK_SIZE)
 #define XZ_HI (CHUNK_SIZE * 2 + 1)
@@ -902,26 +862,68 @@ void compute_chunk(WorkerItem *item) {
         }
       }
     }
-    float ao[6][4];
+    float ambient_occlusion[6][4];
     // TODO -- this shadows the other light variable.  should
     // it be renamed?
     float light[6][4];
-    occlusion(neighbors, lights, shades, ao, light);
+    // ambient occlusion
+    {
+      static const int lookup3[6][4][3] = {
+          {{0, 1, 3}, {2, 1, 5}, {6, 3, 7}, {8, 5, 7}},
+          {{18, 19, 21}, {20, 19, 23}, {24, 21, 25}, {26, 23, 25}},
+          {{6, 7, 15}, {8, 7, 17}, {24, 15, 25}, {26, 17, 25}},
+          {{0, 1, 9}, {2, 1, 11}, {18, 9, 19}, {20, 11, 19}},
+          {{0, 3, 9}, {6, 3, 15}, {18, 9, 21}, {24, 15, 21}},
+          {{2, 5, 11}, {8, 5, 17}, {20, 11, 23}, {26, 17, 23}}};
+      static const int lookup4[6][4][4] = {
+          {{0, 1, 3, 4}, {1, 2, 4, 5}, {3, 4, 6, 7}, {4, 5, 7, 8}},
+          {{18, 19, 21, 22},
+           {19, 20, 22, 23},
+           {21, 22, 24, 25},
+           {22, 23, 25, 26}},
+          {{6, 7, 15, 16}, {7, 8, 16, 17}, {15, 16, 24, 25}, {16, 17, 25, 26}},
+          {{0, 1, 9, 10}, {1, 2, 10, 11}, {9, 10, 18, 19}, {10, 11, 19, 20}},
+          {{0, 3, 9, 12}, {3, 6, 12, 15}, {9, 12, 18, 21}, {12, 15, 21, 24}},
+          {{2, 5, 11, 14}, {5, 8, 14, 17}, {11, 14, 20, 23}, {14, 17, 23, 26}}};
+      static const float curve[4] = {0.0, 0.25, 0.5, 0.75};
+      for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 4; j++) {
+          const int corner = neighbors[lookup3[i][j][0]];
+          const int side1 = neighbors[lookup3[i][j][1]];
+          const int side2 = neighbors[lookup3[i][j][2]];
+          const int value = side1 && side2 ? 3 : corner + side1 + side2;
+          float shade_sum = 0;
+          float light_sum = 0;
+          const int is_light = lights[13] == 15;
+          for (int k = 0; k < 4; k++) {
+            shade_sum += shades[lookup4[i][j][k]];
+            light_sum += lights[lookup4[i][j][k]];
+          }
+          if (is_light) {
+            light_sum = 15 * 4 * 10;
+          }
+          const float total = curve[value] + shade_sum / 4.0;
+          ambient_occlusion[i][j] = MIN(total, 1.0);
+          light[i][j] = light_sum / 15.0 / 4.0;
+        }
+      }
+    }
     if (is_plant(ew)) {
-      float min_ao = 1;
+      float min_ambient_occlusion = 1;
       float max_light = 0;
       for (int a = 0; a < 6; a++) {
         for (int b = 0; b < 4; b++) {
-          min_ao = MIN(min_ao, ao[a][b]);
+          min_ambient_occlusion =
+              MIN(min_ambient_occlusion, ambient_occlusion[a][b]);
           max_light = MAX(max_light, light[a][b]);
         }
       }
       float rotation = simplex2(ex, ez, 4, 0.5, 2) * 360;
-      make_plant(data + offset, min_ao, max_light, ex, ey, ez, 0.5, ew,
-                 rotation);
+      make_plant(data + offset, min_ambient_occlusion, max_light, ex, ey, ez,
+                 0.5, ew, rotation);
     } else {
-      make_cube(data + offset, ao, light, f1, f2, f3, f4, f5, f6, ex, ey, ez,
-                0.5, ew);
+      make_cube(data + offset, ambient_occlusion, light, f1, f2, f3, f4, f5, f6,
+                ex, ey, ez, 0.5, ew);
     }
     offset += (is_plant(ew) ? 4 : total) * 60;
   }
@@ -2818,9 +2820,9 @@ int main(int argc, char **argv) {
             const float z = 0;
             const float n = 0.5;
             float *data = malloc_faces(10, 4);
-            float ao = 0;
+            float ambient_occlusion = 0;
             float light = 1;
-            make_plant(data, ao, light, x, y, z, n, w, 45);
+            make_plant(data, ambient_occlusion, light, x, y, z, n, w, 45);
             plant_buffer = (*renderer.gen_faces)(10, 4, data);
           }
           // TODO -
@@ -2847,11 +2849,12 @@ int main(int argc, char **argv) {
             const float z = 0;
             const float n = 0.5;
             float *data = malloc_faces(10, 6);
-            float ao[6][4] = {0};
+            float ambient_occlusion[6][4] = {0};
             float light[6][4] = {{0.5, 0.5, 0.5, 0.5}, {0.5, 0.5, 0.5, 0.5},
                                  {0.5, 0.5, 0.5, 0.5}, {0.5, 0.5, 0.5, 0.5},
                                  {0.5, 0.5, 0.5, 0.5}, {0.5, 0.5, 0.5, 0.5}};
-            make_cube(data, ao, light, 1, 1, 1, 1, 1, 1, x, y, z, n, w);
+            make_cube(data, ambient_occlusion, light, 1, 1, 1, 1, 1, 1, x, y, z,
+                      n, w);
             cube_buffer = (*renderer.gen_faces)(10, 6, data);
           }
           // draw cube buffer

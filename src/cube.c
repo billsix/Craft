@@ -26,10 +26,11 @@
 #include "util.h"
 #include <math.h>
 
-void make_cube_faces(float *data, float ao[6][4], float light[6][4], int left,
-                     int right, int top, int bottom, int front, int back,
-                     int wleft, int wright, int wtop, int wbottom, int wfront,
-                     int wback, float x, float y, float z, float n) {
+static void make_cube_faces(float *data, float ambient_occlusion[6][4],
+                            float light[6][4], int left, int right, int top,
+                            int bottom, int front, int back, int wleft,
+                            int wright, int wtop, int wbottom, int wfront,
+                            int wback, float x, float y, float z, float n) {
   static const float positions[6][4][3] = {
       {{-1, -1, -1}, {-1, -1, +1}, {-1, +1, -1}, {-1, +1, +1}},
       {{+1, -1, -1}, {+1, -1, +1}, {+1, +1, -1}, {+1, +1, +1}},
@@ -61,7 +62,8 @@ void make_cube_faces(float *data, float ao[6][4], float light[6][4], int left,
     }
     const float du = (tiles[i] % 16) * s;
     const float dv = (tiles[i] / 16) * s;
-    const int flip = ao[i][0] + ao[i][3] > ao[i][1] + ao[i][2];
+    const int flip = ambient_occlusion[i][0] + ambient_occlusion[i][3] >
+                     ambient_occlusion[i][1] + ambient_occlusion[i][2];
     for (int v = 0; v < 6; v++) {
       int j = flip ? flipped[i][v] : indices[i][v];
       *(d++) = x + n * positions[i][j][0];
@@ -72,27 +74,28 @@ void make_cube_faces(float *data, float ao[6][4], float light[6][4], int left,
       *(d++) = normals[i][2];
       *(d++) = du + (uvs[i][j][0] ? b : a);
       *(d++) = dv + (uvs[i][j][1] ? b : a);
-      *(d++) = ao[i][j];
+      *(d++) = ambient_occlusion[i][j];
       *(d++) = light[i][j];
     }
   }
 }
 
-void make_cube(float *data, float ao[6][4], float light[6][4], int left,
-               int right, int top, int bottom, int front, int back, float x,
-               float y, float z, float n, int w) {
+void make_cube(float *data, float ambient_occlusion[6][4], float light[6][4],
+               int left, int right, int top, int bottom, int front, int back,
+               float x, float y, float z, float n, int w) {
   int wleft = blocks[w][0];
   int wright = blocks[w][1];
   int wtop = blocks[w][2];
   int wbottom = blocks[w][3];
   int wfront = blocks[w][4];
   int wback = blocks[w][5];
-  make_cube_faces(data, ao, light, left, right, top, bottom, front, back, wleft,
-                  wright, wtop, wbottom, wfront, wback, x, y, z, n);
+  make_cube_faces(data, ambient_occlusion, light, left, right, top, bottom,
+                  front, back, wleft, wright, wtop, wbottom, wfront, wback, x,
+                  y, z, n);
 }
 
-void make_plant(float *data, float ao, float light, float px, float py,
-                float pz, float n, int w, float rotation) {
+void make_plant(float *data, float ambient_occlusion, float light, float px,
+                float py, float pz, float n, int w, float rotation) {
   static const float positions[4][4][3] = {
       {{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
       {{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
@@ -125,7 +128,7 @@ void make_plant(float *data, float ao, float light, float px, float py,
       *(d++) = normals[i][2];
       *(d++) = du + (uvs[i][j][0] ? b : a);
       *(d++) = dv + (uvs[i][j][1] ? b : a);
-      *(d++) = ao;
+      *(d++) = ambient_occlusion;
       *(d++) = light;
     }
   }
@@ -141,12 +144,12 @@ void make_plant(float *data, float ao, float light, float px, float py,
 }
 
 void make_player(float *data, float x, float y, float z, float rx, float ry) {
-  float ao[6][4] = {0};
+  float ambient_occlusion[6][4] = {0};
   float light[6][4] = {{0.8, 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8, 0.8},
                        {0.8, 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8, 0.8},
                        {0.8, 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8, 0.8}};
-  make_cube_faces(data, ao, light, 1, 1, 1, 1, 1, 1, 226, 224, 241, 209, 225,
-                  227, 0, 0, 0, 0.4);
+  make_cube_faces(data, ambient_occlusion, light, 1, 1, 1, 1, 1, 1, 226, 224,
+                  241, 209, 225, 227, 0, 0, 0, 0.4);
   float ma[16];
   float mb[16];
   mat_identity(ma);
