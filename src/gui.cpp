@@ -73,7 +73,6 @@ void gui_show_demo_window() {
   ImGui::Begin("Craft");
   if (ImGui::Button("Resume")) {
     escape_pressed = false;
-    glfwSetInputMode(g->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   }
 
   ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;

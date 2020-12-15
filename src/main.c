@@ -1988,7 +1988,7 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
     return;
   }
   if (key == GLFW_KEY_ESCAPE) {
-    escape_pressed = true;
+    escape_pressed = !escape_pressed;
     const int exclusive =
         glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
 
@@ -2129,6 +2129,8 @@ void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
         on_left_click();
       }
     } else {
+      // cant do this anymore, as it would take focus away
+      // from the gui
       // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
   }
@@ -2671,6 +2673,9 @@ int main(int argc, char **argv) {
       (*renderer.viewport)(0, 0, g->width, g->height);
 
       glfwPollEvents();
+
+      if (!escape_pressed)
+        glfwSetInputMode(g->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
       bool show_gui_this_frame = escape_pressed;
       if (show_gui_this_frame) {
