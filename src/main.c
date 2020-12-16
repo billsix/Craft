@@ -309,8 +309,7 @@ void update_player(Player *player, float x, float y, float z, float rx,
 
 Player *player_crosshair(Player *player) {
   Player *result = 0;
-  float threshold = RADIANS(5);
-  float best = 0;
+  float threshold = RADIANS(5), best = 0;
   for (int i = 0; i < g->player_count; i++) {
     Player *other_player = g->players + i;
     if (other_player == player) {
@@ -321,34 +320,36 @@ Player *player_crosshair(Player *player) {
     {
       // initialize player_other_player_distance
       const PositionAndOrientation *const positionAndOrientation1 =
-          &player->positionAndOrientation;
-      const PositionAndOrientation *const positionAndOrientation2 =
-          &other_player->positionAndOrientation;
-      const float x = positionAndOrientation2->x - positionAndOrientation1->x;
-      const float y = positionAndOrientation2->y - positionAndOrientation1->y;
-      const float z = positionAndOrientation2->z - positionAndOrientation1->z;
+                                              &player->positionAndOrientation,
+                                          *const positionAndOrientation2 =
+                                              &other_player
+                                                   ->positionAndOrientation;
+
+      const float x = positionAndOrientation2->x - positionAndOrientation1->x,
+                  y = positionAndOrientation2->y - positionAndOrientation1->y,
+                  z = positionAndOrientation2->z - positionAndOrientation1->z;
       player_other_player_distance = sqrtf(x * x + y * y + z * z);
     }
 
     float player_crosshair_distance;
     { // initialize player crosshair distance
       PositionAndOrientation *positionAndOrientation1 =
-          &player->positionAndOrientation;
-      PositionAndOrientation *positionAndOrientation2 =
-          &other_player->positionAndOrientation;
+                                 &player->positionAndOrientation,
+                             *positionAndOrientation2 =
+                                 &other_player->positionAndOrientation;
       float vx, vy, vz;
       get_sight_vector(positionAndOrientation1->rx, positionAndOrientation1->ry,
                        &vx, &vy, &vz);
       vx *= player_other_player_distance;
       vy *= player_other_player_distance;
       vz *= player_other_player_distance;
-      float px, py, pz;
-      px = positionAndOrientation1->x + vx;
-      py = positionAndOrientation1->y + vy;
-      pz = positionAndOrientation1->z + vz;
-      float x = positionAndOrientation2->x - px;
-      float y = positionAndOrientation2->y - py;
-      float z = positionAndOrientation2->z - pz;
+      float px = positionAndOrientation1->x + vx,
+            py = positionAndOrientation1->y + vy,
+            pz = positionAndOrientation1->z + vz;
+      float x = positionAndOrientation2->x - px,
+            y = positionAndOrientation2->y - py,
+            z = positionAndOrientation2->z - pz;
+
       player_crosshair_distance = sqrtf(x * x + y * y + z * z);
     }
     if (player_other_player_distance < 96 &&
@@ -373,23 +374,19 @@ Chunk *find_chunk(int p, int q) {
 }
 
 int chunk_distance(const Chunk *const chunk, int p, int q) {
-  const int dp = ABS(chunk->p - p);
-  const int dq = ABS(chunk->q - q);
+  const int dp = ABS(chunk->p - p), dq = ABS(chunk->q - q);
   return MAX(dp, dq);
 }
 
 int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy) {
-  const int x = p * CHUNK_SIZE - 1;
-  const int z = q * CHUNK_SIZE - 1;
-  const int d = CHUNK_SIZE + 1;
+  const int x = p * CHUNK_SIZE - 1, z = q * CHUNK_SIZE - 1, d = CHUNK_SIZE + 1,
+            n = g->ortho ? 4 : 6;
   float points[8][3] = {{x + 0, miny, z + 0}, {x + d, miny, z + 0},
                         {x + 0, miny, z + d}, {x + d, miny, z + d},
                         {x + 0, maxy, z + 0}, {x + d, maxy, z + 0},
                         {x + 0, maxy, z + d}, {x + d, maxy, z + d}};
-  const int n = g->ortho ? 4 : 6;
   for (int i = 0; i < n; i++) {
-    int in = 0;
-    int out = 0;
+    int in = 0, out = 0;
     for (int j = 0; j < 8; j++) {
       float d = planes[i][0] * points[j][0] + planes[i][1] * points[j][1] +
                 planes[i][2] * points[j][2] + planes[i][3];
@@ -411,10 +408,7 @@ int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy) {
 
 int highest_block(float x, float z) {
   int result = -1;
-  const int nx = roundf(x);
-  const int nz = roundf(z);
-  const int p = chunked(x);
-  const int q = chunked(z);
+  const int nx = roundf(x), nz = roundf(z), p = chunked(x), q = chunked(z);
   const Chunk *const chunk = find_chunk(p, q);
   if (chunk) {
     const Map *const map = &chunk->map;
@@ -423,10 +417,8 @@ int highest_block(float x, float z) {
       if (EMPTY_ENTRY(entry)) {
         continue;
       }
-      const int ex = entry->e.x + map->dx;
-      const int ey = entry->e.y + map->dy;
-      const int ez = entry->e.z + map->dz;
-      const int ew = entry->e.w;
+      const int ex = entry->e.x + map->dx, ey = entry->e.y + map->dy,
+                ez = entry->e.z + map->dz, ew = entry->e.w;
       if (is_obstacle(ew) && ex == nx && ez == nz) {
         result = MAX(result, ey);
       }
@@ -439,13 +431,9 @@ int _hit_test(const Map *const map, float max_distance, int previous, float x,
               float y, float z, float vx, float vy, float vz, int *hx, int *hy,
               int *hz) {
   const int m = 32;
-  int px = 0;
-  int py = 0;
-  int pz = 0;
+  int px = 0, py = 0, pz = 0;
   for (int i = 0; i < max_distance * m; i++) {
-    const int nx = roundf(x);
-    const int ny = roundf(y);
-    const int nz = roundf(z);
+    const int nx = roundf(x), ny = roundf(y), nz = roundf(z);
     if (nx != px || ny != py || nz != pz) {
       int hw = map_get(map, nx, ny, nz);
       if (hw > 0) {
@@ -474,10 +462,9 @@ int _hit_test(const Map *const map, float max_distance, int previous, float x,
 int hit_test(int previous, float x, float y, float z, float rx, float ry,
              int *bx, int *by, int *bz) {
   int result = 0;
-  float best = 0;
-  const int p = chunked(x);
-  const int q = chunked(z);
-  float vx, vy, vz;
+  const int p = chunked(x), q = chunked(z);
+  float vx, vy, vz, best = 0;
+  ;
   { get_sight_vector(rx, ry, &vx, &vy, &vz); }
   for (int i = 0; i < g->chunk_count; i++) {
     const Chunk *const chunk = g->chunks + i;
@@ -514,9 +501,7 @@ int hit_test_face(const Player *const player, int *x, int *y, int *z,
     hit_test(1, positionAndOrientation->x, positionAndOrientation->y,
              positionAndOrientation->z, positionAndOrientation->rx,
              positionAndOrientation->ry, &hx, &hy, &hz);
-    const int dx = hx - *x;
-    const int dy = hy - *y;
-    const int dz = hz - *z;
+    const int dx = hx - *x, dy = hy - *y, dz = hz - *z;
     if (dx == -1 && dy == 0 && dz == 0) {
       *face = 0;
       return 1;
@@ -551,9 +536,7 @@ int hit_test_face(const Player *const player, int *x, int *y, int *z,
 
 int player_intersects_block(int height, float x, float y, float z, int hx,
                             int hy, int hz) {
-  const int nx = roundf(x);
-  const int ny = roundf(y);
-  const int nz = roundf(z);
+  const int nx = roundf(x), ny = roundf(y), nz = roundf(z);
   for (int i = 0; i < height; i++) {
     if (nx == hx && ny - i == hy && nz == hz) {
       return 1;
@@ -564,38 +547,33 @@ int player_intersects_block(int height, float x, float y, float z, int hx,
 
 int _gen_sign_buffer(float *data, float x, float y, float z, int face,
                      const char *text) {
-  static const int glyph_dx[8] = {0, 0, -1, 1, 1, 0, -1, 0};
-  static const int glyph_dz[8] = {1, -1, 0, 0, 0, -1, 0, 1};
-  static const int line_dx[8] = {0, 0, 0, 0, 0, 1, 0, -1};
-  static const int line_dy[8] = {-1, -1, -1, -1, 0, 0, 0, 0};
-  static const int line_dz[8] = {0, 0, 0, 0, 1, 0, -1, 0};
+  static const int glyph_dx[8] = {0, 0, -1, 1, 1, 0, -1, 0},
+                   glyph_dz[8] = {1, -1, 0, 0, 0, -1, 0, 1},
+                   line_dx[8] = {0, 0, 0, 0, 0, 1, 0, -1},
+                   line_dy[8] = {-1, -1, -1, -1, 0, 0, 0, 0},
+                   line_dz[8] = {0, 0, 0, 0, 1, 0, -1, 0};
   if (face < 0 || face >= 8) {
     return 0;
   }
   int count = 0;
-  const float max_width = 64;
-  const float line_height = 1.25;
+  const float max_width = 64, line_height = 1.25;
   char lines[1024];
   int rows = wrap(text, max_width, lines, 1024);
   { rows = MIN(rows, 5); }
-  const int dx = glyph_dx[face];
-  const int dz = glyph_dz[face];
-  const int ldx = line_dx[face];
-  const int ldy = line_dy[face];
-  const int ldz = line_dz[face];
+  const int dx = glyph_dx[face], dz = glyph_dz[face], ldx = line_dx[face],
+            ldy = line_dy[face], ldz = line_dz[face];
   const float n = 1.0 / (max_width / 10);
-  float sx = x - n * (rows - 1) * (line_height / 2) * ldx;
-  float sy = y - n * (rows - 1) * (line_height / 2) * ldy;
-  float sz = z - n * (rows - 1) * (line_height / 2) * ldz;
+  float sx = x - n * (rows - 1) * (line_height / 2) * ldx,
+        sy = y - n * (rows - 1) * (line_height / 2) * ldy,
+        sz = z - n * (rows - 1) * (line_height / 2) * ldz;
   char *key;
   char *line = tokenize(lines, "\n", &key);
   while (line) {
     const int length = strlen(line);
     int line_width = string_width(line);
     { line_width = MIN(line_width, max_width); }
-    float rx = sx - dx * line_width / max_width / 2;
-    float ry = sy;
-    float rz = sz - dz * line_width / max_width / 2;
+    float rx = sx - dx * line_width / max_width / 2, ry = sy,
+          rz = sz - dz * line_width / max_width / 2;
     for (int i = 0; i < length; i++) {
       const int width = char_width(line[i]);
       line_width -= width;
@@ -841,8 +819,7 @@ void compute_chunk(WorkerItem *item) {
     if (total == 0) {
       continue;
     }
-    char neighbors[27] = {0};
-    char lights[27] = {0};
+    char neighbors[27] = {0}, lights[27] = {0};
     float shades[27] = {0};
     int index = 0;
     for (int dx = -1; dx <= 1; dx++) {
@@ -889,12 +866,11 @@ void compute_chunk(WorkerItem *item) {
       static const float curve[4] = {0.0, 0.25, 0.5, 0.75};
       for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 4; j++) {
-          const int corner = neighbors[lookup3[i][j][0]];
-          const int side1 = neighbors[lookup3[i][j][1]];
-          const int side2 = neighbors[lookup3[i][j][2]];
-          const int value = side1 && side2 ? 3 : corner + side1 + side2;
-          float shade_sum = 0;
-          float light_sum = 0;
+          const int corner = neighbors[lookup3[i][j][0]],
+                    side1 = neighbors[lookup3[i][j][1]],
+                    side2 = neighbors[lookup3[i][j][2]],
+                    value = side1 && side2 ? 3 : corner + side1 + side2;
+          float shade_sum = 0, light_sum = 0;
           const int is_light = lights[13] == 15;
           for (int k = 0; k < 4; k++) {
             shade_sum += shades[lookup4[i][j][k]];
@@ -910,8 +886,7 @@ void compute_chunk(WorkerItem *item) {
       }
     }
     if (is_plant(ew)) {
-      float min_ambient_occlusion = 1;
-      float max_light = 0;
+      float min_ambient_occlusion = 1, max_light = 0;
       for (int a = 0; a < 6; a++) {
         for (int b = 0; b < 4; b++) {
           min_ambient_occlusion =
@@ -1732,10 +1707,7 @@ void sphere(Block *center, int radius, int fill, int fx, int fy, int fz) {
                                       {-0.5, 0.5, -0.5},  {-0.5, 0.5, 0.5},
                                       {0.5, -0.5, -0.5},  {0.5, -0.5, 0.5},
                                       {0.5, 0.5, -0.5},   {0.5, 0.5, 0.5}};
-  int cx = center->x;
-  int cy = center->y;
-  int cz = center->z;
-  int w = center->w;
+  int cx = center->x, cy = center->y, cz = center->z, w = center->w;
   for (int x = cx - radius; x <= cx + radius; x++) {
     if (fx && x != cx) {
       continue;
@@ -1748,13 +1720,11 @@ void sphere(Block *center, int radius, int fill, int fx, int fy, int fz) {
         if (fz && z != cz) {
           continue;
         }
-        int inside = 0;
-        int outside = fill;
+        int inside = 0, outside = fill;
         for (int i = 0; i < 8; i++) {
-          float dx = x + offsets[i][0] - cx;
-          float dy = y + offsets[i][1] - cy;
-          float dz = z + offsets[i][2] - cz;
-          float d = sqrtf(dx * dx + dy * dy + dz * dz);
+          float dx = x + offsets[i][0] - cx, dy = y + offsets[i][1] - cy,
+                dz = z + offsets[i][2] - cz,
+                d = sqrtf(dx * dx + dy * dy + dz * dz);
           if (d < radius) {
             inside = 1;
           } else {
@@ -2250,8 +2220,8 @@ void handle_movement(double dt) {
   if (motion_key_was_pressed) {
     float strafe = atan2f(sz, sx);
     if (g->flying) {
-      float m = cosf(positionAndOrientation->ry);
-      float y = sinf(positionAndOrientation->ry);
+      float m = cosf(positionAndOrientation->ry),
+            y = sinf(positionAndOrientation->ry);
       if (sx) {
         if (!sz) {
           y = 0;
@@ -2309,13 +2279,12 @@ void handle_movement(double dt) {
       Chunk *chunk = find_chunk(p, q);
       if (chunk) {
         Map *map = &chunk->map;
-        int nx = roundf(positionAndOrientation->x);
-        int ny = roundf(positionAndOrientation->y);
-        int nz = roundf(positionAndOrientation->z);
-        float px = positionAndOrientation->x - nx;
-        float py = positionAndOrientation->y - ny;
-        float pz = positionAndOrientation->z - nz;
-        float pad = 0.25;
+        int nx = roundf(positionAndOrientation->x),
+            ny = roundf(positionAndOrientation->y),
+            nz = roundf(positionAndOrientation->z);
+        float px = positionAndOrientation->x - nx,
+              py = positionAndOrientation->y - ny,
+              pz = positionAndOrientation->z - nz, pad = 0.25;
         const int height = 2;
         for (int dy = 0; dy < height; dy++) {
           if (px < -pad && is_obstacle(map_get(map, nx - 1, ny - dy, nz))) {
@@ -2741,8 +2710,8 @@ int main(int argc, char **argv) {
               &player->positionAndOrientation1;
           PositionAndOrientation *positionAndOrientation2 =
               &player->positionAndOrientation2;
-          float t1 = positionAndOrientation2->t - positionAndOrientation1->t;
-          float t2 = glfwGetTime() - positionAndOrientation2->t;
+          float t1 = positionAndOrientation2->t - positionAndOrientation1->t,
+                t2 = glfwGetTime() - positionAndOrientation2->t;
           t1 = MIN(t1, 1);
           t1 = MAX(t1, 0.1);
           float p = MIN(t2 / t1, 1);
@@ -2795,9 +2764,7 @@ int main(int argc, char **argv) {
         uint32_t crosshair_buffer;
         {
           // initialize crosshair_buffer
-          const int x = g->width / 2;
-          const int y = g->height / 2;
-          const int p = 10 * g->scale;
+          const int x = g->width / 2, y = g->height / 2, p = 10 * g->scale;
           float data[] = {x, y - p, x, y + p, x - p, y, x + p, y};
           crosshair_buffer = (*renderer.gen_buffer)(sizeof(data), data);
         }
@@ -2821,13 +2788,9 @@ int main(int argc, char **argv) {
           uint32_t plant_buffer;
           {
             // initialize plant buffer
-            const float x = 0;
-            const float y = 0;
-            const float z = 0;
-            const float n = 0.5;
+            const float x = 0, y = 0, z = 0, n = 0.5;
             float *data = malloc_faces(10, 4);
-            float ambient_occlusion = 0;
-            float light = 1;
+            float ambient_occlusion = 0, light = 1;
             make_plant(data, ambient_occlusion, light, x, y, z, n, w, 45);
             plant_buffer = (*renderer.gen_faces)(10, 4, data);
           }
@@ -2850,10 +2813,7 @@ int main(int argc, char **argv) {
           uint32_t cube_buffer;
           {
             // initilize cube_buffer
-            const float x = 0;
-            const float y = 0;
-            const float z = 0;
-            const float n = 0.5;
+            const float x = 0, y = 0, z = 0, n = 0.5;
             float *data = malloc_faces(10, 6);
             float ambient_occlusion[6][4] = {0};
             float light[6][4] = {{0.5, 0.5, 0.5, 0.5}, {0.5, 0.5, 0.5, 0.5},
@@ -2875,9 +2835,7 @@ int main(int argc, char **argv) {
 
       // RENDER TEXT //
       char text_buffer[1024];
-      float ts = 12 * g->scale;
-      float tx = ts / 2;
-      float ty = g->height - ts;
+      float ts = 12 * g->scale, tx = ts / 2, ty = g->height - ts;
       if (SHOW_INFO_TEXT) {
         int hour = time_of_day() * 24;
         char am_pm = hour < 12 ? 'a' : 'p';
@@ -2922,12 +2880,8 @@ int main(int argc, char **argv) {
       if (g->observe2) {
         player = g->players + g->observe2;
 
-        int pw = 256 * g->scale;
-        int ph = 256 * g->scale;
-        int offset = 32 * g->scale;
-        int pad = 3 * g->scale;
-        int sw = pw + pad * 2;
-        int sh = ph + pad * 2;
+        int pw = 256 * g->scale, ph = 256 * g->scale, offset = 32 * g->scale,
+            pad = 3 * g->scale, sw = pw + pad * 2, sh = ph + pad * 2;
 
         (*renderer.enable_scissor_test)();
         (*renderer.scissor)(g->width - sw - offset + pad, offset - pad, sw, sh);

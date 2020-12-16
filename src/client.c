@@ -40,13 +40,9 @@
 #define QUEUE_SIZE 1048576
 #define RECV_SIZE 4096
 
-static int client_enabled = 0;
-static int running = 0;
-static int sd = 0;
-static int bytes_sent = 0;
-static int bytes_received = 0;
+static int client_enabled = 0, running = 0, sd = 0, bytes_sent = 0,
+           bytes_received = 0, qsize = 0;
 static char *queue = 0;
-static int qsize = 0;
 static thrd_t recv_thread;
 static mtx_t mutex;
 

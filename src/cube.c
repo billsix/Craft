@@ -31,37 +31,37 @@ static void make_cube_faces(float *data, float ambient_occlusion[6][4],
                             int bottom, int front, int back, int wleft,
                             int wright, int wtop, int wbottom, int wfront,
                             int wback, float x, float y, float z, float n) {
-  static const float positions[6][4][3] = {
-      {{-1, -1, -1}, {-1, -1, +1}, {-1, +1, -1}, {-1, +1, +1}},
-      {{+1, -1, -1}, {+1, -1, +1}, {+1, +1, -1}, {+1, +1, +1}},
-      {{-1, +1, -1}, {-1, +1, +1}, {+1, +1, -1}, {+1, +1, +1}},
-      {{-1, -1, -1}, {-1, -1, +1}, {+1, -1, -1}, {+1, -1, +1}},
-      {{-1, -1, -1}, {-1, +1, -1}, {+1, -1, -1}, {+1, +1, -1}},
-      {{-1, -1, +1}, {-1, +1, +1}, {+1, -1, +1}, {+1, +1, +1}}};
-  static const float normals[6][3] = {{-1, 0, 0}, {+1, 0, 0}, {0, +1, 0},
-                                      {0, -1, 0}, {0, 0, -1}, {0, 0, +1}};
-  static const float uvs[6][4][2] = {
-      {{0, 0}, {1, 0}, {0, 1}, {1, 1}}, {{1, 0}, {0, 0}, {1, 1}, {0, 1}},
-      {{0, 1}, {0, 0}, {1, 1}, {1, 0}}, {{0, 0}, {0, 1}, {1, 0}, {1, 1}},
-      {{0, 0}, {0, 1}, {1, 0}, {1, 1}}, {{1, 0}, {1, 1}, {0, 0}, {0, 1}}};
+  static const float positions[6][4][3] =
+      {{{-1, -1, -1}, {-1, -1, +1}, {-1, +1, -1}, {-1, +1, +1}},
+       {{+1, -1, -1}, {+1, -1, +1}, {+1, +1, -1}, {+1, +1, +1}},
+       {{-1, +1, -1}, {-1, +1, +1}, {+1, +1, -1}, {+1, +1, +1}},
+       {{-1, -1, -1}, {-1, -1, +1}, {+1, -1, -1}, {+1, -1, +1}},
+       {{-1, -1, -1}, {-1, +1, -1}, {+1, -1, -1}, {+1, +1, -1}},
+       {{-1, -1, +1}, {-1, +1, +1}, {+1, -1, +1}, {+1, +1, +1}}},
+                     normals[6][3] = {{-1, 0, 0}, {+1, 0, 0}, {0, +1, 0},
+                                      {0, -1, 0}, {0, 0, -1}, {0, 0, +1}},
+                     uvs[6][4][2] = {{{0, 0}, {1, 0}, {0, 1}, {1, 1}},
+                                     {{1, 0}, {0, 0}, {1, 1}, {0, 1}},
+                                     {{0, 1}, {0, 0}, {1, 1}, {1, 0}},
+                                     {{0, 0}, {0, 1}, {1, 0}, {1, 1}},
+                                     {{0, 0}, {0, 1}, {1, 0}, {1, 1}},
+                                     {{1, 0}, {1, 1}, {0, 0}, {0, 1}}};
+
   static const float indices[6][6] = {{0, 3, 2, 0, 1, 3}, {0, 3, 1, 0, 2, 3},
                                       {0, 3, 2, 0, 1, 3}, {0, 3, 1, 0, 2, 3},
-                                      {0, 3, 2, 0, 1, 3}, {0, 3, 1, 0, 2, 3}};
-  static const float flipped[6][6] = {{0, 1, 2, 1, 3, 2}, {0, 2, 1, 2, 3, 1},
+                                      {0, 3, 2, 0, 1, 3}, {0, 3, 1, 0, 2, 3}},
+                     flipped[6][6] = {{0, 1, 2, 1, 3, 2}, {0, 2, 1, 2, 3, 1},
                                       {0, 1, 2, 1, 3, 2}, {0, 2, 1, 2, 3, 1},
                                       {0, 1, 2, 1, 3, 2}, {0, 2, 1, 2, 3, 1}};
   float *d = data;
-  const float s = 0.0625;
-  const float a = 0 + 1 / 2048.0;
-  const float b = s - 1 / 2048.0;
-  const int faces[6] = {left, right, top, bottom, front, back};
-  const int tiles[6] = {wleft, wright, wtop, wbottom, wfront, wback};
+  const float s = 0.0625, a = 0 + 1 / 2048.0, b = s - 1 / 2048.0;
+  const int faces[6] = {left, right, top, bottom, front, back},
+            tiles[6] = {wleft, wright, wtop, wbottom, wfront, wback};
   for (int i = 0; i < 6; i++) {
     if (faces[i] == 0) {
       continue;
     }
-    const float du = (tiles[i] % 16) * s;
-    const float dv = (tiles[i] / 16) * s;
+    const float du = (tiles[i] % 16) * s, dv = (tiles[i] / 16) * s;
     const int flip = ambient_occlusion[i][0] + ambient_occlusion[i][3] >
                      ambient_occlusion[i][1] + ambient_occlusion[i][2];
     for (int v = 0; v < 6; v++) {
@@ -83,12 +83,8 @@ static void make_cube_faces(float *data, float ambient_occlusion[6][4],
 void make_cube(float *data, float ambient_occlusion[6][4], float light[6][4],
                int left, int right, int top, int bottom, int front, int back,
                float x, float y, float z, float n, int w) {
-  int wleft = blocks[w][0];
-  int wright = blocks[w][1];
-  int wtop = blocks[w][2];
-  int wbottom = blocks[w][3];
-  int wfront = blocks[w][4];
-  int wback = blocks[w][5];
+  int wleft = blocks[w][0], wright = blocks[w][1], wtop = blocks[w][2],
+      wbottom = blocks[w][3], wfront = blocks[w][4], wback = blocks[w][5];
   make_cube_faces(data, ambient_occlusion, light, left, right, top, bottom,
                   front, back, wleft, wright, wtop, wbottom, wfront, wback, x,
                   y, z, n);
@@ -96,27 +92,26 @@ void make_cube(float *data, float ambient_occlusion[6][4], float light[6][4],
 
 void make_plant(float *data, float ambient_occlusion, float light, float px,
                 float py, float pz, float n, int w, float rotation) {
-  static const float positions[4][4][3] = {
-      {{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
-      {{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
-      {{-1, -1, 0}, {-1, +1, 0}, {+1, -1, 0}, {+1, +1, 0}},
-      {{-1, -1, 0}, {-1, +1, 0}, {+1, -1, 0}, {+1, +1, 0}}};
-  static const float normals[4][3] = {
-      {-1, 0, 0}, {+1, 0, 0}, {0, 0, -1}, {0, 0, +1}};
-  static const float uvs[4][4][2] = {{{0, 0}, {1, 0}, {0, 1}, {1, 1}},
+  static const float positions[4][4][3] =
+      {{{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
+       {{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
+       {{-1, -1, 0}, {-1, +1, 0}, {+1, -1, 0}, {+1, +1, 0}},
+       {{-1, -1, 0}, {-1, +1, 0}, {+1, -1, 0}, {+1, +1, 0}}},
+                     normals[4][3] = {{-1, 0, 0},
+                                      {+1, 0, 0},
+                                      {0, 0, -1},
+                                      {0, 0, +1}},
+                     uvs[4][4][2] = {{{0, 0}, {1, 0}, {0, 1}, {1, 1}},
                                      {{1, 0}, {0, 0}, {1, 1}, {0, 1}},
                                      {{0, 0}, {0, 1}, {1, 0}, {1, 1}},
-                                     {{1, 0}, {1, 1}, {0, 0}, {0, 1}}};
-  static const float indices[4][6] = {{0, 3, 2, 0, 1, 3},
+                                     {{1, 0}, {1, 1}, {0, 0}, {0, 1}}},
+                     indices[4][6] = {{0, 3, 2, 0, 1, 3},
                                       {0, 3, 1, 0, 2, 3},
                                       {0, 3, 2, 0, 1, 3},
                                       {0, 3, 1, 0, 2, 3}};
   float *d = data;
-  const float s = 0.0625;
-  const float a = 0;
-  const float b = s;
-  const float du = (plants[w] % 16) * s;
-  const float dv = (plants[w] / 16) * s;
+  const float s = 0.0625, a = 0, b = s, du = (plants[w] % 16) * s,
+              dv = (plants[w] / 16) * s;
   for (int i = 0; i < 4; i++) {
     for (int v = 0; v < 6; v++) {
       const int j = indices[i][v];
@@ -132,8 +127,7 @@ void make_plant(float *data, float ambient_occlusion, float light, float px,
       *(d++) = light;
     }
   }
-  float ma[16];
-  float mb[16];
+  float ma[16], mb[16];
   mat_identity(ma);
   mat_rotate(mb, 0, 1, 0, RADIANS(rotation));
   mat_multiply(ma, mb, ma);
@@ -144,14 +138,13 @@ void make_plant(float *data, float ambient_occlusion, float light, float px,
 }
 
 void make_player(float *data, float x, float y, float z, float rx, float ry) {
-  float ambient_occlusion[6][4] = {0};
-  float light[6][4] = {{0.8, 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8, 0.8},
+  float ambient_occlusion[6][4] = {0},
+        light[6][4] = {{0.8, 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8, 0.8},
                        {0.8, 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8, 0.8},
                        {0.8, 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8, 0.8}};
   make_cube_faces(data, ambient_occlusion, light, 1, 1, 1, 1, 1, 1, 226, 224,
                   241, 209, 225, 227, 0, 0, 0, 0.4);
-  float ma[16];
-  float mb[16];
+  float ma[16], mb[16];
   mat_identity(ma);
   mat_rotate(mb, 0, 1, 0, rx);
   mat_multiply(ma, mb, ma);
@@ -180,12 +173,9 @@ void make_cube_wireframe(float *data, float x, float y, float z, float n) {
 
 void make_character(float *data, float x, float y, float n, float m, char c) {
   float *d = data;
-  const float s = 0.0625;
-  const float a = s;
-  const float b = s * 2;
+  const float s = 0.0625, a = s, b = s * 2;
   const int w = c - 32;
-  const float du = (w % 16) * a;
-  const float dv = 1 - (w / 16) * b - b;
+  const float du = (w % 16) * a, dv = 1 - (w / 16) * b - b;
   *(d++) = x - n;
   *(d++) = y - m;
   *(d++) = du + 0;
@@ -277,16 +267,10 @@ void make_character_3d(float *data, float x, float y, float z, float n,
   };
   float *d = data;
   float s = 0.0625;
-  const float pu = s / 5;
-  const float pv = s / 2.5;
-  const float u1 = pu;
-  const float v1 = pv;
-  const float u2 = s - pu;
-  const float v2 = s * 2 - pv;
-  const float p = 0.5;
+  const float pu = s / 5, pv = s / 2.5, u1 = pu, v1 = pv, u2 = s - pu,
+              v2 = s * 2 - pv, p = 0.5;
   const int w = c - 32;
-  const float du = (w % 16) * s;
-  const float dv = 1 - (w / 16 + 1) * s * 2;
+  const float du = (w % 16) * s, dv = 1 - (w / 16 + 1) * s * 2;
   x += p * offsets[face][0];
   y += p * offsets[face][1];
   z += p * offsets[face][2];
@@ -347,8 +331,7 @@ int _make_sphere(float *data, float r, int detail, const float *const a,
     tac[1] = 1 - acosf(ac[1]) / PI;
     tbc[0] = 0;
     tbc[1] = 1 - acosf(bc[1]) / PI;
-    int total = 0;
-    int n;
+    int total = 0, n;
     n = _make_sphere(data, r, detail - 1, a, ab, ac, ta, tab, tac);
     total += n;
     data += n * 24;
@@ -378,8 +361,8 @@ void make_sphere(float *data, float r, int detail) {
   static const int indices[8][3] = {{4, 3, 0}, {1, 4, 0}, {3, 4, 5}, {4, 1, 5},
                                     {0, 3, 2}, {0, 2, 1}, {5, 2, 3}, {5, 1, 2}};
   static const float positions[6][3] = {{0, 0, -1}, {1, 0, 0}, {0, -1, 0},
-                                        {-1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-  static const float uvs[6][3] = {{0, 0.5}, {0, 0.5}, {0, 0},
+                                        {-1, 0, 0}, {0, 1, 0}, {0, 0, 1}},
+                     uvs[6][3] = {{0, 0.5}, {0, 0.5}, {0, 0},
                                   {0, 0.5}, {0, 1},   {0, 0.5}};
   int total = 0;
   for (int i = 0; i < 8; i++) {

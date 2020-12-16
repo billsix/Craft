@@ -54,10 +54,7 @@
 #include "gl_render.h"
 
 // TEXTURE ids
-uint32_t texture;
-uint32_t font;
-uint32_t sky;
-uint32_t sign;
+uint32_t texture, font, sky, sign;
 
 Block_Attributes block_attrib;
 Line_Attributes line_attrib;
@@ -147,9 +144,9 @@ uint32_t gl_make_program(uint32_t shader1, uint32_t shader2) {
 }
 
 uint32_t gl_load_program(const char *path1, const char *path2) {
-  uint32_t shader1 = gl_load_shader(GL_VERTEX_SHADER, path1);
-  uint32_t shader2 = gl_load_shader(GL_FRAGMENT_SHADER, path2);
-  uint32_t program = gl_make_program(shader1, shader2);
+  uint32_t shader1 = gl_load_shader(GL_VERTEX_SHADER, path1),
+           shader2 = gl_load_shader(GL_FRAGMENT_SHADER, path2),
+           program = gl_make_program(shader1, shader2);
   return program;
 }
 

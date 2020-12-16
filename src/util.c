@@ -65,8 +65,8 @@ char *load_file(const char *path) {
 
 void flip_image_vertical(unsigned char *data, unsigned int width,
                          unsigned int height) {
-  const unsigned int size = width * height * 4;
-  const unsigned int stride = sizeof(char) * width * 4;
+  const unsigned int size = width * height * 4,
+                     stride = sizeof(char) * width * 4;
   unsigned char *const new_data = malloc(sizeof(unsigned char) * size);
   for (unsigned int i = 0; i < height; i++) {
     unsigned int j = height - i - 1;
