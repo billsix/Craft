@@ -50,6 +50,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "gl_render.h"
 
@@ -166,10 +167,12 @@ void gl_load_png_texture(const char *const file_name) {
   free(data);
 }
 
-void GLMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+void GLAPIENTRY
+GLMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                        GLsizei length, const GLchar *message,
                        const void *userParam) {
   char severity_name[100];
+  memset(&severity_name, 0, sizeof(char)*sizeof(severity_name));
   switch (severity) {
   case GL_DEBUG_SEVERITY_HIGH: {
     const char name[] = "SEVERITY HIGH";
