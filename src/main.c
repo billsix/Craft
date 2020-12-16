@@ -669,12 +669,9 @@ void light_fill(const char *const opaque, char *light, int x, int y, int z,
 }
 
 void compute_chunk(WorkerItem *item) {
-  char opaque[XZ_SIZE * XZ_SIZE * Y_SIZE];
-  memset(opaque, 0, sizeof(opaque));
-  char light[XZ_SIZE * XZ_SIZE * Y_SIZE];
-  memset(light, 0, sizeof(light));
-  char highest[XZ_SIZE * XZ_SIZE];
-  memset(highest, 0, sizeof(highest));
+  char *const opaque = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
+  char *const light = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
+  char *const highest = (char *)calloc(XZ_SIZE * XZ_SIZE, sizeof(char));
 
   const int ox = item->p * CHUNK_SIZE - CHUNK_SIZE - 1;
   const int oy = -1;
@@ -903,6 +900,10 @@ void compute_chunk(WorkerItem *item) {
     }
     offset += (is_plant(ew) ? 4 : total) * 60;
   }
+
+  free(opaque);
+  free(light);
+  free(highest);
 
   item->miny = miny;
   item->maxy = maxy;
