@@ -45,7 +45,7 @@ EOF
 	exit 1
 fi
 
-for FILE in $(git diff --cached --name-only | grep -iE '\.(cpp|c|cc|h|hpp)$' )
+for FILE in $(git diff --cached --name-only | grep -v ^deps | grep -iE '\.(cpp|c|cc|h|hpp)$' )
 do
     clang-format -i $FILE
     git add $FILE
