@@ -1886,7 +1886,7 @@ static unsigned char *SHA3Final(SHA3Context *p){
 ** Implementation of the sha3(X,SIZE) function.
 **
 ** Return a BLOB which is the SIZE-bit SHA3 hash of X.  The default
-** size is 256.  If X is a BLOB, it is hashed as is.
+** size is 256.  If X is a BLOB, it is hashed as is.  
 ** For all other non-NULL types of input, X is converted into a UTF-8 string
 ** and the string is hashed without the trailing 0x00 terminator.  The hash
 ** of a NULL value is NULL.
@@ -2188,8 +2188,8 @@ int sqlite3_shathree_init(
 **            directory, NULL.
 **
 **   If a non-NULL value is specified for the optional $dir parameter and
-**   $path is a relative path, then $path is interpreted relative to $dir.
-**   And the paths returned in the "name" column of the table are also
+**   $path is a relative path, then $path is interpreted relative to $dir. 
+**   And the paths returned in the "name" column of the table are also 
 **   relative to directory $dir.
 */
 /* #include "sqlite3ext.h" */
@@ -2239,7 +2239,7 @@ SQLITE_EXTENSION_INIT1
 
 
 /*
-** Set the result stored by context ctx to a blob containing the
+** Set the result stored by context ctx to a blob containing the 
 ** contents of file zName.  Or, leave the result unchanged (NULL)
 ** if the file does not exist or is unreadable.
 **
@@ -2456,7 +2456,7 @@ static int makeDirectory(
 }
 
 /*
-** This function does the work for the writefile() UDF. Refer to
+** This function does the work for the writefile() UDF. Refer to 
 ** header comments at the top of this file for details.
 */
 static int writeFile(
@@ -2570,7 +2570,7 @@ static int writeFile(
 }
 
 /*
-** Implementation of the "writefile(W,X[,Y[,Z]]])" SQL function.
+** Implementation of the "writefile(W,X[,Y[,Z]]])" SQL function.  
 ** Refer to header comments at the top of this file for details.
 */
 static void writefileFunc(
@@ -2584,7 +2584,7 @@ static void writefileFunc(
   sqlite3_int64 mtime = -1;
 
   if( argc<2 || argc>4 ){
-    sqlite3_result_error(context,
+    sqlite3_result_error(context, 
         "wrong number of arguments to function writefile()", -1
     );
     return;
@@ -2654,7 +2654,7 @@ static void lsModeFunc(
 
 #ifndef SQLITE_OMIT_VIRTUALTABLE
 
-/*
+/* 
 ** Cursor type for recursively iterating through a directory structure.
 */
 typedef struct fsdir_cursor fsdir_cursor;
@@ -2802,7 +2802,7 @@ static int fsdirNext(sqlite3_vtab_cursor *cur){
     }
     pCur->iLvl = iNew;
     pLvl = &pCur->aLvl[iNew];
-
+    
     pLvl->zDir = pCur->zPath;
     pCur->zPath = 0;
     pLvl->pDir = opendir(pLvl->zDir);
@@ -2933,7 +2933,7 @@ static int fsdirEof(sqlite3_vtab_cursor *cur){
 ** idxNum==2   Both PATH and DIR supplied
 */
 static int fsdirFilter(
-  sqlite3_vtab_cursor *cur,
+  sqlite3_vtab_cursor *cur, 
   int idxNum, const char *idxStr,
   int argc, sqlite3_value **argv
 ){
@@ -3022,7 +3022,7 @@ static int fsdirBestIndex(
         }
         break;
       }
-    }
+    } 
   }
   if( seenPath || seenDir ){
     /* If input parameters are unusable, disallow this plan */
@@ -3093,14 +3093,14 @@ static int fsdirRegister(sqlite3 *db){
 
 #endif
 int sqlite3_fileio_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   int rc = SQLITE_OK;
   SQLITE_EXTENSION_INIT2(pApi);
   (void)pzErrMsg;  /* Unused parameter */
-  rc = sqlite3_create_function(db, "readfile", 1,
+  rc = sqlite3_create_function(db, "readfile", 1, 
                                SQLITE_UTF8|SQLITE_DIRECTONLY, 0,
                                readfileFunc, 0, 0);
   if( rc==SQLITE_OK ){
@@ -3469,11 +3469,11 @@ static int completionEof(sqlite3_vtab_cursor *cur){
 /*
 ** This method is called to "rewind" the completion_cursor object back
 ** to the first row of output.  This method is always called at least
-** once prior to any call to completionColumn() or completionRowid() or
+** once prior to any call to completionColumn() or completionRowid() or 
 ** completionEof().
 */
 static int completionFilter(
-  sqlite3_vtab_cursor *pVtabCursor,
+  sqlite3_vtab_cursor *pVtabCursor, 
   int idxNum, const char *idxStr,
   int argc, sqlite3_value **argv
 ){
@@ -3565,7 +3565,7 @@ static int completionBestIndex(
 }
 
 /*
-** This following structure defines all the methods for the
+** This following structure defines all the methods for the 
 ** completion virtual table.
 */
 static sqlite3_module completionModule = {
@@ -3609,8 +3609,8 @@ int sqlite3CompletionVtabInit(sqlite3 *db){
 
 #endif
 int sqlite3_completion_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   int rc = SQLITE_OK;
@@ -3664,8 +3664,8 @@ int sqlite3_completion_init(
 **  (5)  Otherwise, SQLITE_CANTOPEN is returned.
 **
 ** To avoid unnecessary complications with the PENDING_BYTE, the size of
-** the file containing the database is limited to 1GB. (1000013824 bytes)
-** This VFS will not read or write past the 1GB mark.  This restriction
+** the file containing the database is limited to 1GiB. (1073741824 bytes)
+** This VFS will not read or write past the 1GiB mark.  This restriction
 ** might be lifted in future versions.  For now, if you need a larger
 ** database, then keep it in a separate file.
 **
@@ -3694,14 +3694,16 @@ SQLITE_EXTENSION_INIT1
 ** Maximum size of the combined prefix + database + append-mark.  This
 ** must be less than 0x40000000 to avoid locking issues on Windows.
 */
-#define APND_MAX_SIZE  (65536*15259)
+#define APND_MAX_SIZE  (0x40000000)
 
 /*
-** Size of storage page upon which to align appendvfs portion.
+** Try to align the database to an even multiple of APND_ROUNDUP bytes.
 */
-#ifndef APND_ROUNDUP_BITS
-#define APND_ROUNDUP_BITS 12
+#ifndef APND_ROUNDUP
+#define APND_ROUNDUP 4096
 #endif
+#define APND_ALIGN_MASK         ((sqlite3_int64)(APND_ROUNDUP-1))
+#define APND_START_ROUNDUP(fsz) (((fsz)+APND_ALIGN_MASK) & ~APND_ALIGN_MASK)
 
 /*
 ** Forward declaration of objects used by this utility
@@ -3715,39 +3717,45 @@ typedef struct ApndFile ApndFile;
 #define ORIGVFS(p)  ((sqlite3_vfs*)((p)->pAppData))
 #define ORIGFILE(p) ((sqlite3_file*)(((ApndFile*)(p))+1))
 
-/* Invariants for an open appendvfs file:
- * Once an appendvfs file is opened, it will be in one of three states:
- * State 0: Never written. Underlying file (if any) is unaltered.
- * State 1: Append mark is persisted, content write is in progress.
- * State 2: Append mark is persisted, content writes are complete.
- *
- * State 0 is persistent in the sense that nothing will have been done
- * to the underlying file, including any attempt to convert it to an
- * appendvfs file.
- *
- * State 1 is normally transitory. However, if a write operation ends
- * abnormally (disk full, power loss, process kill, etc.), then State 1
- * may be persistent on disk with an incomplete content write-out. This
- * is logically equivalent to an interrupted write to an ordinary file,
- * where some unknown portion of to-be-written data is persisted while
- * the remainder is not. Database integrity in such cases is maintained
- * (or not) by the same measures available for ordinary file access.
- *
- * State 2 is persistent under normal circumstances (when there is no
- * abnormal termination of a write operation such that data provided
- * to the underlying VFS write method has not yet reached storage.)
- *
- * In order to maintain the state invariant, the append mark is written
- * in advance of content writes where any part of such content would
- * overwrite an existing (or yet to be written) append mark.
- */
+/* An open appendvfs file
+**
+** An instance of this structure describes the appended database file.
+** A separate sqlite3_file object is always appended. The appended
+** sqlite3_file object (which can be accessed using ORIGFILE()) describes
+** the entire file, including the prefix, the database, and the
+** append-mark.
+**
+** The structure of an AppendVFS database is like this:
+**
+**   +-------------+---------+----------+-------------+
+**   | prefix-file | padding | database | append-mark |
+**   +-------------+---------+----------+-------------+
+**                           ^          ^
+**                           |          |
+**                         iPgOne      iMark
+**
+**
+** "prefix file" -  file onto which the database has been appended.
+** "padding"     -  zero or more bytes inserted so that "database"
+**                  starts on an APND_ROUNDUP boundary
+** "database"    -  The SQLite database file
+** "append-mark" -  The 25-byte "Start-Of-SQLite3-NNNNNNNN" that indicates
+**                  the offset from the start of prefix-file to the start
+**                  of "database".
+**
+** The size of the database is iMark - iPgOne.
+**
+** The NNNNNNNN in the "Start-Of-SQLite3-NNNNNNNN" suffix is the value
+** of iPgOne stored as a big-ending 64-bit integer.
+**
+** iMark will be the size of the underlying file minus 25 (APND_MARKSIZE).
+** Or, iMark is -1 to indicate that it has not yet been written.
+*/
 struct ApndFile {
-  /* Access to IO methods of the underlying file */
-  sqlite3_file base;
-  /* File offset to beginning of appended content (unchanging) */
-  sqlite3_int64 iPgOne;
-  /* File offset of written append-mark, or -1 if unwritten */
-  sqlite3_int64 iMark;
+  sqlite3_file base;        /* Subclass.  MUST BE FIRST! */
+  sqlite3_int64 iPgOne;     /* Offset to the start of the database */
+  sqlite3_int64 iMark;      /* Offset of the append mark.  -1 if unwritten */
+  /* Always followed by another sqlite3_file that describes the whole file */
 };
 
 /*
@@ -3798,7 +3806,7 @@ static sqlite3_vfs apnd_vfs = {
   1024,                         /* mxPathname */
   0,                            /* pNext */
   "apndvfs",                    /* zName */
-  0,                            /* pAppData (set when registered) */
+  0,                            /* pAppData (set when registered) */ 
   apndOpen,                     /* xOpen */
   apndDelete,                   /* xDelete */
   apndAccess,                   /* xAccess */
@@ -3851,9 +3859,9 @@ static int apndClose(sqlite3_file *pFile){
 ** Read data from an apnd-file.
 */
 static int apndRead(
-  sqlite3_file *pFile,
-  void *zBuf,
-  int iAmt,
+  sqlite3_file *pFile, 
+  void *zBuf, 
+  int iAmt, 
   sqlite_int64 iOfst
 ){
   ApndFile *paf = (ApndFile *)pFile;
@@ -3877,7 +3885,7 @@ static int apndWriteMark(
   int rc;
   assert(pFile == ORIGFILE(paf));
   memcpy(a, APND_MARK_PREFIX, APND_MARK_PREFIX_SZ);
-  while (--i >= 0) {
+  while( --i >= 0 ){
     a[APND_MARK_PREFIX_SZ+i] = (unsigned char)(iPgOne & 0xff);
     iPgOne >>= 8;
   }
@@ -3905,8 +3913,7 @@ static int apndWrite(
   /* If append-mark is absent or will be overwritten, write it. */
   if( paf->iMark < 0 || paf->iPgOne + iWriteEnd > paf->iMark ){
     int rc = apndWriteMark(paf, pFile, iWriteEnd);
-    if( SQLITE_OK!=rc )
-      return rc;
+    if( SQLITE_OK!=rc ) return rc;
   }
   return pFile->pMethods->xWrite(pFile, zBuf, iAmt, paf->iPgOne+iOfst);
 }
@@ -3918,8 +3925,7 @@ static int apndTruncate(sqlite3_file *pFile, sqlite_int64 size){
   ApndFile *paf = (ApndFile *)pFile;
   pFile = ORIGFILE(pFile);
   /* The append mark goes out first so truncate failure does not lose it. */
-  if( SQLITE_OK!=apndWriteMark(paf, pFile, size) )
-    return SQLITE_IOERR;
+  if( SQLITE_OK!=apndWriteMark(paf, pFile, size) ) return SQLITE_IOERR;
   /* Truncate underlying file just past append mark */
   return pFile->pMethods->xTruncate(pFile, paf->iMark+APND_MARK_SIZE);
 }
@@ -4035,8 +4041,9 @@ static int apndFetch(
   void **pp
 ){
   ApndFile *p = (ApndFile *)pFile;
-  if( p->iMark < 0 || iOfst+iAmt > p->iMark)
+  if( p->iMark < 0 || iOfst+iAmt > p->iMark ){
     return SQLITE_IOERR; /* Cannot read what is not yet there. */
+  }
   pFile = ORIGFILE(pFile);
   return pFile->pMethods->xFetch(pFile, iOfst+p->iPgOne, iAmt, pp);
 }
@@ -4087,14 +4094,18 @@ static int apndIsAppendvfsDatabase(sqlite3_int64 sz, sqlite3_file *pFile){
   char zHdr[16];
   sqlite3_int64 iMark = apndReadMark(sz, pFile);
   if( iMark>=0 ){
-    /* If file has right end-marker, the expected odd size, and the
-     * SQLite DB type marker where the end-marker puts it, then it
-     * is an appendvfs database (to be treated as such.)
-     */
+    /* If file has the correct end-marker, the expected odd size, and the
+    ** SQLite DB type marker where the end-marker puts it, then it
+    ** is an appendvfs database.
+    */
     rc = pFile->pMethods->xRead(pFile, zHdr, sizeof(zHdr), iMark);
-    if( SQLITE_OK==rc && memcmp(zHdr, apvfsSqliteHdr, sizeof(zHdr))==0
-        && (sz & 0x1ff)== APND_MARK_SIZE && sz>=512+APND_MARK_SIZE )
+    if( SQLITE_OK==rc
+     && memcmp(zHdr, apvfsSqliteHdr, sizeof(zHdr))==0
+     && (sz & 0x1ff) == APND_MARK_SIZE
+     && sz>=512+APND_MARK_SIZE
+    ){
       return 1; /* It's an appendvfs database */
+    }
   }
   return 0;
 }
@@ -4116,66 +4127,65 @@ static int apndIsOrdinaryDatabaseFile(sqlite3_int64 sz, sqlite3_file *pFile){
   }
 }
 
-/* Round-up used to get appendvfs portion to begin at a page boundary. */
-#define APND_ALIGN_MASK(nbits) ((1<<nbits)-1)
-#define APND_START_ROUNDUP(fsz, nbits) \
- ( ((fsz)+APND_ALIGN_MASK(nbits)) & ~(sqlite3_int64)APND_ALIGN_MASK(nbits) )
-
 /*
 ** Open an apnd file handle.
 */
 static int apndOpen(
-  sqlite3_vfs *pVfs,
+  sqlite3_vfs *pApndVfs,
   const char *zName,
   sqlite3_file *pFile,
   int flags,
   int *pOutFlags
 ){
-  ApndFile *p;
-  sqlite3_file *pSubFile;
-  sqlite3_vfs *pSubVfs;
+  ApndFile *pApndFile = (ApndFile*)pFile;
+  sqlite3_file *pBaseFile = ORIGFILE(pFile);
+  sqlite3_vfs *pBaseVfs = ORIGVFS(pApndVfs);
   int rc;
-  sqlite3_int64 sz;
-  pSubVfs = ORIGVFS(pVfs);
+  sqlite3_int64 sz = 0;
   if( (flags & SQLITE_OPEN_MAIN_DB)==0 ){
-    /* The appendvfs is not to be used for transient or temporary databases. */
-    return pSubVfs->xOpen(pSubVfs, zName, pFile, flags, pOutFlags);
+    /* The appendvfs is not to be used for transient or temporary databases.
+    ** Just use the base VFS open to initialize the given file object and
+    ** open the underlying file. (Appendvfs is then unused for this file.)
+    */
+    return pBaseVfs->xOpen(pBaseVfs, zName, pFile, flags, pOutFlags);
   }
-  p = (ApndFile*)pFile;
-  memset(p, 0, sizeof(*p));
-  pSubFile = ORIGFILE(pFile);
+  memset(pApndFile, 0, sizeof(ApndFile));
   pFile->pMethods = &apnd_io_methods;
-  rc = pSubVfs->xOpen(pSubVfs, zName, pSubFile, flags, pOutFlags);
-  if( rc ) goto apnd_open_done;
-  rc = pSubFile->pMethods->xFileSize(pSubFile, &sz);
-  if( rc ){
-    pSubFile->pMethods->xClose(pSubFile);
-    goto apnd_open_done;
+  pApndFile->iMark = -1;    /* Append mark not yet written */
+
+  rc = pBaseVfs->xOpen(pBaseVfs, zName, pBaseFile, flags, pOutFlags);
+  if( rc==SQLITE_OK ){
+    rc = pBaseFile->pMethods->xFileSize(pBaseFile, &sz);
   }
-  if( apndIsOrdinaryDatabaseFile(sz, pSubFile) ){
-    memmove(pFile, pSubFile, pSubVfs->szOsFile);
+  if( rc ){
+    pBaseFile->pMethods->xClose(pBaseFile);
+    pFile->pMethods = 0;
+    return rc;
+  }
+  if( apndIsOrdinaryDatabaseFile(sz, pBaseFile) ){
+    /* The file being opened appears to be just an ordinary DB. Copy
+    ** the base dispatch-table so this instance mimics the base VFS. 
+    */
+    memmove(pApndFile, pBaseFile, pBaseVfs->szOsFile);
     return SQLITE_OK;
   }
-  /* Record that append mark has not been written until seen otherwise. */
-  p->iMark = -1;
-  p->iPgOne = apndReadMark(sz, pFile);
-  if( p->iPgOne>=0 ){
-    /* Append mark was found, infer its offset */
-    p->iMark = sz - p->iPgOne - APND_MARK_SIZE;
+  pApndFile->iPgOne = apndReadMark(sz, pFile);
+  if( pApndFile->iPgOne>=0 ){
+    pApndFile->iMark = sz - APND_MARK_SIZE; /* Append mark found */
     return SQLITE_OK;
   }
   if( (flags & SQLITE_OPEN_CREATE)==0 ){
-    pSubFile->pMethods->xClose(pSubFile);
+    pBaseFile->pMethods->xClose(pBaseFile);
     rc = SQLITE_CANTOPEN;
+    pFile->pMethods = 0;
+  }else{
+    /* Round newly added appendvfs location to #define'd page boundary. 
+    ** Note that nothing has yet been written to the underlying file.
+    ** The append mark will be written along with first content write.
+    ** Until then, paf->iMark value indicates it is not yet written.
+    */
+    pApndFile->iPgOne = APND_START_ROUNDUP(sz);
   }
-  /* Round newly added appendvfs location to #define'd page boundary.
-   * Note that nothing has yet been written to the underlying file.
-   * The append mark will be written along with first content write.
-   * Until then, the p->iMark value indicates it is not yet written.
-   */
-  p->iPgOne = APND_START_ROUNDUP(sz, APND_ROUNDUP_BITS);
-apnd_open_done:
-  if( rc ) pFile->pMethods = 0;
   return rc;
 }
 
@@ -4193,17 +4203,17 @@ static int apndDelete(sqlite3_vfs *pVfs, const char *zPath, int dirSync){
 ** All other VFS methods are pass-thrus.
 */
 static int apndAccess(
-  sqlite3_vfs *pVfs,
-  const char *zPath,
-  int flags,
+  sqlite3_vfs *pVfs, 
+  const char *zPath, 
+  int flags, 
   int *pResOut
 ){
   return ORIGVFS(pVfs)->xAccess(ORIGVFS(pVfs), zPath, flags, pResOut);
 }
 static int apndFullPathname(
-  sqlite3_vfs *pVfs,
-  const char *zPath,
-  int nOut,
+  sqlite3_vfs *pVfs, 
+  const char *zPath, 
+  int nOut, 
   char *zOut
 ){
   return ORIGVFS(pVfs)->xFullPathname(ORIGVFS(pVfs),zPath,nOut,zOut);
@@ -4252,17 +4262,17 @@ static const char *apndNextSystemCall(sqlite3_vfs *pVfs, const char *zName){
   return ORIGVFS(pVfs)->xNextSystemCall(ORIGVFS(pVfs), zName);
 }
 
-
+  
 #ifdef _WIN32
 
 #endif
-/*
+/* 
 ** This routine is called when the extension is loaded.
 ** Register the new VFS.
 */
 int sqlite3_appendvfs_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   int rc = SQLITE_OK;
@@ -4320,7 +4330,7 @@ static FILE *memtraceOut;
 /* Methods that trace memory allocations */
 static void *memtraceMalloc(int n){
   if( memtraceOut ){
-    fprintf(memtraceOut, "MEMTRACE: allocate %d bytes\n",
+    fprintf(memtraceOut, "MEMTRACE: allocate %d bytes\n", 
             memtraceBase.xRoundup(n));
   }
   return memtraceBase.xMalloc(n);
@@ -4481,8 +4491,8 @@ static int uintCollFunc(
 
 #endif
 int sqlite3_uint_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   SQLITE_EXTENSION_INIT2(pApi);
@@ -4635,7 +4645,7 @@ static Decimal *decimal_new(
         p->nFrac = 0;
       }
     }
-    if( iExp>0 ){
+    if( iExp>0 ){   
       p->a = sqlite3_realloc64(p->a, p->nDigit + iExp + 1 );
       if( p->a==0 ) goto new_no_mem;
       memset(p->a+p->nDigit, 0, iExp);
@@ -5042,7 +5052,7 @@ static void decimalMulFunc(
   int minFrac;
   UNUSED_PARAMETER(argc);
   if( pA==0 || pA->oom || pA->isNull
-   || pB==0 || pB->oom || pB->isNull
+   || pB==0 || pB->oom || pB->isNull 
   ){
     goto mul_end;
   }
@@ -5088,8 +5098,8 @@ mul_end:
 
 #endif
 int sqlite3_decimal_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   int rc = SQLITE_OK;
@@ -5388,8 +5398,8 @@ static void ieee754func_to_blob(
 
 #endif
 int sqlite3_ieee_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   static const struct {
@@ -5411,7 +5421,7 @@ int sqlite3_ieee_init(
   SQLITE_EXTENSION_INIT2(pApi);
   (void)pzErrMsg;  /* Unused parameter */
   for(i=0; i<sizeof(aFunc)/sizeof(aFunc[0]) && rc==SQLITE_OK; i++){
-    rc = sqlite3_create_function(db, aFunc[i].zFName, aFunc[i].nArg,
+    rc = sqlite3_create_function(db, aFunc[i].zFName, aFunc[i].nArg,	
                                SQLITE_UTF8|SQLITE_INNOCUOUS,
                                (void*)&aFunc[i].iAux,
                                aFunc[i].xFunc, 0, 0);
@@ -5647,7 +5657,7 @@ static int seriesEof(sqlite3_vtab_cursor *cur){
   }
 }
 
-/* True to cause run-time checking of the start=, stop=, and/or step=
+/* True to cause run-time checking of the start=, stop=, and/or step= 
 ** parameters.  The only reason to do this is for testing the
 ** constraint checking logic for virtual tables in the SQLite core.
 */
@@ -5658,7 +5668,7 @@ static int seriesEof(sqlite3_vtab_cursor *cur){
 /*
 ** This method is called to "rewind" the series_cursor object back
 ** to the first row of output.  This method is always called at least
-** once prior to any call to seriesColumn() or seriesRowid() or
+** once prior to any call to seriesColumn() or seriesRowid() or 
 ** seriesEof().
 **
 ** The query plan selected by seriesBestIndex is passed in the idxNum
@@ -5678,7 +5688,7 @@ static int seriesEof(sqlite3_vtab_cursor *cur){
 ** (so that seriesEof() will return true) if the table is empty.
 */
 static int seriesFilter(
-  sqlite3_vtab_cursor *pVtabCursor,
+  sqlite3_vtab_cursor *pVtabCursor, 
   int idxNum, const char *idxStrUnused,
   int argc, sqlite3_value **argv
 ){
@@ -5791,7 +5801,7 @@ static int seriesBestIndex(
     return SQLITE_CONSTRAINT;
   }
   if( (idxNum & 3)==3 ){
-    /* Both start= and stop= boundaries are available.  This is the
+    /* Both start= and stop= boundaries are available.  This is the 
     ** the preferred case */
     pIdxInfo->estimatedCost = (double)(2 - ((idxNum&4)!=0));
     pIdxInfo->estimatedRows = 1000;
@@ -5814,7 +5824,7 @@ static int seriesBestIndex(
 }
 
 /*
-** This following structure defines all the methods for the
+** This following structure defines all the methods for the 
 ** generate_series virtual table.
 */
 static sqlite3_module seriesModule = {
@@ -5850,8 +5860,8 @@ static sqlite3_module seriesModule = {
 
 #endif
 int sqlite3_series_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   int rc = SQLITE_OK;
@@ -5930,10 +5940,10 @@ typedef unsigned long u32;
 /*
 ** Definitions for mode bitmasks S_IFDIR, S_IFREG and S_IFLNK.
 **
-** In some ways it would be better to obtain these values from system
+** In some ways it would be better to obtain these values from system 
 ** header files. But, the dependency is undesirable and (a) these
 ** have been stable for decades, (b) the values are part of POSIX and
-** are also made explicit in [man stat], and (c) are part of the
+** are also made explicit in [man stat], and (c) are part of the 
 ** file format for zip archives.
 */
 #ifndef S_IFDIR
@@ -5946,7 +5956,7 @@ typedef unsigned long u32;
 # define S_IFLNK 0120000
 #endif
 
-static const char ZIPFILE_SCHEMA[] =
+static const char ZIPFILE_SCHEMA[] = 
   "CREATE TABLE y("
     "name PRIMARY KEY,"  /* 0: Name of file in zip archive */
     "mode,"              /* 1: POSIX mode for file */
@@ -5967,8 +5977,8 @@ static const char ZIPFILE_SCHEMA[] =
 **
 ** ZIPFILE_NEWENTRY_MADEBY:
 **   Use this value for the "version-made-by" field in new zip file
-**   entries. The upper byte indicates "unix", and the lower byte
-**   indicates that the zip file matches pkzip specification 3.0.
+**   entries. The upper byte indicates "unix", and the lower byte 
+**   indicates that the zip file matches pkzip specification 3.0. 
 **   This is what info-zip seems to do.
 **
 ** ZIPFILE_NEWENTRY_REQUIRED:
@@ -5997,7 +6007,7 @@ static const char ZIPFILE_SCHEMA[] =
 #define ZIPFILE_SIGNATURE_EOCD    0x06054b50
 
 /*
-** The sizes of the fixed-size part of each of the three main data
+** The sizes of the fixed-size part of each of the three main data 
 ** structures in a zip archive.
 */
 #define ZIPFILE_LFH_FIXED_SZ      30
@@ -6090,7 +6100,7 @@ struct ZipfileCDS {
 ***   uncompressed size               4 bytes
 ***   file name length                2 bytes
 ***   extra field length              2 bytes
-***
+***   
 */
 typedef struct ZipfileLFH ZipfileLFH;
 struct ZipfileLFH {
@@ -6116,7 +6126,7 @@ struct ZipfileEntry {
   ZipfileEntry *pNext;       /* Next element in in-memory CDS */
 };
 
-/*
+/* 
 ** Cursor type for zipfile tables.
 */
 typedef struct ZipfileCsr ZipfileCsr;
@@ -6189,7 +6199,7 @@ static void zipfileDequote(char *zIn){
 
 /*
 ** Construct a new ZipfileTab virtual table object.
-**
+** 
 **   argv[0]   -> module name  ("zipfile")
 **   argv[1]   -> database name
 **   argv[2]   -> table name
@@ -6257,7 +6267,7 @@ static void zipfileEntryFree(ZipfileEntry *p){
 }
 
 /*
-** Release resources that should be freed at the end of a write
+** Release resources that should be freed at the end of a write 
 ** transaction.
 */
 static void zipfileCleanupTransaction(ZipfileTab *pTab){
@@ -6366,7 +6376,7 @@ static void zipfileCursorErr(ZipfileCsr *pCsr, const char *zFmt, ...){
 /*
 ** Read nRead bytes of data from offset iOff of file pFile into buffer
 ** aRead[]. Return SQLITE_OK if successful, or an SQLite error code
-** otherwise.
+** otherwise. 
 **
 ** If an error does occur, output variable (*pzErrmsg) may be set to point
 ** to an English language error message. It is the responsibility of the
@@ -6573,7 +6583,7 @@ static int zipfileScanExtra(u8 *aExtra, int nExtra, u32 *pmTime){
 **   File modification date:
 **     Bits 00-04: day
 **     Bits 05-08: month (1-12)
-**     Bits 09-15: years from 1980
+**     Bits 09-15: years from 1980 
 **
 ** https://msdn.microsoft.com/en-us/library/9kkf9tah.aspx
 */
@@ -6643,9 +6653,9 @@ static void zipfileMtimeToDos(ZipfileCDS *pCds, u32 mUnixTime){
     pCds->mDate = pCds->mTime = 0;
   }
 
-  assert( mUnixTime<315507600
-       || mUnixTime==zipfileMtime(pCds)
-       || ((mUnixTime % 2) && mUnixTime-1==zipfileMtime(pCds))
+  assert( mUnixTime<315507600 
+       || mUnixTime==zipfileMtime(pCds) 
+       || ((mUnixTime % 2) && mUnixTime-1==zipfileMtime(pCds)) 
        /* || (mUnixTime % 2) */
   );
 }
@@ -6712,7 +6722,7 @@ static int zipfileGetEntry(
 
     if( rc==SQLITE_OK ){
       u32 *pt = &pNew->mUnixTime;
-      pNew->cds.zFile = sqlite3_mprintf("%.*s", nFile, aRead);
+      pNew->cds.zFile = sqlite3_mprintf("%.*s", nFile, aRead); 
       pNew->aExtra = (u8*)&pNew[1];
       memcpy(pNew->aExtra, &aRead[nFile], nExtra);
       if( pNew->cds.zFile==0 ){
@@ -6740,7 +6750,7 @@ static int zipfileGetEntry(
           memcpy(pNew->aData, &aBlob[pNew->iDataOff], pNew->cds.szCompressed);
         }
       }else{
-        *pzErr = sqlite3_mprintf("failed to read LFH at offset %d",
+        *pzErr = sqlite3_mprintf("failed to read LFH at offset %d", 
             (int)pNew->cds.iOffset
         );
       }
@@ -6792,8 +6802,8 @@ static int zipfileNext(sqlite3_vtab_cursor *cur){
   return rc;
 }
 
-static void zipfileFree(void *p) {
-  sqlite3_free(p);
+static void zipfileFree(void *p) { 
+  sqlite3_free(p); 
 }
 
 /*
@@ -6843,7 +6853,7 @@ static void zipfileInflate(
 ** Buffer aIn (size nIn bytes) contains uncompressed data. This function
 ** compresses it and sets (*ppOut) to point to a buffer containing the
 ** compressed data. The caller is responsible for eventually calling
-** sqlite3_free() to release buffer (*ppOut). Before returning, (*pnOut)
+** sqlite3_free() to release buffer (*ppOut). Before returning, (*pnOut) 
 ** is set to the size of buffer (*ppOut) in bytes.
 **
 ** If no error occurs, SQLITE_OK is returned. Otherwise, an SQLite error
@@ -7029,8 +7039,8 @@ static int zipfileReadEOCD(
 
     /* Scan backwards looking for the signature bytes */
     for(i=nRead-20; i>=0; i--){
-      if( aRead[i]==0x50 && aRead[i+1]==0x4b
-       && aRead[i+2]==0x05 && aRead[i+3]==0x06
+      if( aRead[i]==0x50 && aRead[i+1]==0x4b 
+       && aRead[i+2]==0x05 && aRead[i+3]==0x06 
       ){
         break;
       }
@@ -7055,14 +7065,14 @@ static int zipfileReadEOCD(
 }
 
 /*
-** Add object pNew to the linked list that begins at ZipfileTab.pFirstEntry
+** Add object pNew to the linked list that begins at ZipfileTab.pFirstEntry 
 ** and ends with pLastEntry. If argument pBefore is NULL, then pNew is added
 ** to the end of the list. Otherwise, it is added to the list immediately
 ** before pBefore (which is guaranteed to be a part of said list).
 */
 static void zipfileAddEntry(
-  ZipfileTab *pTab,
-  ZipfileEntry *pBefore,
+  ZipfileTab *pTab, 
+  ZipfileEntry *pBefore, 
   ZipfileEntry *pNew
 ){
   assert( (pTab->pFirstEntry==0)==(pTab->pLastEntry==0) );
@@ -7108,7 +7118,7 @@ static int zipfileLoadDirectory(ZipfileTab *pTab, const u8 *aBlob, int nBlob){
 ** xFilter callback.
 */
 static int zipfileFilter(
-  sqlite3_vtab_cursor *cur,
+  sqlite3_vtab_cursor *cur, 
   int idxNum, const char *idxStr,
   int argc, sqlite3_value **argv
 ){
@@ -7262,7 +7272,7 @@ static int zipfileAppendEntry(
 }
 
 static int zipfileGetMode(
-  sqlite3_value *pVal,
+  sqlite3_value *pVal, 
   int bIsDir,                     /* If true, default to directory */
   u32 *pMode,                     /* OUT: Mode value */
   char **pzErr                    /* OUT: Error message */
@@ -7325,7 +7335,7 @@ static int zipfileBegin(sqlite3_vtab *pVtab){
   }
 
   /* Open a write fd on the file. Also load the entire central directory
-  ** structure into memory. During the transaction any new file data is
+  ** structure into memory. During the transaction any new file data is 
   ** appended to the archive file, but the central directory is accumulated
   ** in main-memory until the transaction is committed.  */
   pTab->pWriteFd = fopen(pTab->zFile, "ab+");
@@ -7397,9 +7407,9 @@ static void zipfileRemoveEntryFromList(ZipfileTab *pTab, ZipfileEntry *pOld){
 ** xUpdate method.
 */
 static int zipfileUpdate(
-  sqlite3_vtab *pVtab,
-  int nVal,
-  sqlite3_value **apVal,
+  sqlite3_vtab *pVtab, 
+  int nVal, 
+  sqlite3_value **apVal, 
   sqlite_int64 *pRowid
 ){
   ZipfileTab *pTab = (ZipfileTab*)pVtab;
@@ -7452,7 +7462,7 @@ static int zipfileUpdate(
       rc = SQLITE_CONSTRAINT;
     }
     if( sqlite3_value_type(apVal[6])!=SQLITE_NULL ){
-      zipfileTableErr(pTab, "rawdata must be NULL");
+      zipfileTableErr(pTab, "rawdata must be NULL"); 
       rc = SQLITE_CONSTRAINT;
     }
 
@@ -8038,7 +8048,7 @@ static int zipfileRegister(sqlite3 *db){
   int rc = sqlite3_create_module(db, "zipfile"  , &zipfileModule, 0);
   if( rc==SQLITE_OK ) rc = sqlite3_overload_function(db, "zipfile_cds", -1);
   if( rc==SQLITE_OK ){
-    rc = sqlite3_create_function(db, "zipfile", -1, SQLITE_UTF8, 0, 0,
+    rc = sqlite3_create_function(db, "zipfile", -1, SQLITE_UTF8, 0, 0, 
         zipfileStep, zipfileFinal
     );
   }
@@ -8052,8 +8062,8 @@ static int zipfileRegister(sqlite3 *db){
 
 #endif
 int sqlite3_zipfile_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   SQLITE_EXTENSION_INIT2(pApi);
@@ -8170,14 +8180,14 @@ static void sqlarUncompressFunc(
 
 #endif
 int sqlite3_sqlar_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   int rc = SQLITE_OK;
   SQLITE_EXTENSION_INIT2(pApi);
   (void)pzErrMsg;  /* Unused parameter */
-  rc = sqlite3_create_function(db, "sqlar_compress", 1,
+  rc = sqlite3_create_function(db, "sqlar_compress", 1, 
                                SQLITE_UTF8|SQLITE_INNOCUOUS, 0,
                                sqlarCompressFunc, 0, 0);
   if( rc==SQLITE_OK ){
@@ -8227,7 +8237,7 @@ sqlite3expert *sqlite3_expert_new(sqlite3 *db, char **pzErr);
 **   By default, sqlite3_expert_analyze() generates sqlite_stat1 data for
 **   each candidate index. This involves scanning and sorting the entire
 **   contents of each user database table once for each candidate index
-**   associated with the table. For large databases, this can be
+**   associated with the table. For large databases, this can be 
 **   prohibitively slow. This option allows the sqlite3expert object to
 **   be configured so that sqlite_stat1 data is instead generated based on a
 **   subset of each table, or so that no sqlite_stat1 data is used at all.
@@ -8287,7 +8297,7 @@ int sqlite3_expert_sql(
 ** add further SQL statements to the analysis.
 **
 ** If successful, SQLITE_OK is returned and (*pzErr) is set to NULL. Or, if
-** an error occurs, an SQLite error code is returned and (*pzErr) set to
+** an error occurs, an SQLite error code is returned and (*pzErr) set to 
 ** point to a buffer containing an English language error message. In this
 ** case it is the responsibility of the caller to eventually free the buffer
 ** using sqlite3_free().
@@ -8316,7 +8326,7 @@ int sqlite3_expert_count(sqlite3expert*);
 ** The value passed as the third argument must be one of the EXPERT_REPORT_*
 ** #define constants defined below.
 **
-** For some EXPERT_REPORT_* parameters, the buffer returned contains
+** For some EXPERT_REPORT_* parameters, the buffer returned contains 
 ** information relating to a specific SQL statement. In these cases that
 ** SQL statement is identified by the value passed as the second argument.
 ** SQL statements are numbered from 0 in the order in which they are parsed.
@@ -8329,7 +8339,7 @@ int sqlite3_expert_count(sqlite3expert*);
 **
 ** EXPERT_REPORT_INDEXES:
 **   Return a buffer containing the CREATE INDEX statements for all recommended
-**   indexes for statement iStmt. If there are no new recommeded indexes, NULL
+**   indexes for statement iStmt. If there are no new recommeded indexes, NULL 
 **   is returned.
 **
 ** EXPERT_REPORT_PLAN:
@@ -8337,7 +8347,7 @@ int sqlite3_expert_count(sqlite3expert*);
 **   iStmt after the proposed indexes have been added to the database schema.
 **
 ** EXPERT_REPORT_CANDIDATES:
-**   Return a pointer to a buffer containing the CREATE INDEX statements
+**   Return a pointer to a buffer containing the CREATE INDEX statements 
 **   for all indexes that were tested (for all SQL statements). The iStmt
 **   parameter is ignored for EXPERT_REPORT_CANDIDATES calls.
 */
@@ -8352,8 +8362,8 @@ const char *sqlite3_expert_report(sqlite3expert*, int iStmt, int eReport);
 #define EXPERT_REPORT_CANDIDATES 4
 
 /*
-** Free an (sqlite3expert*) handle and all associated resources. There
-** should be one call to this function for each successful call to
+** Free an (sqlite3expert*) handle and all associated resources. There 
+** should be one call to this function for each successful call to 
 ** sqlite3-expert_new().
 */
 void sqlite3_expert_destroy(sqlite3expert*);
@@ -8379,7 +8389,7 @@ void sqlite3_expert_destroy(sqlite3expert*);
 #include <string.h>
 #include <stdio.h>
 
-#ifndef SQLITE_OMIT_VIRTUALTABLE
+#ifndef SQLITE_OMIT_VIRTUALTABLE 
 
 /* typedef sqlite3_int64 i64; */
 /* typedef sqlite3_uint64 u64; */
@@ -8432,7 +8442,7 @@ struct IdxScan {
 };
 
 /*
-** Information regarding a single database table. Extracted from
+** Information regarding a single database table. Extracted from 
 ** "PRAGMA table_info" by function idxGetTableInfo().
 */
 struct IdxColumn {
@@ -8516,7 +8526,7 @@ struct sqlite3expert {
 
 
 /*
-** Allocate and return nByte bytes of zeroed memory using sqlite3_malloc().
+** Allocate and return nByte bytes of zeroed memory using sqlite3_malloc(). 
 ** If the allocation fails, set *pRc to SQLITE_NOMEM and return NULL.
 */
 static void *idxMalloc(int *pRc, int nByte){
@@ -8572,11 +8582,11 @@ static int idxHashString(const char *z, int n){
 /*
 ** If zKey is already present in the hash table, return non-zero and do
 ** nothing. Otherwise, add an entry with key zKey and payload string zVal to
-** the hash table passed as the second argument.
+** the hash table passed as the second argument. 
 */
 static int idxHashAdd(
-  int *pRc,
-  IdxHash *pHash,
+  int *pRc, 
+  IdxHash *pHash, 
   const char *zKey,
   const char *zVal
 ){
@@ -8608,7 +8618,7 @@ static int idxHashAdd(
 }
 
 /*
-** If zKey/nKey is present in the hash table, return a pointer to the
+** If zKey/nKey is present in the hash table, return a pointer to the 
 ** hash-entry object.
 */
 static IdxHashEntry *idxHashFind(IdxHash *pHash, const char *zKey, int nKey){
@@ -8747,7 +8757,7 @@ static char *expertDequote(const char *zIn){
   return zRet;
 }
 
-/*
+/* 
 ** This function is the implementation of both the xConnect and xCreate
 ** methods of the r-tree virtual table.
 **
@@ -8803,7 +8813,7 @@ static int expertBestIndex(sqlite3_vtab *pVtab, sqlite3_index_info *pIdxInfo){
   int rc = SQLITE_OK;
   int n = 0;
   IdxScan *pScan;
-  const int opmask =
+  const int opmask = 
     SQLITE_INDEX_CONSTRAINT_EQ | SQLITE_INDEX_CONSTRAINT_GT |
     SQLITE_INDEX_CONSTRAINT_LT | SQLITE_INDEX_CONSTRAINT_GE |
     SQLITE_INDEX_CONSTRAINT_LE;
@@ -8820,10 +8830,10 @@ static int expertBestIndex(sqlite3_vtab *pVtab, sqlite3_index_info *pIdxInfo){
     /* Add the constraints to the IdxScan object */
     for(i=0; i<pIdxInfo->nConstraint; i++){
       struct sqlite3_index_constraint *pCons = &pIdxInfo->aConstraint[i];
-      if( pCons->usable
-       && pCons->iColumn>=0
+      if( pCons->usable 
+       && pCons->iColumn>=0 
        && p->pTab->aCol[pCons->iColumn].iPk==0
-       && (pCons->op & opmask)
+       && (pCons->op & opmask) 
       ){
         IdxConstraint *pNew;
         const char *zColl = sqlite3_vtab_collation(pIdxInfo, i);
@@ -8866,9 +8876,9 @@ static int expertBestIndex(sqlite3_vtab *pVtab, sqlite3_index_info *pIdxInfo){
 }
 
 static int expertUpdate(
-  sqlite3_vtab *pVtab,
-  int nData,
-  sqlite3_value **azData,
+  sqlite3_vtab *pVtab, 
+  int nData, 
+  sqlite3_value **azData, 
   sqlite_int64 *pRowid
 ){
   (void)pVtab;
@@ -8878,7 +8888,7 @@ static int expertUpdate(
   return SQLITE_OK;
 }
 
-/*
+/* 
 ** Virtual table module xOpen method.
 */
 static int expertOpen(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor){
@@ -8890,7 +8900,7 @@ static int expertOpen(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor){
   return rc;
 }
 
-/*
+/* 
 ** Virtual table module xClose method.
 */
 static int expertClose(sqlite3_vtab_cursor *cur){
@@ -8903,7 +8913,7 @@ static int expertClose(sqlite3_vtab_cursor *cur){
 /*
 ** Virtual table module xEof method.
 **
-** Return non-zero if the cursor does not currently point to a valid
+** Return non-zero if the cursor does not currently point to a valid 
 ** record (i.e if the scan has finished), or zero otherwise.
 */
 static int expertEof(sqlite3_vtab_cursor *cur){
@@ -8911,7 +8921,7 @@ static int expertEof(sqlite3_vtab_cursor *cur){
   return pCsr->pData==0;
 }
 
-/*
+/* 
 ** Virtual table module xNext method.
 */
 static int expertNext(sqlite3_vtab_cursor *cur){
@@ -8930,7 +8940,7 @@ static int expertNext(sqlite3_vtab_cursor *cur){
   return rc;
 }
 
-/*
+/* 
 ** Virtual table module xRowid method.
 */
 static int expertRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid){
@@ -8939,7 +8949,7 @@ static int expertRowid(sqlite3_vtab_cursor *cur, sqlite_int64 *pRowid){
   return SQLITE_OK;
 }
 
-/*
+/* 
 ** Virtual table module xColumn method.
 */
 static int expertColumn(sqlite3_vtab_cursor *cur, sqlite3_context *ctx, int i){
@@ -8952,11 +8962,11 @@ static int expertColumn(sqlite3_vtab_cursor *cur, sqlite3_context *ctx, int i){
   return SQLITE_OK;
 }
 
-/*
+/* 
 ** Virtual table module xFilter method.
 */
 static int expertFilter(
-  sqlite3_vtab_cursor *cur,
+  sqlite3_vtab_cursor *cur, 
   int idxNum, const char *idxStr,
   int argc, sqlite3_value **argv
 ){
@@ -9111,7 +9121,7 @@ static int idxGetTableInfo(
 }
 
 /*
-** This function is a no-op if *pRc is set to anything other than
+** This function is a no-op if *pRc is set to anything other than 
 ** SQLITE_OK when it is called.
 **
 ** If *pRc is initially set to SQLITE_OK, then the text specified by
@@ -9201,7 +9211,7 @@ static char *idxAppendColDefn(
 
 /*
 ** Search database dbm for an index compatible with the one idxCreateFromCons()
-** would create from arguments pScan, pEq and pTail. If no error occurs and
+** would create from arguments pScan, pEq and pTail. If no error occurs and 
 ** such an index is found, return non-zero. Or, if no such index is found,
 ** return zero.
 **
@@ -9277,7 +9287,7 @@ static int idxFindCompatible(
 static int idxCreateFromCons(
   sqlite3expert *p,
   IdxScan *pScan,
-  IdxConstraint *pEq,
+  IdxConstraint *pEq, 
   IdxConstraint *pTail
 ){
   sqlite3 *dbm = p->dbm;
@@ -9306,7 +9316,7 @@ static int idxCreateFromCons(
         h += ((h<<3) + zCols[i]);
       }
       zName = sqlite3_mprintf("%s_idx_%08x", zTable, h);
-      if( zName==0 ){
+      if( zName==0 ){ 
         rc = SQLITE_NOMEM;
       }else{
         if( idxIdentifierRequiresQuotes(zTable) ){
@@ -9344,7 +9354,7 @@ static int idxFindConstraint(IdxConstraint *pList, IdxConstraint *p){
 }
 
 static int idxCreateFromWhere(
-  sqlite3expert *p,
+  sqlite3expert *p, 
   IdxScan *pScan,                 /* Create indexes for this scan */
   IdxConstraint *pTail            /* range/ORDER BY constraints for inclusion */
 ){
@@ -9379,7 +9389,7 @@ static int idxCreateFromWhere(
 }
 
 /*
-** Create candidate indexes in database [dbm] based on the data in
+** Create candidate indexes in database [dbm] based on the data in 
 ** linked-list pScan.
 */
 static int idxCreateCandidates(sqlite3expert *p){
@@ -9426,7 +9436,7 @@ static void idxScanFree(IdxScan *pScan, IdxScan *pLast){
 }
 
 /*
-** Free all elements of the linked list starting from pStatement up
+** Free all elements of the linked list starting from pStatement up 
 ** until pLast (pLast is not freed).
 */
 static void idxStatementFree(IdxStatement *pStatement, IdxStatement *pLast){
@@ -9504,8 +9514,8 @@ int idxFindIndexes(
         const char *zIdx = 0;
         if( i+13<nDetail && memcmp(&zDetail[i], " USING INDEX ", 13)==0 ){
           zIdx = &zDetail[i+13];
-        }else if( i+22<nDetail
-            && memcmp(&zDetail[i], " USING COVERING INDEX ", 22)==0
+        }else if( i+22<nDetail 
+            && memcmp(&zDetail[i], " USING COVERING INDEX ", 22)==0 
         ){
           zIdx = &zDetail[i+22];
         }
@@ -9580,15 +9590,15 @@ static int idxAuthCallback(
 }
 
 static int idxProcessOneTrigger(
-  sqlite3expert *p,
-  IdxWrite *pWrite,
+  sqlite3expert *p, 
+  IdxWrite *pWrite, 
   char **pzErr
 ){
   static const char *zInt = UNIQUE_TABLE_NAME;
   static const char *zDrop = "DROP TABLE " UNIQUE_TABLE_NAME;
   IdxTable *pTab = pWrite->pTab;
   const char *zTab = pTab->zName;
-  const char *zSql =
+  const char *zSql = 
     "SELECT 'CREATE TEMP' || substr(sql, 7) FROM sqlite_schema "
     "WHERE tbl_name = %Q AND type IN ('table', 'trigger') "
     "ORDER BY type;";
@@ -9629,7 +9639,7 @@ static int idxProcessOneTrigger(
       int i;
       zWrite = idxAppendText(&rc, zWrite, "UPDATE %Q SET ", zInt);
       for(i=0; i<pTab->nCol; i++){
-        zWrite = idxAppendText(&rc, zWrite, "%s%Q=?", i==0 ? "" : ", ",
+        zWrite = idxAppendText(&rc, zWrite, "%s%Q=?", i==0 ? "" : ", ", 
             pTab->aCol[i].zName
         );
       }
@@ -9717,14 +9727,14 @@ static int idxCreateVtabSchema(sqlite3expert *p, char **pzErrmsg){
         /* The statement the vtab will pass to sqlite3_declare_vtab() */
         zInner = idxAppendText(&rc, 0, "CREATE TABLE x(");
         for(i=0; i<pTab->nCol; i++){
-          zInner = idxAppendText(&rc, zInner, "%s%Q COLLATE %s",
+          zInner = idxAppendText(&rc, zInner, "%s%Q COLLATE %s", 
               (i==0 ? "" : ", "), pTab->aCol[i].zName, pTab->aCol[i].zColl
           );
         }
         zInner = idxAppendText(&rc, zInner, ")");
 
         /* The CVT statement to create the vtab */
-        zOuter = idxAppendText(&rc, 0,
+        zOuter = idxAppendText(&rc, 0, 
             "CREATE VIRTUAL TABLE %Q USING expert(%Q)", zName, zInner
         );
         if( rc==SQLITE_OK ){
@@ -9862,7 +9872,7 @@ static void idxRemFunc(
 
 static int idxLargestIndex(sqlite3 *db, int *pnMax, char **pzErr){
   int rc = SQLITE_OK;
-  const char *zMax =
+  const char *zMax = 
     "SELECT max(i.seqno) FROM "
     "  sqlite_schema AS s, "
     "  pragma_index_list(s.name) AS l, "
@@ -9905,7 +9915,7 @@ static int idxPopulateOneStat1(
     const char *zComma = zCols==0 ? "" : ", ";
     const char *zName = (const char*)sqlite3_column_text(pIndexXInfo, 0);
     const char *zColl = (const char*)sqlite3_column_text(pIndexXInfo, 1);
-    zCols = idxAppendText(&rc, zCols,
+    zCols = idxAppendText(&rc, zCols, 
         "%sx.%Q IS rem(%d, x.%Q) COLLATE %s", zComma, zName, nCol, zName, zColl
     );
     zOrder = idxAppendText(&rc, zOrder, "%s%d", zComma, ++nCol);
@@ -10002,13 +10012,13 @@ static int idxBuildSampleTable(sqlite3expert *p, const char *zTab){
 ** indexes have already been created in database sqlite3expert.dbm, this
 ** function populates sqlite_stat1 table in the same database.
 **
-** The stat1 data is generated by querying the
+** The stat1 data is generated by querying the 
 */
 static int idxPopulateStat1(sqlite3expert *p, char **pzErr){
   int rc = SQLITE_OK;
   int nMax =0;
   struct IdxRemCtx *pCtx = 0;
-  struct IdxSampleCtx samplectx;
+  struct IdxSampleCtx samplectx; 
   int i;
   i64 iPrev = -100000;
   sqlite3_stmt *pAllIndex = 0;
@@ -10020,7 +10030,7 @@ static int idxPopulateStat1(sqlite3expert *p, char **pzErr){
     "  sqlite_schema AS s, "
     "  pragma_index_list(s.name) AS l "
     "WHERE s.type = 'table'";
-  const char *zIndexXInfo =
+  const char *zIndexXInfo = 
     "SELECT name, coll FROM pragma_index_xinfo(?) WHERE key";
   const char *zWrite = "INSERT INTO sqlite_stat1 VALUES(?, ?, ?)";
 
@@ -10076,7 +10086,7 @@ static int idxPopulateStat1(sqlite3expert *p, char **pzErr){
     iPrev = iRowid;
   }
   if( rc==SQLITE_OK && p->iSample<100 ){
-    rc = sqlite3_exec(p->dbv,
+    rc = sqlite3_exec(p->dbv, 
         "DROP TABLE IF EXISTS temp." UNIQUE_TABLE_NAME, 0,0,0
     );
   }
@@ -10126,12 +10136,12 @@ sqlite3expert *sqlite3_expert_new(sqlite3 *db, char **pzErrmsg){
       sqlite3_db_config(pNew->dbm, SQLITE_DBCONFIG_TRIGGER_EQP, 1, (int*)0);
     }
   }
-
+  
 
   /* Copy the entire schema of database [db] into [dbm]. */
   if( rc==SQLITE_OK ){
     sqlite3_stmt *pSql;
-    rc = idxPrintfPrepareStmt(pNew->db, &pSql, pzErrmsg,
+    rc = idxPrintfPrepareStmt(pNew->db, &pSql, pzErrmsg, 
         "SELECT sql FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%%'"
         " AND sql NOT LIKE 'CREATE VIRTUAL %%'"
     );
@@ -10252,8 +10262,8 @@ int sqlite3_expert_analyze(sqlite3expert *p, char **pzErr){
 
   /* Formulate the EXPERT_REPORT_CANDIDATES text */
   for(pEntry=p->hIdx.pFirst; pEntry; pEntry=pEntry->pNext){
-    p->zCandidates = idxAppendText(&rc, p->zCandidates,
-        "%s;%s%s\n", pEntry->zVal,
+    p->zCandidates = idxAppendText(&rc, p->zCandidates, 
+        "%s;%s%s\n", pEntry->zVal, 
         pEntry->zVal2 ? " -- stat1: " : "", pEntry->zVal2
     );
   }
@@ -10375,7 +10385,7 @@ void sqlite3_expert_destroy(sqlite3expert *p){
 **     INSERT INTO t1(rowid, a, b) VALUES(5, 'v', 'five');
 **     INSERT INTO t1(rowid, a, b) VALUES(10, 'x', 'ten');
 **
-**   the sqlite_dbdata table contains, as well as from entries related to
+**   the sqlite_dbdata table contains, as well as from entries related to 
 **   page 1, content equivalent to:
 **
 **     INSERT INTO sqlite_dbdata(pgno, cell, field, value) VALUES
@@ -10402,7 +10412,7 @@ void sqlite3_expert_destroy(sqlite3expert *p){
 **   It contains one entry for each b-tree pointer between a parent and
 **   child page in the database.
 */
-#if !defined(SQLITEINT_H)
+#if !defined(SQLITEINT_H) 
 /* #include "sqlite3ext.h" */
 
 /* typedef unsigned char u8; */
@@ -10412,7 +10422,7 @@ SQLITE_EXTENSION_INIT1
 #include <string.h>
 #include <assert.h>
 
-#define DBDATA_PADDING_BYTES 100
+#define DBDATA_PADDING_BYTES 100 
 
 typedef struct DbdataTable DbdataTable;
 typedef struct DbdataCursor DbdataCursor;
@@ -10438,7 +10448,7 @@ struct DbdataCursor {
   int iField;                     /* Current field number */
   u8 *pHdrPtr;
   u8 *pPtr;
-
+  
   sqlite3_int64 iIntkey;          /* Integer key value */
 };
 
@@ -10477,7 +10487,7 @@ struct DbdataTable {
       ")"
 
 /*
-** Connect to an sqlite_dbdata (pAux==0) or sqlite_dbptr (pAux!=0) virtual
+** Connect to an sqlite_dbdata (pAux==0) or sqlite_dbptr (pAux!=0) virtual 
 ** table.
 */
 static int dbdataConnect(
@@ -10596,7 +10606,7 @@ static int dbdataOpen(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor){
 }
 
 /*
-** Restore a cursor object to the state it was in when first allocated
+** Restore a cursor object to the state it was in when first allocated 
 ** by dbdataOpen().
 */
 static void dbdataResetCursor(DbdataCursor *pCsr){
@@ -10627,8 +10637,8 @@ static int dbdataClose(sqlite3_vtab_cursor *pCursor){
   return SQLITE_OK;
 }
 
-/*
-** Utility methods to decode 16 and 32-bit big-endian unsigned integers.
+/* 
+** Utility methods to decode 16 and 32-bit big-endian unsigned integers. 
 */
 static unsigned int get_uint16(unsigned char *a){
   return (a[0]<<8)|a[1];
@@ -10735,26 +10745,26 @@ static int dbdataValueBytes(int eType){
 ** result of context object pCtx.
 */
 static void dbdataValue(
-  sqlite3_context *pCtx,
-  int eType,
+  sqlite3_context *pCtx, 
+  int eType, 
   u8 *pData,
   int nData
 ){
   if( eType>=0 && dbdataValueBytes(eType)<=nData ){
     switch( eType ){
-      case 0:
-      case 10:
-      case 11:
+      case 0: 
+      case 10: 
+      case 11: 
         sqlite3_result_null(pCtx);
         break;
-
-      case 8:
+      
+      case 8: 
         sqlite3_result_int(pCtx, 0);
         break;
       case 9:
         sqlite3_result_int(pCtx, 1);
         break;
-
+  
       case 1: case 2: case 3: case 4: case 5: case 6: case 7: {
         sqlite3_uint64 v = (signed char)pData[0];
         pData++;
@@ -10766,7 +10776,7 @@ static void dbdataValue(
           case 3:  v = (v<<8) + pData[0];  pData++;
           case 2:  v = (v<<8) + pData[0];  pData++;
         }
-
+  
         if( eType==7 ){
           double r;
           memcpy(&r, &v, sizeof(r));
@@ -10776,7 +10786,7 @@ static void dbdataValue(
         }
         break;
       }
-
+  
       default: {
         int n = ((eType-12) / 2);
         if( eType % 2 ){
@@ -10837,7 +10847,7 @@ static int dbdataNext(sqlite3_vtab_cursor *pCursor){
         int iHdr;
         int U, X;
         int nLocal;
-
+  
         switch( pCsr->aPage[iOff] ){
           case 0x02:
             nPointer = 4;
@@ -10856,29 +10866,29 @@ static int dbdataNext(sqlite3_vtab_cursor *pCursor){
         if( pCsr->iCell>=pCsr->nCell ){
           bNextPage = 1;
         }else{
-
+  
           iOff += 8 + nPointer + pCsr->iCell*2;
           if( iOff>pCsr->nPage ){
             bNextPage = 1;
           }else{
             iOff = get_uint16(&pCsr->aPage[iOff]);
           }
-
+    
           /* For an interior node cell, skip past the child-page number */
           iOff += nPointer;
-
+    
           /* Load the "byte of payload including overflow" field */
           if( bNextPage || iOff>pCsr->nPage ){
             bNextPage = 1;
           }else{
             iOff += dbdataGetVarint(&pCsr->aPage[iOff], &nPayload);
           }
-
+    
           /* If this is a leaf intkey cell, load the rowid */
           if( bHasRowid && !bNextPage && iOff<pCsr->nPage ){
             iOff += dbdataGetVarint(&pCsr->aPage[iOff], &pCsr->iIntkey);
           }
-
+    
           /* Figure out how much data to read from the local page */
           U = pCsr->nPage;
           if( bHasRowid ){
@@ -10904,7 +10914,7 @@ static int dbdataNext(sqlite3_vtab_cursor *pCursor){
           }else{
 
             /* Allocate space for payload. And a bit more to catch small buffer
-            ** overruns caused by attempting to read a varint or similar from
+            ** overruns caused by attempting to read a varint or similar from 
             ** near the end of a corrupt record.  */
             pCsr->pRec = (u8*)sqlite3_malloc64(nPayload+DBDATA_PADDING_BYTES);
             if( pCsr->pRec==0 ) return SQLITE_NOMEM;
@@ -10937,7 +10947,7 @@ static int dbdataNext(sqlite3_vtab_cursor *pCursor){
                 sqlite3_free(aOvfl);
               }
             }
-
+    
             iHdr = dbdataGetVarint(pCsr->pRec, &nHdr);
             pCsr->nHdr = nHdr;
             pCsr->pHdrPtr = &pCsr->pRec[iHdr];
@@ -10983,7 +10993,7 @@ static int dbdataNext(sqlite3_vtab_cursor *pCursor){
   return SQLITE_OK;
 }
 
-/*
+/* 
 ** Return true if the cursor is at EOF.
 */
 static int dbdataEof(sqlite3_vtab_cursor *pCursor){
@@ -10991,9 +11001,9 @@ static int dbdataEof(sqlite3_vtab_cursor *pCursor){
   return pCsr->aPage==0;
 }
 
-/*
+/* 
 ** Determine the size in pages of database zSchema (where zSchema is
-** "main", "temp" or the name of an attached database) and set
+** "main", "temp" or the name of an attached database) and set 
 ** pCsr->szDb accordingly. If successful, return SQLITE_OK. Otherwise,
 ** an SQLite error code.
 */
@@ -11015,11 +11025,11 @@ static int dbdataDbsize(DbdataCursor *pCsr, const char *zSchema){
   return rc;
 }
 
-/*
+/* 
 ** xFilter method for sqlite_dbdata and sqlite_dbptr.
 */
 static int dbdataFilter(
-  sqlite3_vtab_cursor *pCursor,
+  sqlite3_vtab_cursor *pCursor, 
   int idxNum, const char *idxStr,
   int argc, sqlite3_value **argv
 ){
@@ -11046,7 +11056,7 @@ static int dbdataFilter(
       pCsr->pStmt = pTab->pStmt;
       pTab->pStmt = 0;
     }else{
-      rc = sqlite3_prepare_v2(pTab->db,
+      rc = sqlite3_prepare_v2(pTab->db, 
           "SELECT data FROM sqlite_dbpage(?) WHERE pgno=?", -1,
           &pCsr->pStmt, 0
       );
@@ -11063,12 +11073,12 @@ static int dbdataFilter(
   return rc;
 }
 
-/*
+/* 
 ** Return a column for the sqlite_dbdata or sqlite_dbptr table.
 */
 static int dbdataColumn(
-  sqlite3_vtab_cursor *pCursor,
-  sqlite3_context *ctx,
+  sqlite3_vtab_cursor *pCursor, 
+  sqlite3_context *ctx, 
   int i
 ){
   DbdataCursor *pCsr = (DbdataCursor*)pCursor;
@@ -11121,7 +11131,7 @@ static int dbdataColumn(
   return SQLITE_OK;
 }
 
-/*
+/* 
 ** Return the rowid for an sqlite_dbdata or sqlite_dptr table.
 */
 static int dbdataRowid(sqlite3_vtab_cursor *pCursor, sqlite_int64 *pRowid){
@@ -11173,8 +11183,8 @@ static int sqlite3DbdataRegister(sqlite3 *db){
 
 #endif
 int sqlite3_dbdata_init(
-  sqlite3 *db,
-  char **pzErrMsg,
+  sqlite3 *db, 
+  char **pzErrMsg, 
   const sqlite3_api_routines *pApi
 ){
   SQLITE_EXTENSION_INIT2(pApi);
@@ -11551,7 +11561,7 @@ static void editFunc(
       }
       sz = j;
       p[sz] = 0;
-    }
+    } 
     sqlite3_result_text64(context, (const char*)p, sz,
                           sqlite3_free, SQLITE_UTF8);
   }
@@ -13143,7 +13153,7 @@ static void bind_prepared_stmt(ShellState *pArg, sqlite3_stmt *pStmt){
 ** characters
 */
 static void print_box_line(FILE *out, int N){
-  const char zDash[] =
+  const char zDash[] = 
       BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24
       BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24 BOX_24;
   const int nDash = sizeof(zDash) - 1;
@@ -13209,6 +13219,7 @@ static void exec_prepared_stmt_columnar(
   if( rc!=SQLITE_ROW ) return;
   nColumn = sqlite3_column_count(pStmt);
   nAlloc = nColumn*4;
+  if( nAlloc<=0 ) nAlloc = 1;
   azData = sqlite3_malloc64( nAlloc*sizeof(char*) );
   if( azData==0 ) shell_out_of_memory();
   for(i=0; i<nColumn; i++){
@@ -13248,6 +13259,7 @@ static void exec_prepared_stmt_columnar(
     if( n>p->actualWidth[j] ) p->actualWidth[j] = n;
   }
   if( seenInterrupt ) goto columnar_end;
+  if( nColumn==0 ) goto columnar_end;
   switch( p->cMode ){
     case MODE_Column: {
       colSep = "  ";
@@ -13424,8 +13436,8 @@ static void exec_prepared_stmt(
 ** caller to eventually free this buffer using sqlite3_free().
 */
 static int expertHandleSQL(
-  ShellState *pState,
-  const char *zSql,
+  ShellState *pState, 
+  const char *zSql, 
   char **pzErr
 ){
   assert( pState->expert.pExpert );
@@ -13435,7 +13447,7 @@ static int expertHandleSQL(
 
 /*
 ** This function is called either to silently clean up the object
-** created by the ".expert" command (if bCancel==1), or to generate a
+** created by the ".expert" command (if bCancel==1), or to generate a 
 ** report from it and then clean it up (if bCancel==0).
 **
 ** If successful, SQLITE_OK is returned. Otherwise, an SQLite error
@@ -14118,7 +14130,7 @@ static const char *(azHelp[]) = {
   "       -x     Send output as CSV to a spreadsheet (same as \".excel\")",
 #ifdef SQLITE_DEBUG
   ".oom ?--repeat M? ?N?    Simulate an OOM error on the N-th allocation",
-#endif
+#endif 
   ".open ?OPTIONS? ?FILE?   Close existing database and reopen FILE",
   "     Options:",
   "        --append        Use appendvfs to append database to the end of FILE",
@@ -14441,7 +14453,7 @@ int deduceDatabaseType(const char *zName, int dfltZip){
     }
   }
   fclose(f);
-  return rc;
+  return rc;  
 }
 
 #ifdef SQLITE_ENABLE_DESERIALIZE
@@ -14542,8 +14554,8 @@ readHexDb_error:
 ** offset (4*<arg2>) of the blob.
 */
 static void shellInt32(
-  sqlite3_context *context,
-  int argc,
+  sqlite3_context *context, 
+  int argc, 
   sqlite3_value **argv
 ){
   const unsigned char *pBlob;
@@ -14570,8 +14582,8 @@ static void shellInt32(
 ** using "..." with internal double-quote characters doubled.
 */
 static void shellIdQuote(
-  sqlite3_context *context,
-  int argc,
+  sqlite3_context *context, 
+  int argc, 
   sqlite3_value **argv
 ){
   const char *zName = (const char*)sqlite3_value_text(argv[0]);
@@ -14586,8 +14598,8 @@ static void shellIdQuote(
 ** Scalar function "usleep(X)" invokes sqlite3_sleep(X) and returns X.
 */
 static void shellUSleepFunc(
-  sqlite3_context *context,
-  int argcUnused,
+  sqlite3_context *context, 
+  int argcUnused, 
   sqlite3_value **argv
 ){
   int sleep = sqlite3_value_int(argv[0]);
@@ -14599,7 +14611,7 @@ static void shellUSleepFunc(
 /*
 ** Scalar function "shell_escape_crnl" used by the .recover command.
 ** The argument passed to this function is the output of built-in
-** function quote(). If the first character of the input is "'",
+** function quote(). If the first character of the input is "'", 
 ** indicating that the value passed to quote() was a text value,
 ** then this function searches the input for "\n" and "\r" characters
 ** and adds a wrapper similar to the following:
@@ -14610,8 +14622,8 @@ static void shellUSleepFunc(
 ** of the input is returned.
 */
 static void shellEscapeCrnl(
-  sqlite3_context *context,
-  int argc,
+  sqlite3_context *context, 
+  int argc, 
   sqlite3_value **argv
 ){
   const char *zText = (const char*)sqlite3_value_text(argv[0]);
@@ -14710,13 +14722,13 @@ static void open_db(ShellState *p, int openFlags){
       if( p->zDbFilename==0 || p->zDbFilename[0]==0 ){
         p->openMode = SHELL_OPEN_NORMAL;
       }else{
-        p->openMode = (u8)deduceDatabaseType(p->zDbFilename,
+        p->openMode = (u8)deduceDatabaseType(p->zDbFilename, 
                              (openFlags & OPEN_DB_ZIPFILE)!=0);
       }
     }
     switch( p->openMode ){
       case SHELL_OPEN_APPENDVFS: {
-        sqlite3_open_v2(p->zDbFilename, &p->db,
+        sqlite3_open_v2(p->zDbFilename, &p->db, 
            SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE|p->openFlags, "apndvfs");
         break;
       }
@@ -14830,7 +14842,7 @@ void close_db(sqlite3 *db){
   if( rc ){
     utf8_printf(stderr, "Error: sqlite3_close() returns %d: %s\n",
         rc, sqlite3_errmsg(db));
-  }
+  } 
 }
 
 #if HAVE_READLINE || HAVE_EDITLINE
@@ -16062,16 +16074,16 @@ static int lintDotCommand(
 
 #if !defined SQLITE_OMIT_VIRTUALTABLE
 static void shellPrepare(
-  sqlite3 *db,
-  int *pRc,
-  const char *zSql,
+  sqlite3 *db, 
+  int *pRc, 
+  const char *zSql, 
   sqlite3_stmt **ppStmt
 ){
   *ppStmt = 0;
   if( *pRc==SQLITE_OK ){
     int rc = sqlite3_prepare_v2(db, zSql, -1, ppStmt, 0);
     if( rc!=SQLITE_OK ){
-      raw_printf(stderr, "sql error: %s (%d)\n",
+      raw_printf(stderr, "sql error: %s (%d)\n", 
           sqlite3_errmsg(db), sqlite3_errcode(db)
       );
       *pRc = rc;
@@ -16087,10 +16099,10 @@ static void shellPrepare(
 ** nuisance compiler warnings about "defined but not used".
 */
 void shellPreparePrintf(
-  sqlite3 *db,
-  int *pRc,
+  sqlite3 *db, 
+  int *pRc, 
   sqlite3_stmt **ppStmt,
-  const char *zFmt,
+  const char *zFmt, 
   ...
 ){
   *ppStmt = 0;
@@ -16116,7 +16128,7 @@ void shellPreparePrintf(
 ** nuisance compiler warnings about "defined but not used".
 */
 void shellFinalize(
-  int *pRc,
+  int *pRc, 
   sqlite3_stmt *pStmt
 ){
   if( pStmt ){
@@ -16138,7 +16150,7 @@ void shellFinalize(
 ** nuisance compiler warnings about "defined but not used".
 */
 void shellReset(
-  int *pRc,
+  int *pRc, 
   sqlite3_stmt *pStmt
 ){
   int rc = sqlite3_reset(pStmt);
@@ -16185,7 +16197,7 @@ static int arUsage(FILE *f){
 }
 
 /*
-** Print an error message for the .ar command to stderr and return
+** Print an error message for the .ar command to stderr and return 
 ** SQLITE_ERROR.
 */
 static int arErrorMsg(ArCommand *pAr, const char *zFmt, ...){
@@ -16260,7 +16272,7 @@ static int arProcessSwitch(ArCommand *pAr, int eSwitch, const char *zArg){
 /*
 ** Parse the command line for an ".ar" command. The results are written into
 ** structure (*pAr). SQLITE_OK is returned if the command line is parsed
-** successfully, otherwise an error message is written to stderr and
+** successfully, otherwise an error message is written to stderr and 
 ** SQLITE_ERROR returned.
 */
 static int arParseCommand(
@@ -16401,7 +16413,7 @@ static int arParseCommand(
 
 /*
 ** This function assumes that all arguments within the ArCommand.azArg[]
-** array refer to archive members, as for the --extract or --list commands.
+** array refer to archive members, as for the --extract or --list commands. 
 ** It checks that each of them are present. If any specified file is not
 ** present in the archive, an error is printed to stderr and an error
 ** code returned. Otherwise, if all specified arguments are present in
@@ -16418,7 +16430,7 @@ static int arCheckEntries(ArCommand *pAr){
     sqlite3_stmt *pTest = 0;
 
     shellPreparePrintf(pAr->db, &rc, &pTest,
-        "SELECT name FROM %s WHERE name=$name",
+        "SELECT name FROM %s WHERE name=$name", 
         pAr->zSrcTable
     );
     j = sqlite3_bind_parameter_index(pTest, "$name");
@@ -16451,8 +16463,8 @@ static int arCheckEntries(ArCommand *pAr){
 ** any non-NULL (*pzWhere) value.
 */
 static void arWhereClause(
-  int *pRc,
-  ArCommand *pAr,
+  int *pRc, 
+  ArCommand *pAr, 
   char **pzWhere                  /* OUT: New WHERE clause */
 ){
   char *zWhere = 0;
@@ -16465,7 +16477,7 @@ static void arWhereClause(
       for(i=0; i<pAr->nArg; i++){
         const char *z = pAr->azArg[i];
         zWhere = sqlite3_mprintf(
-          "%z%s name = '%q' OR substr(name,1,%d) = '%q/'",
+          "%z%s name = '%q' OR substr(name,1,%d) = '%q/'", 
           zWhere, zSep, z, strlen30(z)+1, z
         );
         if( zWhere==0 ){
@@ -16480,10 +16492,10 @@ static void arWhereClause(
 }
 
 /*
-** Implementation of .ar "lisT" command.
+** Implementation of .ar "lisT" command. 
 */
 static int arListCommand(ArCommand *pAr){
-  const char *zSql = "SELECT %s FROM %s WHERE %s";
+  const char *zSql = "SELECT %s FROM %s WHERE %s"; 
   const char *azCols[] = {
     "name",
     "lsmode(mode), sz, datetime(mtime, 'unixepoch'), name"
@@ -16505,7 +16517,7 @@ static int arListCommand(ArCommand *pAr){
       if( pAr->bVerbose ){
         utf8_printf(pAr->p->out, "%s % 10d  %s  %s\n",
             sqlite3_column_text(pSql, 0),
-            sqlite3_column_int(pSql, 1),
+            sqlite3_column_int(pSql, 1), 
             sqlite3_column_text(pSql, 2),
             sqlite3_column_text(pSql, 3)
         );
@@ -16521,17 +16533,17 @@ static int arListCommand(ArCommand *pAr){
 
 
 /*
-** Implementation of .ar "eXtract" command.
+** Implementation of .ar "eXtract" command. 
 */
 static int arExtractCommand(ArCommand *pAr){
-  const char *zSql1 =
+  const char *zSql1 = 
     "SELECT "
     " ($dir || name),"
     " writefile(($dir || name), %s, mode, mtime) "
     "FROM %s WHERE (%s) AND (data IS NULL OR $dirOnly = 0)"
     " AND name NOT GLOB '*..[/\\]*'";
 
-  const char *azExtraArg[] = {
+  const char *azExtraArg[] = { 
     "sqlar_uncompress(data, sz)",
     "data"
   };
@@ -16557,7 +16569,7 @@ static int arExtractCommand(ArCommand *pAr){
     if( zDir==0 ) rc = SQLITE_NOMEM;
   }
 
-  shellPreparePrintf(pAr->db, &rc, &pSql, zSql1,
+  shellPreparePrintf(pAr->db, &rc, &pSql, zSql1, 
       azExtraArg[pAr->bZip], pAr->zSrcTable, zWhere
   );
 
@@ -16635,7 +16647,7 @@ static int arCreateOrUpdateCommand(
   int bUpdate,                    /* true for a --create. */
   int bOnlyIfChanged              /* Only update if file has changed */
 ){
-  const char *zCreate =
+  const char *zCreate = 
       "CREATE TABLE IF NOT EXISTS sqlar(\n"
       "  name TEXT PRIMARY KEY,  -- name of the file\n"
       "  mode INT,               -- access permissions\n"
@@ -16677,7 +16689,7 @@ static int arCreateOrUpdateCommand(
   arExecSql(pAr, "PRAGMA page_size=512");
   rc = arExecSql(pAr, "SAVEPOINT ar;");
   if( rc!=SQLITE_OK ) return rc;
-  zTemp[0] = 0;
+  zTemp[0] = 0; 
   if( pAr->bZip ){
     /* Initialize the zipfile virtual table, if necessary */
     if( pAr->zFile ){
@@ -16771,7 +16783,7 @@ static int arDotCommand(
     }else if( cmd.zFile ){
       int flags;
       if( cmd.bAppend ) eDbType = SHELL_OPEN_APPENDVFS;
-      if( cmd.eCmd==AR_CMD_CREATE || cmd.eCmd==AR_CMD_INSERT
+      if( cmd.eCmd==AR_CMD_CREATE || cmd.eCmd==AR_CMD_INSERT 
            || cmd.eCmd==AR_CMD_UPDATE ){
         flags = SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE;
       }else{
@@ -16782,10 +16794,10 @@ static int arDotCommand(
         utf8_printf(pState->out, "-- open database '%s'%s\n", cmd.zFile,
              eDbType==SHELL_OPEN_APPENDVFS ? " using 'apndvfs'" : "");
       }
-      rc = sqlite3_open_v2(cmd.zFile, &cmd.db, flags,
+      rc = sqlite3_open_v2(cmd.zFile, &cmd.db, flags, 
              eDbType==SHELL_OPEN_APPENDVFS ? "apndvfs" : 0);
       if( rc!=SQLITE_OK ){
-        utf8_printf(stderr, "cannot open file: %s (%s)\n",
+        utf8_printf(stderr, "cannot open file: %s (%s)\n", 
             cmd.zFile, sqlite3_errmsg(cmd.db)
         );
         goto end_ar_command;
@@ -16906,12 +16918,12 @@ static void *shellMalloc(int *pRc, sqlite3_int64 nByte){
 /*
 ** If *pRc is not SQLITE_OK when this function is called, it is a no-op.
 ** Otherwise, zFmt is treated as a printf() style string. The result of
-** formatting it along with any trailing arguments is written into a
+** formatting it along with any trailing arguments is written into a 
 ** buffer obtained from sqlite3_malloc(), and pointer to which is returned.
 ** It is the responsibility of the caller to eventually free this buffer
 ** using a call to sqlite3_free().
-**
-** If an OOM error occurs, (*pRc) is set to SQLITE_NOMEM and a NULL
+** 
+** If an OOM error occurs, (*pRc) is set to SQLITE_NOMEM and a NULL 
 ** pointer returned.
 */
 static char *shellMPrintf(int *pRc, const char *zFmt, ...){
@@ -16970,7 +16982,7 @@ static RecoverTable *recoverNewTable(
   int *pRc,                       /* IN/OUT: Error code */
   const char *zName,              /* Name of table */
   const char *zSql,               /* CREATE TABLE statement */
-  int bIntkey,
+  int bIntkey, 
   int nCol
 ){
   sqlite3 *dbtmp = 0;             /* sqlite3 handle for testing CREATE TABLE */
@@ -16982,7 +16994,7 @@ static RecoverTable *recoverNewTable(
     int nSqlCol = 0;
     int bSqlIntkey = 0;
     sqlite3_stmt *pStmt = 0;
-
+    
     rc = sqlite3_open("", &dbtmp);
     if( rc==SQLITE_OK ){
       sqlite3_create_function(dbtmp, "shell_idquote", 1, SQLITE_UTF8, 0,
@@ -16998,7 +17010,7 @@ static RecoverTable *recoverNewTable(
         goto finished;
       }
     }
-    shellPreparePrintf(dbtmp, &rc, &pStmt,
+    shellPreparePrintf(dbtmp, &rc, &pStmt, 
         "SELECT count(*) FROM pragma_table_info(%Q)", zName
     );
     if( rc==SQLITE_OK && SQLITE_ROW==sqlite3_step(pStmt) ){
@@ -17010,7 +17022,7 @@ static RecoverTable *recoverNewTable(
       goto finished;
     }
 
-    shellPreparePrintf(dbtmp, &rc, &pStmt,
+    shellPreparePrintf(dbtmp, &rc, &pStmt, 
       "SELECT ("
       "  SELECT substr(data,1,1)==X'0D' FROM sqlite_dbpage WHERE pgno=rootpage"
       ") FROM sqlite_schema WHERE name = %Q", zName
@@ -17032,7 +17044,7 @@ static RecoverTable *recoverNewTable(
       ** leave zPk as "_rowid_" and pTab->iPk at -2.  */
       pTab->iPk = -2;
       if( bIntkey ){
-        shellPreparePrintf(dbtmp, &rc, &pPkFinder,
+        shellPreparePrintf(dbtmp, &rc, &pPkFinder, 
           "SELECT cid, name FROM pragma_table_info(%Q) "
           "  WHERE pk=1 AND type='integer' COLLATE nocase"
           "  AND NOT EXISTS (SELECT cid FROM pragma_table_info(%Q) WHERE pk=2)"
@@ -17054,11 +17066,11 @@ static RecoverTable *recoverNewTable(
         pTab->azlCol[0] = shellMPrintf(&rc, "");
       }
       i = 1;
-      shellPreparePrintf(dbtmp, &rc, &pStmt,
+      shellPreparePrintf(dbtmp, &rc, &pStmt, 
           "SELECT %Q || group_concat(shell_idquote(name), ', ') "
           "  FILTER (WHERE cid!=%d) OVER (ORDER BY %s cid) "
-          "FROM pragma_table_info(%Q)",
-          bIntkey ? ", " : "", pTab->iPk,
+          "FROM pragma_table_info(%Q)", 
+          bIntkey ? ", " : "", pTab->iPk, 
           bIntkey ? "" : "(CASE WHEN pk=0 THEN 1000000 ELSE pk END), ",
           zName
       );
@@ -17092,7 +17104,7 @@ static RecoverTable *recoverNewTable(
 ** those.
 **
 ** If a table is found, a (RecoverTable*) object is returned. Or, if
-** no such table is found, but bIntkey is false and iRoot is the
+** no such table is found, but bIntkey is false and iRoot is the 
 ** root page of an index in the recovered schema, then (*pbNoop) is
 ** set to true and NULL returned. Or, if there is no such table or
 ** index, NULL is returned and (*pbNoop) set to 0, indicating that
@@ -17186,7 +17198,7 @@ static RecoverTable *recoverOrphanTable(
         recoverFreeTable(pTab);
         pTab = 0;
       }else{
-        raw_printf(pState->out,
+        raw_printf(pState->out, 
             "CREATE TABLE %s(rootpgno INTEGER, "
             "pgno INTEGER, nfield INTEGER, id INTEGER", pTab->zQuoted
         );
@@ -17239,14 +17251,14 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
       bRowids = 0;
     }
     else{
-      utf8_printf(stderr, "unexpected option: %s\n", azArg[i]);
+      utf8_printf(stderr, "unexpected option: %s\n", azArg[i]); 
       showHelp(pState->out, azArg[0]);
       return 1;
     }
   }
 
   shellExecPrintf(pState->db, &rc,
-    /* Attach an in-memory database named 'recovery'. Create an indexed
+    /* Attach an in-memory database named 'recovery'. Create an indexed 
     ** cache of the sqlite_dbptr virtual table. */
     "PRAGMA writable_schema = on;"
     "ATTACH %Q AS recovery;"
@@ -17280,9 +17292,9 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
   }
 
   /* If this is an auto-vacuum database, add all pointer-map pages to
-  ** the freelist table. Do this regardless of whether or not
+  ** the freelist table. Do this regardless of whether or not 
   ** --freelist-corrupt was specified.  */
-  shellExec(pState->db, &rc,
+  shellExec(pState->db, &rc, 
     "WITH ptrmap(pgno) AS ("
     "  SELECT 2 WHERE shell_int32("
     "    (SELECT data FROM sqlite_dbpage WHERE pgno=1), 13"
@@ -17294,7 +17306,7 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
     "REPLACE INTO recovery.freelist SELECT pgno FROM ptrmap"
   );
 
-  shellExec(pState->db, &rc,
+  shellExec(pState->db, &rc, 
     "CREATE TABLE recovery.dbptr("
     "      pgno, child, PRIMARY KEY(child, pgno)"
     ") WITHOUT ROWID;"
@@ -17314,7 +17326,7 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
     ");"
 
     /* Create the "map" table that will (eventually) contain instructions
-    ** for dealing with each page in the db that contains one or more
+    ** for dealing with each page in the db that contains one or more 
     ** records. */
     "CREATE TABLE recovery.map("
       "pgno INTEGER PRIMARY KEY, maxlen INT, intkey, root INT"
@@ -17363,7 +17375,7 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
     "CREATE INDEX recovery.schema_rootpage ON schema(rootpage);"
   );
 
-  /* Open a transaction, then print out all non-virtual, non-"sqlite_%"
+  /* Open a transaction, then print out all non-virtual, non-"sqlite_%" 
   ** CREATE TABLE statements that extracted from the existing schema.  */
   if( rc==SQLITE_OK ){
     sqlite3_stmt *pStmt = 0;
@@ -17380,7 +17392,7 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
     );
     while( rc==SQLITE_OK && SQLITE_ROW==sqlite3_step(pStmt) ){
       const char *zCreateTable = (const char*)sqlite3_column_text(pStmt, 0);
-      raw_printf(pState->out, "CREATE TABLE IF NOT EXISTS %s;\n",
+      raw_printf(pState->out, "CREATE TABLE IF NOT EXISTS %s;\n", 
           &zCreateTable[12]
       );
     }
@@ -17389,7 +17401,7 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
 
   /* Figure out if an orphan table will be required. And if so, how many
   ** user columns it should contain */
-  shellPrepare(pState->db, &rc,
+  shellPrepare(pState->db, &rc, 
       "SELECT coalesce(max(maxlen), -2) FROM recovery.map WHERE root>1"
       , &pLoop
   );
@@ -17413,8 +17425,8 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
   );
 
   /* Loop through each root page. */
-  shellPrepare(pState->db, &rc,
-      "SELECT root, intkey, max(maxlen) FROM recovery.map"
+  shellPrepare(pState->db, &rc, 
+      "SELECT root, intkey, max(maxlen) FROM recovery.map" 
       " WHERE root>1 GROUP BY root, intkey ORDER BY root=("
       "  SELECT rootpage FROM recovery.schema WHERE name='sqlite_sequence'"
       ")", &pLoop
@@ -17467,13 +17479,13 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
 
         nField = nField+1;
         if( pTab2==pOrphan ){
-          raw_printf(pState->out,
+          raw_printf(pState->out, 
               "INSERT INTO %s VALUES(%d, %d, %d, %s%s%s);\n",
               pTab2->zQuoted, iRoot, iPgno, nField,
               iMin<0 ? "" : "NULL, ", zVal, pTab2->azlCol[nField]
           );
         }else{
-          raw_printf(pState->out, "INSERT INTO %s(%s) VALUES( %s );\n",
+          raw_printf(pState->out, "INSERT INTO %s(%s) VALUES( %s );\n", 
               pTab2->zQuoted, pTab2->azlCol[nField], zVal
           );
         }
@@ -17491,7 +17503,7 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
   /* The rest of the schema */
   if( rc==SQLITE_OK ){
     sqlite3_stmt *pStmt = 0;
-    shellPrepare(pState->db, &rc,
+    shellPrepare(pState->db, &rc, 
         "SELECT sql, name FROM recovery.schema "
         "WHERE sql NOT LIKE 'create table%'", &pStmt
     );
@@ -17499,7 +17511,7 @@ static int recoverDatabaseCmd(ShellState *pState, int nArg, char **azArg){
       const char *zSql = (const char*)sqlite3_column_text(pStmt, 0);
       if( sqlite3_strnicmp(zSql, "create virt", 11)==0 ){
         const char *zName = (const char*)sqlite3_column_text(pStmt, 1);
-        char *zPrint = shellMPrintf(&rc,
+        char *zPrint = shellMPrintf(&rc, 
           "INSERT INTO sqlite_schema VALUES('table', %Q, %Q, 0, %Q)",
           zName, zName, zSql
         );
@@ -17635,7 +17647,7 @@ static int do_meta_command(char *zLine, ShellState *p){
       return 1;
     }
     if( zDb==0 ) zDb = "main";
-    rc = sqlite3_open_v2(zDestFile, &pDest,
+    rc = sqlite3_open_v2(zDestFile, &pDest, 
                   SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE, zVfs);
     if( rc!=SQLITE_OK ){
       utf8_printf(stderr, "Error: cannot open \"%s\"\n", zDestFile);
@@ -17829,7 +17841,7 @@ static int do_meta_command(char *zLine, ShellState *p){
     if( nArg>1 && ii==ArraySize(aDbConfig) ){
       utf8_printf(stderr, "Error: unknown dbconfig \"%s\"\n", azArg[1]);
       utf8_printf(stderr, "Enter \".dbconfig\" with no arguments for a list\n");
-    }
+    }   
   }else
 
   if( c=='d' && n>=3 && strncmp(azArg[0], "dbinfo", n)==0 ){
@@ -17849,7 +17861,7 @@ static int do_meta_command(char *zLine, ShellState *p){
     int i;
     int savedShowHeader = p->showHeader;
     int savedShellFlags = p->shellFlgs;
-    ShellClearFlag(p,
+    ShellClearFlag(p, 
        SHFLG_PreserveRowid|SHFLG_Newlines|SHFLG_Echo
        |SHFLG_DumpDataOnly|SHFLG_DumpNoSys);
     for(i=1; i<nArg; i++){
@@ -18024,7 +18036,7 @@ static int do_meta_command(char *zLine, ShellState *p){
     } aCtrl[] = {
       { "chunk_size",     SQLITE_FCNTL_CHUNK_SIZE,      "SIZE"           },
       { "data_version",   SQLITE_FCNTL_DATA_VERSION,    ""               },
-      { "has_moved",      SQLITE_FCNTL_HAS_MOVED,       ""               },
+      { "has_moved",      SQLITE_FCNTL_HAS_MOVED,       ""               },  
       { "lock_timeout",   SQLITE_FCNTL_LOCK_TIMEOUT,    "MILLISEC"       },
       { "persist_wal",    SQLITE_FCNTL_PERSIST_WAL,     "[BOOLEAN]"      },
    /* { "pragma",         SQLITE_FCNTL_PRAGMA,          "NAME ARG"       },*/
@@ -18045,7 +18057,7 @@ static int do_meta_command(char *zLine, ShellState *p){
     open_db(p, 0);
     zCmd = nArg>=2 ? azArg[1] : "help";
 
-    if( zCmd[0]=='-'
+    if( zCmd[0]=='-' 
      && (strcmp(zCmd,"--schema")==0 || strcmp(zCmd,"-schema")==0)
      && nArg>=4
     ){
@@ -18311,7 +18323,7 @@ static int do_meta_command(char *zLine, ShellState *p){
         goto meta_command_exit;
       }
       if( nSep>1 ){
-        raw_printf(stderr,
+        raw_printf(stderr, 
               "Error: multi-character column separators not allowed"
               " for import\n");
         rc = 1;
