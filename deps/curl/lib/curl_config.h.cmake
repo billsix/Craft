@@ -1,3 +1,24 @@
+/***************************************************************************
+ *                                  _   _ ____  _
+ *  Project                     ___| | | |  _ \| |
+ *                             / __| | | | |_) | |
+ *                            | (__| |_| |  _ <| |___
+ *                             \___|\___/|_| \_\_____|
+ *
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
+ *
+ * This software is licensed as described in the file COPYING, which
+ * you should have received as part of this distribution. The terms
+ * are also available at https://curl.se/docs/copyright.html.
+ *
+ * You may opt to use, copy, modify, merge, publish, distribute and/or sell
+ * copies of the Software, and permit persons to whom the Software is
+ * furnished to do so, under the terms of the COPYING file.
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+ * KIND, either express or implied.
+ *
+ ***************************************************************************/
 /* lib/curl_config.h.in.  Generated somehow by cmake.  */
 
 /* when building libcurl itself */
@@ -42,6 +63,9 @@
 /* to disable LDAPS */
 #cmakedefine CURL_DISABLE_LDAPS 1
 
+/* to disable MQTT */
+#cmakedefine CURL_DISABLE_MQTT 1
+
 /* to disable POP3 */
 #cmakedefine CURL_DISABLE_POP3 1
 
@@ -74,7 +98,7 @@
 #endif
 
 /* Allow SMB to work on Windows */
-#cmakedefine USE_WIN32_CRYPTO
+#cmakedefine USE_WIN32_CRYPTO 1
 
 /* Use Windows LDAP implementation */
 #cmakedefine USE_WIN32_LDAP 1
@@ -144,9 +168,6 @@
 
 /* Define to 1 if you have the <crypto.h> header file. */
 #cmakedefine HAVE_CRYPTO_H 1
-
-/* Define to 1 if you have the <des.h> header file. */
-#cmakedefine HAVE_DES_H 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #cmakedefine HAVE_DLFCN_H 1
@@ -374,8 +395,11 @@
 /* Define to 1 if you have the <libgen.h> header file. */
 #cmakedefine HAVE_LIBGEN_H 1
 
-/* Define to 1 if you have the `idn' library (-lidn). */
-#cmakedefine HAVE_LIBIDN 1
+/* Define to 1 if you have the `idn2' library (-lidn2). */
+#cmakedefine HAVE_LIBIDN2 1
+
+/* Define to 1 if you have the idn2.h header file. */
+#cmakedefine HAVE_IDN2_H 1
 
 /* Define to 1 if you have the `resolv' library (-lresolv). */
 #cmakedefine HAVE_LIBRESOLV 1
@@ -407,11 +431,17 @@
 /* Define to 1 if you have the <libssh2.h> header file. */
 #cmakedefine HAVE_LIBSSH2_H 1
 
+/* Define to 1 if you have the <libssh/libssh.h> header file. */
+#cmakedefine HAVE_LIBSSH_LIBSSH_H 1
+
 /* if zlib is available */
 #cmakedefine HAVE_LIBZ 1
 
 /* if brotli is available */
 #cmakedefine HAVE_BROTLI 1
+
+/* if zstd is available */
+#cmakedefine HAVE_ZSTD 1
 
 /* if your compiler supports LL */
 #cmakedefine HAVE_LL 1
@@ -442,6 +472,9 @@
 
 /* Define to 1 if you have the <netinet/tcp.h> header file. */
 #cmakedefine HAVE_NETINET_TCP_H 1
+
+/* Define to 1 if you have the <linux/tcp.h> header file. */
+#cmakedefine HAVE_LINUX_TCP_H 1
 
 /* Define to 1 if you have the <net/if.h> header file. */
 #cmakedefine HAVE_NET_IF_H 1
@@ -625,9 +658,6 @@
 
 /* Define to 1 if you have the `strlcpy' function. */
 #cmakedefine HAVE_STRLCPY 1
-
-/* Define to 1 if you have the strncasecmp function. */
-#cmakedefine HAVE_STRNCASECMP 1
 
 /* Define to 1 if you have the strncmpi function. */
 #cmakedefine HAVE_STRNCMPI 1
@@ -930,9 +960,6 @@ ${SIZEOF_TIME_T_CODE}
 /* Define if you want to enable WIN32 threaded DNS lookup */
 #cmakedefine USE_THREADS_WIN32 1
 
-/* Define to disable non-blocking sockets. */
-#cmakedefine USE_BLOCKING_SOCKETS 1
-
 /* if GnuTLS is enabled */
 #cmakedefine USE_GNUTLS 1
 
@@ -944,6 +971,12 @@ ${SIZEOF_TIME_T_CODE}
 
 /* if BearSSL is enabled */
 #cmakedefine USE_BEARSSL 1
+
+/* if WolfSSL is enabled */
+#cmakedefine USE_WOLFSSL 1
+
+/* if libSSH is in use */
+#cmakedefine USE_LIBSSH 1
 
 /* if libSSH2 is in use */
 #cmakedefine USE_LIBSSH2 1
@@ -963,11 +996,30 @@ ${SIZEOF_TIME_T_CODE}
 /* if OpenSSL is in use */
 #cmakedefine USE_OPENSSL 1
 
+/* Define to 1 if you don't want the OpenSSL configuration to be loaded
+   automatically */
+#cmakedefine CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG 1
+
 /* to enable NGHTTP2  */
 #cmakedefine USE_NGHTTP2 1
 
+/* to enable NGTCP2 */
+#cmakedefine USE_NGTCP2 1
+
+/* to enable NGHTTP3  */
+#cmakedefine USE_NGHTTP3 1
+
+/* to enable quiche */
+#cmakedefine USE_QUICHE 1
+
+/* Define to 1 if you have the quiche_conn_set_qlog_fd function. */
+#cmakedefine HAVE_QUICHE_CONN_SET_QLOG_FD 1
+
 /* if Unix domain sockets are enabled  */
 #cmakedefine USE_UNIX_SOCKETS
+
+/* to disable alt-svc */
+#cmakedefine CURL_DISABLE_ALTSVC 1
 
 /* Define to 1 if you are building a Windows target with large file support. */
 #cmakedefine USE_WIN32_LARGE_FILES 1
@@ -1021,3 +1073,9 @@ ${SIZEOF_TIME_T_CODE}
 
 /* Define to 1 if you have the mach_absolute_time function. */
 #cmakedefine HAVE_MACH_ABSOLUTE_TIME 1
+
+/* to enable Windows IDN */
+#cmakedefine USE_WIN32_IDN 1
+
+/* to make the compiler know the prototypes of Windows IDN APIs */
+#cmakedefine WANT_IDN_PROTOTYPES 1

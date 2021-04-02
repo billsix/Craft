@@ -1,10 +1,31 @@
 #!/bin/bash
+#***************************************************************************
+#                                  _   _ ____  _
+#  Project                     ___| | | |  _ \| |
+#                             / __| | | | |_) | |
+#                            | (__| |_| |  _ <| |___
+#                             \___|\___/|_| \_\_____|
+#
+# Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution. The terms
+# are also available at https://curl.se/docs/copyright.html.
+#
+# You may opt to use, copy, modify, merge, publish, distribute and/or sell
+# copies of the Software, and permit persons to whom the Software is
+# furnished to do so, under the terms of the COPYING file.
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+# KIND, either express or implied.
+#
+###########################################################################
 set -eo pipefail
 
 ./buildconf
 
 if [ "$T" = "coverage" ]; then
-  ./configure --enable-debug --disable-shared --disable-threaded-resolver --enable-code-coverage --enable-werror --enable-alt-svc --with-libssh2
+  ./configure --enable-debug --disable-shared --disable-threaded-resolver --enable-code-coverage --enable-werror --with-libssh2
   make
   make TFLAGS=-n test-nonflaky
   make "TFLAGS=-n -e" test-nonflaky
@@ -15,12 +36,17 @@ if [ "$T" = "coverage" ]; then
 fi
 
 if [ "$T" = "torture" ]; then
-  ./configure --enable-debug --disable-shared --disable-threaded-resolver --enable-code-coverage --enable-werror --enable-alt-svc --with-libssh2
+  ./configure --enable-debug --disable-shared --disable-threaded-resolver --enable-code-coverage --enable-werror --with-libssh2
   make
-  make TFLAGS=-n test-nonflaky
-  make "TFLAGS=-n -e" test-nonflaky
-  tests="1 200 300 500 700 800 900 1000 1100 1200 1302 1400 1502 3000"
-  make "TFLAGS=-n --shallow=40 -t $tests" test-nonflaky
+  tests="!TLS-SRP !FTP"
+  make "TFLAGS=-n --shallow=20 -t $tests" test-nonflaky
+fi
+
+if [ "$T" = "events" ]; then
+  ./configure --enable-debug --disable-shared --disable-threaded-resolver --enable-code-coverage --enable-werror --with-libssh2
+  make
+  tests="!TLS-SRP"
+  make "TFLAGS=-n -e $tests" test-nonflaky
 fi
 
 if [ "$T" = "debug" ]; then
@@ -28,12 +54,7 @@ if [ "$T" = "debug" ]; then
   make
   make examples
   if [ -z $NOTESTS ]; then
-    if [ "$TRAVIS_ARCH" = "aarch64" ] ; then
-      # TODO: find out why this test is failing on arm64
-      make "TFLAGS=-n !323" test-nonflaky
-    else
-      make TFLAGS=-n test-nonflaky
-    fi
+    make test-nonflaky
   fi
 fi
 
@@ -46,7 +67,13 @@ fi
 if [ "$T" = "debug-mesalink" ]; then
   ./configure --enable-debug --enable-werror $C
   make
-  make "TFLAGS=-n !313 !3001" test-nonflaky
+  make "TFLAGS=-n !313 !410 !3001" test-nonflaky
+fi
+
+if [ "$T" = "debug-rustls" ]; then
+  ./configure --enable-debug --enable-werror $C
+  make
+  make "TFLAGS=HTTPS !313" test-nonflaky
 fi
 
 if [ "$T" = "novalgrind" ]; then
@@ -68,9 +95,7 @@ if [ "$T" = "normal" ]; then
   if [ -z $NOTESTS ]; then
     make test-nonflaky
   fi
-  if [ -n $CHECKSRC ]; then
-    echo "enable COPYRIGHTYEAR" > ./docs/examples/.checksrc
-    echo "enable COPYRIGHTYEAR" > ./include/curl/.checksrc
+  if [ -n "$CHECKSRC" ]; then
     make checksrc
   fi
 fi
@@ -90,13 +115,9 @@ if [ "$T" = "iconv" ]; then
 fi
 
 if [ "$T" = "cmake" ]; then
-  if [ $TRAVIS_OS_NAME = linux ]; then
-    cmake -H. -Bbuild -DCURL_WERROR=ON
-    cmake --build build
-  else
-    cmake -H. -Bbuild -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCURL_DISABLE_LDAP=ON -DCURL_DISABLE_LDAPS=ON
-    cmake --build build
-  fi
+  cmake -H. -Bbuild -DCURL_WERROR=ON $C
+  cmake --build build
+  env TFLAGS="!1139 $TFLAGS" cmake --build build --target test-nonflaky
 fi
 
 if [ "$T" = "distcheck" ]; then
