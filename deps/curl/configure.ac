@@ -373,7 +373,7 @@ esac
 CURL_CHECK_WIN32_LARGEFILE
 CURL_CHECK_WIN32_CRYPTO
 
-CURL_MAC_CFLAGS
+CURL_DARWIN_CFLAGS
 CURL_SUPPORTS_BUILTIN_AVAILABLE
 
 
@@ -4277,7 +4277,6 @@ AC_CHECK_HEADERS(
         sgtty.h \
         fcntl.h \
         alloca.h \
-        time.h \
         io.h \
         pwd.h \
         utime.h \
