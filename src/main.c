@@ -375,7 +375,7 @@ Chunk *find_chunk(int p, int q) {
 
 int chunk_distance(const Chunk *const chunk, int p, int q) {
   const int dp = ABS(chunk->p - p), dq = ABS(chunk->q - q);
-  return MAX(dp, dq);
+  return MAX_NUMBER(dp, dq);
 }
 
 int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy) {
@@ -420,7 +420,7 @@ int highest_block(float x, float z) {
       const int ex = entry->e.x + map->dx, ey = entry->e.y + map->dy,
                 ez = entry->e.z + map->dz, ew = entry->e.w;
       if (is_obstacle(ew) && ex == nx && ez == nz) {
-        result = MAX(result, ey);
+        result = MAX_NUMBER(result, ey);
       }
     }
   }
@@ -559,7 +559,7 @@ int _gen_sign_buffer(float *data, float x, float y, float z, int face,
   const float max_width = 64, line_height = 1.25;
   char lines[1024];
   int rows = wrap(text, max_width, lines, 1024);
-  { rows = MIN(rows, 5); }
+  { rows = MIN_NUMBER(rows, 5); }
   const int dx = glyph_dx[face], dz = glyph_dz[face], ldx = line_dx[face],
             ldy = line_dy[face], ldz = line_dz[face];
   const float n = 1.0 / (max_width / 10);
@@ -571,7 +571,7 @@ int _gen_sign_buffer(float *data, float x, float y, float z, int face,
   while (line) {
     const int length = strlen(line);
     int line_width = string_width(line);
-    { line_width = MIN(line_width, max_width); }
+    { line_width = MIN_NUMBER(line_width, max_width); }
     float rx = sx - dx * line_width / max_width / 2, ry = sy,
           rz = sz - dz * line_width / max_width / 2;
     for (int i = 0; i < length; i++) {
@@ -720,7 +720,7 @@ void compute_chunk(WorkerItem *item) {
         // END TODO
         opaque[XYZ(x, y, z)] = !is_transparent(w);
         if (opaque[XYZ(x, y, z)]) {
-          highest[XZ(x, z)] = MAX(highest[XZ(x, z)], y);
+          highest[XZ(x, z)] = MAX_NUMBER(highest[XZ(x, z)], y);
         }
       }
     }
@@ -783,8 +783,8 @@ void compute_chunk(WorkerItem *item) {
     if (total == 0) {
       continue;
     }
-    miny = MIN(miny, ey);
-    maxy = MAX(maxy, ey);
+    miny = MIN_NUMBER(miny, ey);
+    maxy = MAX_NUMBER(maxy, ey);
     faces += is_plant(ew) ? 4 : total;
   }
 
@@ -877,7 +877,7 @@ void compute_chunk(WorkerItem *item) {
             light_sum = 15 * 4 * 10;
           }
           const float total = curve[value] + shade_sum / 4.0;
-          ambient_occlusion[i][j] = MIN(total, 1.0);
+          ambient_occlusion[i][j] = MIN_NUMBER(total, 1.0);
           light[i][j] = light_sum / 15.0 / 4.0;
         }
       }
@@ -887,8 +887,8 @@ void compute_chunk(WorkerItem *item) {
       for (int a = 0; a < 6; a++) {
         for (int b = 0; b < 4; b++) {
           min_ambient_occlusion =
-              MIN(min_ambient_occlusion, ambient_occlusion[a][b]);
-          max_light = MAX(max_light, light[a][b]);
+              MIN_NUMBER(min_ambient_occlusion, ambient_occlusion[a][b]);
+          max_light = MAX_NUMBER(max_light, light[a][b]);
         }
       }
       float rotation = simplex2(ex, ez, 4, 0.5, 2) * 360;
@@ -1167,7 +1167,7 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
       if (chunk && !chunk->dirty) {
         continue;
       }
-      const int distance = MAX(ABS(dp), ABS(dq));
+      const int distance = MAX_NUMBER(ABS(dp), ABS(dq));
       const int invisible = !chunk_visible(planes, a, b, 0, 256);
       int priority = 0;
       if (chunk) {
@@ -1678,12 +1678,12 @@ void cube(Block *b1, Block *b2, int fill) {
     return;
   }
   int w = b1->w;
-  int x1 = MIN(b1->x, b2->x);
-  int y1 = MIN(b1->y, b2->y);
-  int z1 = MIN(b1->z, b2->z);
-  int x2 = MAX(b1->x, b2->x);
-  int y2 = MAX(b1->y, b2->y);
-  int z2 = MAX(b1->z, b2->z);
+  int x1 = MIN_NUMBER(b1->x, b2->x);
+  int y1 = MIN_NUMBER(b1->y, b2->y);
+  int z1 = MIN_NUMBER(b1->z, b2->z);
+  int x2 = MAX_NUMBER(b1->x, b2->x);
+  int y2 = MAX_NUMBER(b1->y, b2->y);
+  int z2 = MAX_NUMBER(b1->z, b2->z);
   int a = (x1 == x2) + (y1 == y2) + (z1 == z2);
   for (int x = x1; x <= x2; x++) {
     for (int y = y1; y <= y2; y++) {
@@ -1745,12 +1745,12 @@ void cylinder(Block *b1, Block *b2, int radius, int fill) {
     return;
   }
   int w = b1->w;
-  int x1 = MIN(b1->x, b2->x);
-  int y1 = MIN(b1->y, b2->y);
-  int z1 = MIN(b1->z, b2->z);
-  int x2 = MAX(b1->x, b2->x);
-  int y2 = MAX(b1->y, b2->y);
-  int z2 = MAX(b1->z, b2->z);
+  int x1 = MIN_NUMBER(b1->x, b2->x);
+  int y1 = MIN_NUMBER(b1->y, b2->y);
+  int z1 = MIN_NUMBER(b1->z, b2->z);
+  int x2 = MAX_NUMBER(b1->x, b2->x);
+  int y2 = MAX_NUMBER(b1->y, b2->y);
+  int z2 = MAX_NUMBER(b1->z, b2->z);
   int fx = x1 != x2;
   int fy = y1 != y2;
   int fz = z1 != z2;
@@ -2163,8 +2163,10 @@ void handle_orientation_input() {
     if (positionAndOrientation->rx >= RADIANS(360)) {
       positionAndOrientation->rx -= RADIANS(360);
     }
-    positionAndOrientation->ry = MAX(positionAndOrientation->ry, -RADIANS(90));
-    positionAndOrientation->ry = MIN(positionAndOrientation->ry, RADIANS(90));
+    positionAndOrientation->ry =
+        MAX_NUMBER(positionAndOrientation->ry, -RADIANS(90));
+    positionAndOrientation->ry =
+        MIN_NUMBER(positionAndOrientation->ry, RADIANS(90));
     px = mx;
     py = my;
   } else {
@@ -2256,7 +2258,7 @@ void handle_movement(double dt) {
       roundf(sqrtf(powf(vx * speed, 2) + powf(vy * speed + ABS(dy) * 2, 2) +
                    powf(vz * speed, 2)) *
              dt * 8);
-  int step = MAX(8, estimate);
+  int step = MAX_NUMBER(8, estimate);
   float ut = dt / step;
   vx = vx * ut * speed;
   vy = vy * ut * speed;
@@ -2266,7 +2268,7 @@ void handle_movement(double dt) {
       dy = 0;
     } else {
       dy -= ut * 25;
-      dy = MAX(dy, -250);
+      dy = MAX_NUMBER(dy, -250);
     }
     positionAndOrientation->x += vx;
     positionAndOrientation->y += vy + dy * ut;
@@ -2634,8 +2636,8 @@ int main(int argc, char **argv) {
         glfwGetWindowSize(g->window, &window_width, &window_height);
         glfwGetFramebufferSize(g->window, &buffer_width, &buffer_height);
         int result = buffer_width / window_width;
-        result = MAX(1, result);
-        result = MIN(2, result);
+        result = MAX_NUMBER(1, result);
+        result = MIN_NUMBER(2, result);
         g->scale = result;
       }
 
@@ -2663,8 +2665,8 @@ int main(int argc, char **argv) {
       update_fps(&fps);
       double now = glfwGetTime();
       double dt = now - previous;
-      dt = MIN(dt, 0.2);
-      dt = MAX(dt, 0.0);
+      dt = MIN_NUMBER(dt, 0.2);
+      dt = MAX_NUMBER(dt, 0.0);
       previous = now;
 
       // HANDLE PLAYER INPUT //
@@ -2713,9 +2715,9 @@ int main(int argc, char **argv) {
               &player->positionAndOrientation2;
           float t1 = positionAndOrientation2->t - positionAndOrientation1->t,
                 t2 = glfwGetTime() - positionAndOrientation2->t;
-          t1 = MIN(t1, 1);
-          t1 = MAX(t1, 0.1);
-          float p = MIN(t2 / t1, 1);
+          t1 = MIN_NUMBER(t1, 1);
+          t1 = MAX_NUMBER(t1, 0.1);
+          float p = MIN_NUMBER(t2 / t1, 1);
           update_player(
               player,
               positionAndOrientation1->x +
