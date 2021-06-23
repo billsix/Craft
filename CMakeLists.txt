@@ -15,6 +15,7 @@ option(ENABLE_NO_THREADS "Don't use threads.  This increases the framerate on ol
 
 if(ENABLE_OPENGL_CORE_PROFILE_RENDERER)
   set(IMGUI_RENDERERS
+    deps/gl3w/src/gl3w.c
     deps/imgui/backends/imgui_impl_opengl3.cpp
     src/gl_render.c
     src/gui-gl.cpp
@@ -137,7 +138,7 @@ if(WIN32)
     include_directories(deps/sqlite)
 endif(WIN32)
 
-include_directories(deps/gl3w)
+include_directories(deps/gl3w/include)
 include_directories(deps/lodepng)
 include_directories(deps/noise)
 include_directories(deps/tinycthread/source/)

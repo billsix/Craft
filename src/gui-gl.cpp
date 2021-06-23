@@ -43,7 +43,7 @@
  * SOFTWARE.
  */
 
-#include "gl3w.h"
+#include "GL/gl3w.h"
 
 #include "tinycthread.h"
 #include <GLFW/glfw3.h>

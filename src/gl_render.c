@@ -24,13 +24,11 @@
 
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
 
-#define GL3W_IMPLEMENTATION 1
-
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "gl3w.h"
+#include "GL/gl3w.h"
 
 #include "tinycthread.h"
 #include <GLFW/glfw3.h>
@@ -167,12 +165,12 @@ void gl_load_png_texture(const char *const file_name) {
   free(data);
 }
 
-void GLAPIENTRY
-GLMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                       GLsizei length, const GLchar *message,
-                       const void *userParam) {
+void GLAPIENTRY GLMessageCallback(GLenum source, GLenum type, GLuint id,
+                                  GLenum severity, GLsizei length,
+                                  const GLchar *message,
+                                  const void *userParam) {
   char severity_name[100];
-  memset(&severity_name, 0, sizeof(char)*sizeof(severity_name));
+  memset(&severity_name, 0, sizeof(char) * sizeof(severity_name));
   switch (severity) {
   case GL_DEBUG_SEVERITY_HIGH: {
     const char name[] = "SEVERITY HIGH";
@@ -202,19 +200,23 @@ GLMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
 
 int gl_graphics_loader_init() {
   int return_code = -1; // error
-  if (gl3w_init()) {
+  if (gl3wInit()) {
     goto exit;
   }
   printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION),
          glGetString(GL_SHADING_LANGUAGE_VERSION));
-  if (gl3w_is_supported(3, 3)) {
+  if (gl3wIsSupported(3, 3)) {
     fprintf(stderr, "OpenGL 3.3 is supported\n");
     return_code = 0;
   }
-  if (gl3w_is_supported(4, 3)) {
+  if (gl3wIsSupported(4, 3)) {
     fprintf(stderr, "OpenGL 4.3 is supported\n");
+
+#if NDEBUG
+#else
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(GLMessageCallback, 0);
+#endif
     return_code = 0;
   }
 
