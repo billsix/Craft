@@ -28,8 +28,9 @@
 # Allow Python 2.6+ to use the print() function
 from __future__ import print_function
 
-import re
+import argparse
 import os
+import re
 
 # Try to import Python 3 library urllib.request
 # and if it fails, fall back to Python 2 urllib2
@@ -39,85 +40,96 @@ except ImportError:
     import urllib2
 
 # UNLICENSE copyright header
-UNLICENSE = br'''/*
-
-    This file is a modified version of gl3w_gen.py, part of gl3w
-    (hosted at https://github.com/skaslev/gl3w)
-
-    This is free and unencumbered software released into the public domain.
-
-    Anyone is free to copy, modify, publish, use, compile, sell, or
-    distribute this software, either in source code form or as a compiled
-    binary, for any purpose, commercial or non-commercial, and by any
-    means.
-
-    In jurisdictions that recognize copyright laws, the author or authors
-    of this software dedicate any and all copyright interest in the
-    software to the public domain. We make this dedication for the benefit
-    of the public at large and to the detriment of our heirs and
-    successors. We intend this dedication to be an overt act of
-    relinquishment in perpetuity of all present and future rights to this
-    software under copyright law.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-    IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-    OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-    ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-    OTHER DEALINGS IN THE SOFTWARE.
-
-============================================================================
-    You MUST
-
-        #define GL3W_IMPLEMENTATION
-
-    in EXACLY _one_ C or C++ file that includes this header, BEFORE the include,
-    like this:
-
-        #define GL3W_IMPLEMENTATION
-        #include "gl3w.h"
-
-    All other files should just #include "gl3w.h" without the #define.
-
-*/
+UNLICENSE = r'''/*
+ * This file was generated with gl3w_gen.py, part of gl3w
+ * (hosted at https://github.com/skaslev/gl3w)
+ *
+ * This is free and unencumbered software released into the public domain.
+ *
+ * Anyone is free to copy, modify, publish, use, compile, sell, or
+ * distribute this software, either in source code form or as a compiled
+ * binary, for any purpose, commercial or non-commercial, and by any
+ * means.
+ *
+ * In jurisdictions that recognize copyright laws, the author or authors
+ * of this software dedicate any and all copyright interest in the
+ * software to the public domain. We make this dedication for the benefit
+ * of the public at large and to the detriment of our heirs and
+ * successors. We intend this dedication to be an overt act of
+ * relinquishment in perpetuity of all present and future rights to this
+ * software under copyright law.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 '''
 
+EXT_SUFFIX = ['ARB', 'EXT', 'KHR', 'OVR', 'NV', 'AMD', 'INTEL']
 
-# Download glcorearb.h
-if not os.path.exists('glcorearb.h'):
-    print('Downloading glcorearb.h...')
-    web = urllib2.urlopen('https://www.opengl.org/registry/api/GL/glcorearb.h')
-    with open('glcorearb.h', 'wb') as f:
+def is_ext(proc):
+    return any(proc.endswith(suffix) for suffix in EXT_SUFFIX)
+
+def write(f, s):
+    f.write(s.encode('utf-8'))
+
+def touch_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+def download(url, dst):
+    if os.path.exists(dst):
+        print('Reusing {0}...'.format(dst))
+        return
+
+    print('Downloading {0}...'.format(dst))
+    web = urllib2.urlopen(url)
+    with open(dst, 'wb') as f:
         f.writelines(web.readlines())
-else:
-    print('Reusing glcorearb.h...')
+
+parser = argparse.ArgumentParser(description='gl3w generator script')
+parser.add_argument('--ext', action='store_true', help='Load extensions')
+parser.add_argument('--root', type=str, default='', help='Root directory')
+args = parser.parse_args()
+
+# Create directories
+touch_dir(os.path.join(args.root, 'include/GL'))
+touch_dir(os.path.join(args.root, 'include/KHR'))
+touch_dir(os.path.join(args.root, 'src'))
+
+# Download glcorearb.h and khrplatform.h
+download('https://www.khronos.org/registry/OpenGL/api/GL/glcorearb.h',
+         os.path.join(args.root, 'include/GL/glcorearb.h'))
+download('https://www.khronos.org/registry/EGL/api/KHR/khrplatform.h',
+         os.path.join(args.root, 'include/KHR/khrplatform.h'))
 
 # Parse function names from glcorearb.h
 print('Parsing glcorearb.h header...')
 procs = []
 p = re.compile(r'GLAPI.*APIENTRY\s+(\w+)')
-with open('glcorearb.h', 'r') as f:
+with open(os.path.join(args.root, 'include/GL/glcorearb.h'), 'r') as f:
     for line in f:
         m = p.match(line)
-        if m:
-            procs.append(m.group(1))
+        if not m:
+            continue
+        proc = m.group(1)
+        if args.ext or not is_ext(proc):
+            procs.append(proc)
 procs.sort()
 
-def proc_t(proc):
-    return { 'p': proc,
-             'p_s': 'gl3w' + proc[2:],
-             'p_t': 'PFN' + proc.upper() + 'PROC' }
-
 # Generate gl3w.h
-print('Generating gl3w.h...')
-with open('gl3w.h', 'wb') as f:
-    f.write(UNLICENSE)
-    f.write(br'''#ifndef __gl3w_h_
+print('Generating {0}...'.format(os.path.join(args.root, 'include/GL/gl3w.h')))
+with open(os.path.join(args.root, 'include/GL/gl3w.h'), 'wb') as f:
+    write(f, UNLICENSE)
+    write(f, r'''#ifndef __gl3w_h_
 #define __gl3w_h_
 
-#include "glcorearb.h"
+#include <GL/glcorearb.h>
 
 #ifndef __gl_h_
 #define __gl_h_
@@ -127,165 +139,209 @@ with open('gl3w.h', 'wb') as f:
 extern "C" {
 #endif
 
+#define GL3W_OK 0
+#define GL3W_ERROR_INIT -1
+#define GL3W_ERROR_LIBRARY_OPEN -2
+#define GL3W_ERROR_OPENGL_VERSION -3
+
 typedef void (*GL3WglProc)(void);
+typedef GL3WglProc (*GL3WGetProcAddressProc)(const char *proc);
 
 /* gl3w api */
-int gl3w_init(void);
-int gl3w_is_supported(int major, int minor);
-GL3WglProc gl3w_get_proc_address(char const *proc);
+int gl3wInit(void);
+int gl3wInit2(GL3WGetProcAddressProc proc);
+int gl3wIsSupported(int major, int minor);
+GL3WglProc gl3wGetProcAddress(const char *proc);
+
+/* gl3w internal state */
+''')
+    write(f, 'union GL3WProcs {\n')
+    write(f, '\tGL3WglProc ptr[{0}];\n'.format(len(procs)))
+    write(f, '\tstruct {\n')
+    for proc in procs:
+        write(f, '\t\t{0: <55} {1};\n'.format('PFN{0}PROC'.format(proc.upper()), proc[2:]))
+    write(f, r'''	} gl;
+};
+
+extern union GL3WProcs gl3wProcs;
 
 /* OpenGL functions */
 ''')
     for proc in procs:
-        f.write('extern {0[p_t]: <52} {0[p_s]};\n'.format(proc_t(proc)).encode("utf-8"))
-    f.write(b'\n')
-    for proc in procs:
-        f.write('#define {0[p]: <45} {0[p_s]}\n'.format(proc_t(proc)).encode("utf-8"))
-    f.write(br'''
+        write(f, '#define {0: <48} gl3wProcs.gl.{1}\n'.format(proc, proc[2:]))
+    write(f, r'''
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+''')
 
-#if defined(GL3W_IMPLEMENTATION) && !defined(GL3W_IMPLEMENTATION_DONE)
-#define GL3W_IMPLEMENTATION_DONE
+# Generate gl3w.c
+print('Generating {0}...'.format(os.path.join(args.root, 'src/gl3w.c')))
+with open(os.path.join(args.root, 'src/gl3w.c'), 'wb') as f:
+    write(f, UNLICENSE)
+    write(f, r'''#include <GL/gl3w.h>
+#include <stdlib.h>
 
-#ifdef _WIN32
+#define ARRAY_SIZE(x)  (sizeof(x) / sizeof((x)[0]))
 
-#define WIN32_LEAN_AND_MEAN 1
-#define WIN32_MEAN_AND_LEAN 1
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1 // Exclude advanced Windows headers
+#endif // WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-static HMODULE gl3w__libgl;
+static HMODULE libgl;
+typedef PROC(__stdcall* GL3WglGetProcAddr)(LPCSTR);
+static GL3WglGetProcAddr wgl_get_proc_address;
 
-static void gl3w__open_libgl (void) { gl3w__libgl = LoadLibraryA("opengl32.dll"); }
-static void gl3w__close_libgl(void) { FreeLibrary(gl3w__libgl); }
+static int open_libgl(void)
+{
+	libgl = LoadLibraryA("opengl32.dll");
+	if (!libgl)
+		return GL3W_ERROR_LIBRARY_OPEN;
 
-static GL3WglProc gl3w__get_proc(char const *proc)
+	wgl_get_proc_address = (GL3WglGetProcAddr)GetProcAddress(libgl, "wglGetProcAddress");
+	return GL3W_OK;
+}
+
+static void close_libgl(void)
+{
+	FreeLibrary(libgl);
+}
+
+static GL3WglProc get_proc(const char *proc)
 {
 	GL3WglProc res;
 
-	res = (GL3WglProc) wglGetProcAddress(proc);
+	res = (GL3WglProc)wgl_get_proc_address(proc);
 	if (!res)
-		res = (GL3WglProc) GetProcAddress(gl3w__libgl, proc);
+		res = (GL3WglProc)GetProcAddress(libgl, proc);
 	return res;
 }
-
-#elif defined(__APPLE__) || defined(__APPLE_CC__)
-
-#include <Carbon/Carbon.h>
-
-CFBundleRef gl3w__bundle;
-CFURLRef gl3w__bundleURL;
-
-static void gl3w__open_libgl(void)
-{
-	gl3w__bundleURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
-		CFSTR("/System/Library/Frameworks/OpenGL.framework"),
-		kCFURLPOSIXPathStyle, true);
-
-	gl3w__bundle = CFBundleCreate(kCFAllocatorDefault, gl3w__bundleURL);
-	assert(gl3w__bundle != NULL);
-}
-
-static void gl3w__close_libgl(void)
-{
-	CFRelease(gl3w__bundle);
-	CFRelease(gl3w__bundleURL);
-}
-
-static GL3WglProc gl3w__get_proc(char const *proc)
-{
-	GL3WglProc res;
-
-	CFStringRef procname = CFStringCreateWithCString(kCFAllocatorDefault, proc,
-		kCFStringEncodingASCII);
-	res = (GL3WglProc) CFBundleGetFunctionPointerForName(gl3w__bundle, procname);
-	CFRelease(procname);
-	return res;
-}
-
-#else
-
+#elif defined(__APPLE__)
 #include <dlfcn.h>
-#include <GL/glx.h>
 
-static void *gl3w__libgl;
-static PFNGLXGETPROCADDRESSPROC gl3w__glx_get_proc_address;
+static void *libgl;
 
-static void gl3w__open_libgl(void)
+static int open_libgl(void)
 {
-	gl3w__libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_GLOBAL);
-	gl3w__glx_get_proc_address = (PFNGLXGETPROCADDRESSPROC) dlsym(gl3w__libgl, "glXGetProcAddressARB");
+	libgl = dlopen("/System/Library/Frameworks/OpenGL.framework/OpenGL", RTLD_LAZY | RTLD_LOCAL);
+	if (!libgl)
+		return GL3W_ERROR_LIBRARY_OPEN;
+
+	return GL3W_OK;
 }
 
-static void gl3w__close_libgl(void) { dlclose(gl3w__libgl); }
+static void close_libgl(void)
+{
+	dlclose(libgl);
+}
 
-static GL3WglProc gl3w__get_proc(char const *proc)
+static GL3WglProc get_proc(const char *proc)
 {
 	GL3WglProc res;
 
-	res = (GL3WglProc) gl3w__glx_get_proc_address((const GLubyte *) proc);
-	if (!res)
-		res = (GL3WglProc) dlsym(gl3w__libgl, proc);
+	*(void **)(&res) = dlsym(libgl, proc);
 	return res;
 }
+#else
+#include <dlfcn.h>
 
+static void *libgl;
+static GL3WglProc (*glx_get_proc_address)(const GLubyte *);
+
+static int open_libgl(void)
+{
+	libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_LOCAL);
+	if (!libgl)
+		return GL3W_ERROR_LIBRARY_OPEN;
+
+	*(void **)(&glx_get_proc_address) = dlsym(libgl, "glXGetProcAddressARB");
+	return GL3W_OK;
+}
+
+static void close_libgl(void)
+{
+	dlclose(libgl);
+}
+
+static GL3WglProc get_proc(const char *proc)
+{
+	GL3WglProc res;
+
+	res = glx_get_proc_address((const GLubyte *)proc);
+	if (!res)
+		*(void **)(&res) = dlsym(libgl, proc);
+	return res;
+}
 #endif
 
 static struct {
 	int major, minor;
-} gl3w__version;
+} version;
 
-static int gl3w__parse_version(void)
+static int parse_version(void)
 {
 	if (!glGetIntegerv)
-		return -1;
+		return GL3W_ERROR_INIT;
 
-	glGetIntegerv(GL_MAJOR_VERSION, &gl3w__version.major);
-	glGetIntegerv(GL_MINOR_VERSION, &gl3w__version.minor);
+	glGetIntegerv(GL_MAJOR_VERSION, &version.major);
+	glGetIntegerv(GL_MINOR_VERSION, &version.minor);
 
-	if (gl3w__version.major < 3)
-		return -1;
-	return 0;
+	if (version.major < 3)
+		return GL3W_ERROR_OPENGL_VERSION;
+	return GL3W_OK;
 }
 
-static void gl3w__load_procs(void);
+static void load_procs(GL3WGetProcAddressProc proc);
 
-int gl3w_init(void)
+int gl3wInit(void)
 {
-	gl3w__open_libgl();
-	gl3w__load_procs();
-	gl3w__close_libgl();
-	return gl3w__parse_version();
+	int res;
+
+	res = open_libgl();
+	if (res)
+		return res;
+
+	atexit(close_libgl);
+	return gl3wInit2(get_proc);
 }
 
-int gl3w_is_supported(int major, int minor)
+int gl3wInit2(GL3WGetProcAddressProc proc)
+{
+	load_procs(proc);
+	return parse_version();
+}
+
+int gl3wIsSupported(int major, int minor)
 {
 	if (major < 3)
 		return 0;
-	if (gl3w__version.major == major)
-		return gl3w__version.minor >= minor;
-	return gl3w__version.major >= major;
+	if (version.major == major)
+		return version.minor >= minor;
+	return version.major >= major;
 }
 
-GL3WglProc gl3w_get_proc_address(char const *proc)
+GL3WglProc gl3wGetProcAddress(const char *proc)
 {
-	return gl3w__get_proc(proc);
+	return get_proc(proc);
 }
 
+static const char *proc_names[] = {
 ''')
     for proc in procs:
-        f.write('{0[p_t]: <52} {0[p_s]};\n'.format(proc_t(proc)).encode("utf-8"))
-    f.write(br'''
-static void gl3w__load_procs(void)
+        write(f, '\t"{0}",\n'.format(proc))
+    write(f, r'''};
+
+union GL3WProcs gl3wProcs;
+
+static void load_procs(GL3WGetProcAddressProc proc)
 {
-''')
-    for proc in procs:
-        f.write('\t{0[p_s]} = ({0[p_t]}) gl3w__get_proc("{0[p]}");\n'.format(proc_t(proc)).encode("utf-8"))
-    f.write(b'''}
+	size_t i;
 
-
-#endif /* GL3W_IMPLEMENTATION */
+	for (i = 0; i < ARRAY_SIZE(proc_names); i++)
+		gl3wProcs.ptr[i] = proc(proc_names[i]);
+}
 ''')
