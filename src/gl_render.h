@@ -23,8 +23,8 @@
 #ifndef _gl_render_h_
 #define _gl_render_h_
 
-void gl_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min,
-                 uint32_t y_max);
+void gl_viewport(uint32_t x_min, uint32_t y_min, uint32_t x_width,
+                 uint32_t y_width);
 
 void gl_clear_depth_buffer();
 void gl_clear_color_buffer();

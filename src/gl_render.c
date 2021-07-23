@@ -60,9 +60,9 @@ Line_Attributes line_attrib;
 Text_Attributes text_attrib;
 Sky_Attributes sky_attrib;
 
-void gl_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min,
-                 uint32_t y_max) {
-  glViewport(x_min, x_max, y_min, y_max);
+void gl_viewport(uint32_t x_min, uint32_t y_min, uint32_t x_width,
+                 uint32_t y_width) {
+  glViewport(x_min, y_min, x_width, y_width);
 }
 
 void gl_clear_depth_buffer() { glClear(GL_DEPTH_BUFFER_BIT); }

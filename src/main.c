@@ -104,8 +104,8 @@ bool enable_ambient_occlusion = true;
 // imprudent, and I will need to reassess later as I understand
 // those frameworks better.
 struct graphics_renderer {
-  void (*viewport)(uint32_t x_min, uint32_t x_max, uint32_t y_min,
-                   uint32_t y_max);
+  void (*viewport)(uint32_t x_min, uint32_t y_min, uint32_t x_width,
+                   uint32_t y_width);
   void (*clear_depth_buffer)();
   void (*clear_color_buffer)();
   void (*enable_scissor_test)();
