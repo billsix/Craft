@@ -33,8 +33,8 @@
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1 // Exclude advanced Windows headers
-#endif // WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
 #include <windows.h>
 
 static HMODULE libgl;
@@ -836,7 +836,7 @@ static const char *proc_names[] = {
 	"glWaitSync",
 };
 
-union GL3WProcs gl3wProcs;
+GL3W_API union GL3WProcs gl3wProcs;
 
 static void load_procs(GL3WGetProcAddressProc proc)
 {

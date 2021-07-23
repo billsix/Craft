@@ -31,6 +31,10 @@
 
 #include <GL/glcorearb.h>
 
+#ifndef GL3W_API
+#define GL3W_API
+#endif
+
 #ifndef __gl_h_
 #define __gl_h_
 #endif
@@ -48,10 +52,10 @@ typedef void (*GL3WglProc)(void);
 typedef GL3WglProc (*GL3WGetProcAddressProc)(const char *proc);
 
 /* gl3w api */
-int gl3wInit(void);
-int gl3wInit2(GL3WGetProcAddressProc proc);
-int gl3wIsSupported(int major, int minor);
-GL3WglProc gl3wGetProcAddress(const char *proc);
+GL3W_API int gl3wInit(void);
+GL3W_API int gl3wInit2(GL3WGetProcAddressProc proc);
+GL3W_API int gl3wIsSupported(int major, int minor);
+GL3W_API GL3WglProc gl3wGetProcAddress(const char *proc);
 
 /* gl3w internal state */
 union GL3WProcs {
@@ -719,7 +723,7 @@ union GL3WProcs {
 	} gl;
 };
 
-extern union GL3WProcs gl3wProcs;
+GL3W_API extern union GL3WProcs gl3wProcs;
 
 /* OpenGL functions */
 #define glActiveShaderProgram                            gl3wProcs.gl.ActiveShaderProgram
