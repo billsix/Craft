@@ -149,7 +149,7 @@ add_executable(
     deps/lodepng/lodepng.c
     deps/noise/noise.c
     ${SQLITE_SOURCE}
-    deps/tinycthread/source/tinycthread.c
+    deps/tinycthread/tinycthread.c
     deps/imgui/imgui.cpp
     deps/imgui/imgui_demo.cpp
     deps/imgui/imgui_draw.cpp
@@ -192,7 +192,7 @@ endif(WIN32)
 include_directories(deps/gl3w/include)
 include_directories(deps/lodepng)
 include_directories(deps/noise)
-include_directories(deps/tinycthread/source/)
+include_directories(deps/tinycthread)
 include_directories(deps/imgui)
 
 if(ENABLE_VULKAN_RENDERER)
