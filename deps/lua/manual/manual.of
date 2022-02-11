@@ -787,11 +787,8 @@ following the reverse order that they were marked.
 If any finalizer marks objects for collection during that phase,
 these marks have no effect.
 
-Finalizers cannot yield.
-Except for that, they can do anything,
-such as raise errors, create new objects,
-or even run the garbage collector.
-However, because they can run in unpredictable times,
+Finalizers cannot yield nor run the garbage collector.
+Because they can run in unpredictable times,
 it is good practice to restrict each finalizer
 to the minimum necessary to properly release
 its associated resource.
@@ -1346,8 +1343,10 @@ then all values returned by that call enter the list of values,
 before the adjustment
 (except when the call is enclosed in parentheses; see @See{expressions}).
 
-The assignment statement first evaluates all its expressions
-and only then the assignments are performed.
+If a variable is both assigned and read
+inside a multiple assignment,
+Lua ensures all reads get the value of the variable
+before the assignment.
 Thus the code
 @verbatim{
 i = 3
@@ -1366,6 +1365,12 @@ and
 x, y, z = y, z, x
 }
 cyclically permutes the values of @id{x}, @id{y}, and @id{z}.
+
+Note that this guarantee covers only accesses
+syntactically inside the assignment statement.
+If a function or a metamethod called during the assignment
+changes the value of a variable,
+Lua gives no guarantees about the order of that access.
 
 An assignment to a global name @T{x = val}
 is equivalent to the assignment
@@ -1975,15 +1980,20 @@ character is one byte.)
 
 The length operator applied on a table
 returns a @x{border} in that table.
-A @def{border} in a table @id{t} is any natural number
+A @def{border} in a table @id{t} is any non-negative integer
 that satisfies the following condition:
 @verbatim{
-(border == 0 or t[border] ~= nil) and t[border + 1] == nil
+(border == 0 or t[border] ~= nil) and
+(t[border + 1] == nil or border == math.maxinteger)
 }
 In words,
-a border is any (natural) index present in the table
-that is followed by an absent index
-(or zero, when index 1 is absent).
+a border is any positive integer index present in the table
+that is followed by an absent index,
+plus two limit cases:
+zero, when index 1 is absent;
+and the maximum value for an integer, when that index is present.
+Note that keys that are not positive integers
+do not interfere with borders.
 
 A table with exactly one border is called a @def{sequence}.
 For instance, the table @T{{10, 20, 30, 40, 50}} is a sequence,
@@ -1992,12 +2002,9 @@ The table @T{{10, 20, 30, nil, 50}} has two borders (3 and 5),
 and therefore it is not a sequence.
 (The @nil at index 4 is called a @emphx{hole}.)
 The table @T{{nil, 20, 30, nil, nil, 60, nil}}
-has three borders (0, 3, and 6) and three holes
-(at indices 1, 4, and 5),
+has three borders (0, 3, and 6),
 so it is not a sequence, too.
 The table @T{{}} is a sequence with border 0.
-Note that non-natural keys do not interfere
-with whether a table is a sequence.
 
 When @id{t} is a sequence,
 @T{#t} returns its only border,
@@ -2011,7 +2018,7 @@ the memory addresses of its non-numeric keys.)
 
 The computation of the length of a table
 has a guaranteed worst time of @M{O(log n)},
-where @M{n} is the largest natural key in the table.
+where @M{n} is the largest integer key in the table.
 
 A program can modify the behavior of the length operator for
 any value but strings through the @idx{__len} metamethod @see{metatable}.
@@ -3267,6 +3274,8 @@ Returns the previous mode (@id{LUA_GCGEN} or @id{LUA_GCINC}).
 }
 For more details about these options,
 see @Lid{collectgarbage}.
+
+This function should not be called by a finalizer.
 
 }
 
@@ -4685,7 +4694,10 @@ information about a function or an activation record.
 @Lid{lua_getstack} fills only the private part
 of this structure, for later use.
 To fill the other fields of @Lid{lua_Debug} with useful information,
-you must call @Lid{lua_getinfo}.
+you must call @Lid{lua_getinfo} with an appropriate parameter.
+(Specifically, to get a field,
+you must add the letter between parentheses in the field's comment
+to the parameter @id{what} of @Lid{lua_getinfo}.)
 
 The fields of @Lid{lua_Debug} have the following meaning:
 @description{
@@ -4838,18 +4850,29 @@ printf("%d\n", ar.linedefined);
 
 Each character in the string @id{what}
 selects some fields of the structure @id{ar} to be filled or
-a value to be pushed on the stack:
+a value to be pushed on the stack.
+(These characters are also documented in the declaration of
+the structure @Lid{lua_Debug},
+between parentheses in the comments following each field.)
 @description{
 
-@item{@Char{n}| fills in the field @id{name} and @id{namewhat};
+@item{@Char{f}|
+pushes onto the stack the function that is
+running at the given level;
+}
+
+@item{@Char{l}| fills in the field @id{currentline};
+}
+
+@item{@Char{n}| fills in the fields @id{name} and @id{namewhat};
+}
+
+@item{@Char{r}| fills in the fields @id{ftransfer} and @id{ntransfer};
 }
 
 @item{@Char{S}|
 fills in the fields @id{source}, @id{short_src},
 @id{linedefined}, @id{lastlinedefined}, and @id{what};
-}
-
-@item{@Char{l}| fills in the field @id{currentline};
 }
 
 @item{@Char{t}| fills in the field @id{istailcall};
@@ -4859,21 +4882,13 @@ fills in the fields @id{source}, @id{short_src},
 @id{nups}, @id{nparams}, and @id{isvararg};
 }
 
-@item{@Char{f}|
-pushes onto the stack the function that is
-running at the given level;
-}
-
 @item{@Char{L}|
-pushes onto the stack a table whose indices are the
-numbers of the lines that are valid on the function.
-(A @emph{valid line} is a line with some associated code,
-that is, a line where you can put a break point.
-Non-valid lines include empty lines and comments.)
-
+pushes onto the stack a table whose indices are
+the lines on the function with some associated code,
+that is, the lines where you can put a break point.
+(Lines with no code include empty lines and comments.)
 If this option is given together with option @Char{f},
 its table is pushed after the function.
-
 This is the only option that can raise a memory error.
 }
 
@@ -5144,7 +5159,7 @@ Adds the byte @id{c} to the buffer @id{B}
 @APIEntry{
 const void luaL_addgsub (luaL_Buffer *B, const char *s,
                          const char *p, const char *r);|
-@apii{0,0,m}
+@apii{?,?,m}
 
 Adds a copy of the string @id{s} to the buffer @id{B} @seeC{luaL_Buffer},
 replacing any occurrence of the string @id{p}
@@ -5181,7 +5196,7 @@ to the buffer @id{B}
 }
 
 @APIEntry{void luaL_addvalue (luaL_Buffer *B);|
-@apii{1,?,m}
+@apii{?,?,m}
 
 Adds the value on the top of the stack
 to the buffer @id{B}
@@ -5304,7 +5319,7 @@ Note that any addition to the buffer may invalidate this address.
 }
 
 @APIEntry{void luaL_buffinit (lua_State *L, luaL_Buffer *B);|
-@apii{0,0,-}
+@apii{0,?,-}
 
 Initializes a buffer @id{B}
 @seeC{luaL_Buffer}.
@@ -5330,7 +5345,7 @@ Equivalent to the sequence
 }
 
 @APIEntry{void luaL_buffsub (luaL_Buffer *B, int n);|
-@apii{0,0,-}
+@apii{?,?,-}
 
 Removes @id{n} bytes from the the buffer @id{B}
 @seeC{luaL_Buffer}.
@@ -5915,6 +5930,9 @@ previously pushed on the stack
 on top of the library table.
 These values are popped from the stack after the registration.
 
+A function with a @id{NULL} value represents a placeholder,
+which is filled with @false.
+
 }
 
 @APIEntry{void luaL_setmetatable (lua_State *L, const char *tname);|
@@ -6216,6 +6234,8 @@ A zero means to not change that value.
 See @See{GC} for more details about garbage collection
 and some of these options.
 
+This function should not be called by a finalizer.
+
 }
 
 @LibEntry{dofile ([filename])|
@@ -6230,7 +6250,7 @@ to its caller.
 }
 
 @LibEntry{error (message [, level])|
-Raises an error @see{error} with @{message} as the error object.
+Raises an error @see{error} with @id{message} as the error object.
 This function never returns.
 
 Usually, @id{error} adds some information about the error position
@@ -6362,9 +6382,8 @@ The order in which the indices are enumerated is not specified,
 (To traverse a table in numerical order,
 use a numerical @Rw{for}.)
 
-The behavior of @id{next} is undefined if,
-during the traversal,
-you assign any value to a non-existent field in the table.
+You should not assign any value to a non-existent field in a table
+during its traversal.
 You may however modify existing fields.
 In particular, you may set existing fields to nil.
 
@@ -6397,7 +6416,7 @@ This means that any error @N{inside @T{f}} is not propagated;
 instead, @id{pcall} catches the error
 and returns a status code.
 Its first result is the status code (a boolean),
-which is true if the call succeeds without errors.
+which is @true if the call succeeds without errors.
 In such case, @id{pcall} also returns all results from the call,
 after this first result.
 In case of any error, @id{pcall} returns @false plus the error object.
@@ -6603,7 +6622,7 @@ an object with type @T{"thread"}.
 
 @LibEntry{coroutine.isyieldable ([co])|
 
-Returns true when the coroutine @id{co} can yield.
+Returns @true when the coroutine @id{co} can yield.
 The default for @id{co} is the running coroutine.
 
 A coroutine is yieldable if it is not the main thread and
@@ -6635,7 +6654,7 @@ If there is any error,
 @LibEntry{coroutine.running ()|
 
 Returns the running coroutine plus a boolean,
-true when the running coroutine is the main one.
+@true when the running coroutine is the main one.
 
 }
 
@@ -6730,7 +6749,7 @@ If the loader returns any non-nil value,
 @id{require} assigns the returned value to @T{package.loaded[modname]}.
 If the loader does not return a non-nil value and
 has not assigned any value to @T{package.loaded[modname]},
-then @id{require} assigns @Rw{true} to this entry.
+then @id{require} assigns @true to this entry.
 In any case, @id{require} returns the
 final value of @T{package.loaded[modname]}.
 Besides that value, @id{require} also returns as a second result
@@ -7051,7 +7070,7 @@ otherwise, it returns @fail.
 A third, optional numeric argument @id{init} specifies
 where to start the search;
 its default value @N{is 1} and can be negative.
-A value of @true as a fourth, optional argument @id{plain}
+A @true as a fourth, optional argument @id{plain}
 turns off the pattern matching facilities,
 so the function does a plain @Q{find substring} operation,
 with no characters in @id{pattern} being considered magic.
@@ -7070,8 +7089,10 @@ following the description given in its first argument,
 which must be a string.
 The format string follows the same rules as the @ANSI{sprintf}.
 The only differences are that the conversion specifiers and modifiers
-@T{*}, @id{h}, @id{L}, @id{l}, and @id{n} are not supported
+@id{F}, @id{n}, @T{*}, @id{h}, @id{L}, and @id{l} are not supported
 and that there is an extra specifier, @id{q}.
+Both width and precision, when present,
+are limited to two digits.
 
 The specifier @id{q} formats booleans, nil, numbers, and strings
 in a way that the result is a valid constant in Lua source code.
@@ -7091,7 +7112,7 @@ may produce the string:
 "a string with \"quotes\" and \
  new line"
 }
-This specifier does not support modifiers (flags, width, length).
+This specifier does not support modifiers (flags, width, precision).
 
 The conversion specifiers
 @id{A}, @id{a}, @id{E}, @id{e}, @id{f},
@@ -8077,7 +8098,7 @@ or @fail if @id{x} is not a number.
 @LibEntry{math.ult (m, n)|
 
 Returns a boolean,
-true if and only if integer @id{m} is below integer @id{n} when
+@true if and only if integer @id{m} is below integer @id{n} when
 they are compared as @x{unsigned integers}.
 
 }
@@ -8490,13 +8511,13 @@ When called without a @id{command},
 @LibEntry{os.exit ([code [, close]])|
 
 Calls the @ANSI{exit} to terminate the host program.
-If @id{code} is @Rw{true},
+If @id{code} is @true,
 the returned status is @idx{EXIT_SUCCESS};
-if @id{code} is @Rw{false},
+if @id{code} is @false,
 the returned status is @idx{EXIT_FAILURE};
 if @id{code} is a number,
 the returned status is this number.
-The default value for @id{code} is @Rw{true}.
+The default value for @id{code} is @true.
 
 If the optional second argument @id{close} is true,
 closes the Lua state before exiting.
