@@ -191,7 +191,6 @@ if(WIN32)
     include_directories(deps/sqlite)
 endif(WIN32)
 
-add_subdirectory(deps/python)
 
 include_directories(deps/gl3w/include)
 include_directories(deps/lodepng)
