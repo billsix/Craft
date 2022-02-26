@@ -74,17 +74,6 @@ endif(WIN32)
 
 
 
-# TODO - make the fetching and building of these static libraries
-# possible on linux through an option
-if(APPLE OR WIN32)
-     set(BUILD_SHARED_LIBS OFF)
-     if(WIN32)
-         # no console on start
-         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-     endif(WIN32)
-endif()
-
-
 # set SOURCE_FILES to all of the c files
 set(SOURCE_FILES
   src/auth.c
@@ -163,6 +152,16 @@ add_executable(
 
 # build using the C11 standard
 set_property(TARGET craft PROPERTY C_STANDARD 11)
+
+# TODO - make the fetching and building of these static libraries
+# possible on linux through an option
+if(APPLE OR WIN32)
+     set(BUILD_SHARED_LIBS OFF)
+     if(WIN32)
+         # no console on start
+         target_link_options(craft PUBLIC "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+     endif(WIN32)
+endif()
 
 
 if(WIN32)

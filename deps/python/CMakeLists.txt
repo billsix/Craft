@@ -570,9 +570,6 @@ add_subdirectory(cmake/python CMakeBuild/python)
 add_subdirectory(cmake/include CMakeBuild/include)
 add_subdirectory(cmake/lib CMakeBuild/lib)
 add_subdirectory(cmake/tools CMakeBuild/tools)
-if(BUILD_WININST)
-    add_subdirectory(cmake/PC/bdist_wininst CMakeBuild/bdist_wininst)
-endif()
 
 # Add target to run "Argument Clinic" over all source files
 if(IS_PY3)
