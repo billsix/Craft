@@ -30,48 +30,6 @@ if(ENABLE_VULKAN_RENDERER)
     )
 endif()
 
-if(WIN32)
-
-  SET(LUA_SOURCE
-    deps/lua/lapi.c
-    deps/lua/lcode.c
-    deps/lua/lctype.c
-    deps/lua/ldebug.c
-    deps/lua/ldo.c
-    deps/lua/ldump.c
-    deps/lua/lfunc.c
-    deps/lua/lgc.c
-    deps/lua/llex.c
-    deps/lua/lmem.c
-    deps/lua/lobject.c
-    deps/lua/lopcodes.c
-    deps/lua/lparser.c
-    deps/lua/lstate.c
-    deps/lua/lstring.c
-    deps/lua/ltable.c
-    deps/lua/ltm.c
-    deps/lua/lundump.c
-    deps/lua/lvm.c
-    deps/lua/lzio.c
-    deps/lua/lauxlib.c
-    deps/lua/lbaselib.c
-    deps/lua/lcorolib.c
-    deps/lua/ldblib.c
-    deps/lua/liolib.c
-    deps/lua/lmathlib.c
-    deps/lua/loadlib.c
-    deps/lua/loslib.c
-    deps/lua/lstrlib.c
-    deps/lua/ltablib.c
-    deps/lua/lutf8lib.c
-    deps/lua/linit.c
-    )
-
-  SET(LUA_HEADERS_DIR
-    deps/lua/
-    )
-endif(WIN32)
-
 
 
 # set SOURCE_FILES to all of the c files
@@ -147,7 +105,6 @@ add_executable(
     deps/imgui/backends/imgui_impl_glfw.cpp
     ${CPLUSPLUS_FILES}
     ${IMGUI_RENDERERS}
-    ${LUA_SOURCE}
 )
 
 # build using the C11 standard
@@ -164,9 +121,6 @@ if(APPLE OR WIN32)
 endif()
 
 
-if(WIN32)
-  include_directories(${LUA_HEADERS_DIR})
-endif(WIN32)
 
 # add include directories for compilation
 if(APPLE)
@@ -220,14 +174,13 @@ else()
     # using PkgConfig to determine how to link against
     # the system's glfw and curl
     find_package(PkgConfig REQUIRED)
-    find_package(Lua REQUIRED)
     pkg_check_modules(GLFW REQUIRED glfw3)
     pkg_check_modules(CURL REQUIRED libcurl)
     pkg_check_modules(SQLITE REQUIRED sqlite3)
 
-    include_directories(${GLFW_INCLUDE_DIR} ${Vulkan_INCLUDE_DIR} ${LUA_INCLUDE_DIR})
+    include_directories(${GLFW_INCLUDE_DIR} ${Vulkan_INCLUDE_DIR})
     target_link_libraries(craft dl m pthread
-        ${GLFW_LIBRARIES} ${CURL_LIBRARIES} ${SQLITE_LIBRARIES} ${VULKAN_LIBRARIES} ${LUA_LIBRARIES})
+        ${GLFW_LIBRARIES} ${CURL_LIBRARIES} ${SQLITE_LIBRARIES} ${VULKAN_LIBRARIES})
 endif()
 
 add_library(world SHARED deps/noise/noise.c src/world.c)
