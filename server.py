@@ -21,8 +21,8 @@
 
 from math import floor
 from world import World
-import Queue
-import SocketServer
+import queue
+import socketserver
 import datetime
 import random
 import re
