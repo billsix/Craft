@@ -6,7 +6,7 @@
 #                            | (__| |_| |  _ <| |___
 #                             \___|\___/|_| \_\_____|
 #
-# Copyright (C) 2013-2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+# Copyright (C) 2013 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution. The terms
@@ -91,7 +91,8 @@ awk '{
 }
 
  END {
-   printf("  %s\n", p);
+   pp=substr(p,1,length(p)-1);
+   printf("  %s\n", pp);
    printf("  (%d contributors)\n", num);
  }
 
