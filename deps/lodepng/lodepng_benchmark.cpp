@@ -37,7 +37,7 @@ freely, subject to the following restrictions:
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <SDL/SDL.h> //SDL is used for timing.
+#include <SDL2/SDL.h> //SDL is used for timing.
 
 bool apply_mods = false;
 
@@ -126,11 +126,14 @@ std::vector<unsigned char> testEncode(Image& image) {
   // Try custom compression settings
   if(apply_mods) {
     //state.encoder.filter_strategy = LFS_ZERO;
-    state.encoder.filter_strategy = LFS_ENTROPY;
+    //state.encoder.filter_strategy = LFS_ENTROPY;
+    //state.encoder.filter_strategy = LFS_FOUR;
     //state.encoder.zlibsettings.btype = 0;
     //state.encoder.zlibsettings.btype = 1;
     //state.encoder.auto_convert = 0;
     //state.encoder.zlibsettings.use_lz77 = 0;
+    state.encoder.zlibsettings.windowsize = 1;
+    //state.encoder.zlibsettings.windowsize = 32768;
   }
 
   double t_enc0 = getTime();
