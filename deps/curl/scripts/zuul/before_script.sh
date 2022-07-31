@@ -19,6 +19,8 @@
 # This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
 # KIND, either express or implied.
 #
+# SPDX-License-Identifier: curl
+#
 ###########################################################################
 set -eo pipefail
 
@@ -74,7 +76,10 @@ if [ "$TRAVIS_OS_NAME" = linux -a "$BORINGSSL" ]; then
   cd $HOME
   git clone --depth=1 https://boringssl.googlesource.com/boringssl
   cd boringssl
-  CXX="g++" CC="gcc" cmake -H. -Bbuild -GNinja -DCMAKE_BUILD_TYPE=release -DBUILD_SHARED_LIBS=1
+  mkdir -p build
+  cd ./build
+  CXX="g++" CC="gcc" cmake .. -GNinja -DCMAKE_BUILD_TYPE=release -DBUILD_SHARED_LIBS=1
+  cd ..
   cmake --build build
   mkdir lib
   cp ./build/crypto/libcrypto.so ./lib/
@@ -82,7 +87,9 @@ if [ "$TRAVIS_OS_NAME" = linux -a "$BORINGSSL" ]; then
   echo "BoringSSL lib dir: "`pwd`"/lib"
   cmake --build build --target clean
   rm -f build/CMakeCache.txt
-  CXX="g++" CC="gcc" cmake -H. -Bbuild -GNinja -DCMAKE_POSITION_INDEPENDENT_CODE=on
+  cd ./build
+  CXX="g++" CC="gcc" cmake .. -GNinja -DCMAKE_POSITION_INDEPENDENT_CODE=on
+  cd ..
   cmake --build build
   export LIBS=-lpthread
 fi
