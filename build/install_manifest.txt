@@ -1,0 +1,17 @@
+/mnt/sda1/programming/Craft/buildInstall/bin/craft
+/mnt/sda1/programming/Craft/buildInstall/share/craft/textures/texture.png
+/mnt/sda1/programming/Craft/buildInstall/share/craft/textures/sign.png
+/mnt/sda1/programming/Craft/buildInstall/share/craft/textures/font.png
+/mnt/sda1/programming/Craft/buildInstall/share/craft/textures/sky.png
+/mnt/sda1/programming/Craft/buildInstall/share/craft/shaders/sky_vertex.glsl
+/mnt/sda1/programming/Craft/buildInstall/share/craft/shaders/block_fragment.glsl
+/mnt/sda1/programming/Craft/buildInstall/share/craft/shaders/block_vertex.glsl
+/mnt/sda1/programming/Craft/buildInstall/share/craft/shaders/line_vertex.glsl
+/mnt/sda1/programming/Craft/buildInstall/share/craft/shaders/text_vertex.glsl
+/mnt/sda1/programming/Craft/buildInstall/share/craft/shaders/line_fragment.glsl
+/mnt/sda1/programming/Craft/buildInstall/share/craft/shaders/sky_fragment.glsl
+/mnt/sda1/programming/Craft/buildInstall/share/craft/shaders/text_fragment.glsl
+/mnt/sda1/programming/Craft/buildInstall/server/world.py
+/mnt/sda1/programming/Craft/buildInstall/server/server.py
+/mnt/sda1/programming/Craft/buildInstall/server/builder.py
+/mnt/sda1/programming/Craft/buildInstall/server/libworld.so
