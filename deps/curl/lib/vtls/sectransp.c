@@ -45,6 +45,11 @@
 #pragma clang diagnostic ignored "-Wtautological-pointer-compare"
 #endif /* __clang__ */
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Waddress"
+#pragma GCC diagnostic ignored "-Wundef"
+#endif
+
 #include <limits.h>
 
 #include <Security/Security.h>
@@ -234,7 +239,7 @@ struct st_cipher {
    insert in between existing items to appropriate place based on
    cipher suite IANA number
 */
-const static struct st_cipher ciphertable[] = {
+static const struct st_cipher ciphertable[] = {
   /* SSL version 3.0 and initial TLS 1.0 cipher suites.
      Defined since SDK 10.2.8 */
   CIPHER_DEF_SSLTLS(NULL_WITH_NULL_NULL,                           /* 0x0000 */
@@ -900,12 +905,12 @@ CF_INLINE const char *TLSCipherNameForNumber(SSLCipherSuite cipher)
   /* The first ciphers in the ciphertable are continuous. Here we do small
      optimization and instead of loop directly get SSL name by cipher number.
   */
+  size_t i;
   if(cipher <= SSL_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA) {
     return ciphertable[cipher].name;
   }
   /* Iterate through the rest of the ciphers */
-  for(size_t i = SSL_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA + 1;
-      i < NUM_OF_CIPHERS;
+  for(i = SSL_FORTEZZA_DMS_WITH_FORTEZZA_CBC_SHA + 1; i < NUM_OF_CIPHERS;
       ++i) {
     if(ciphertable[i].num == cipher) {
       return ciphertable[i].name;
@@ -1429,7 +1434,8 @@ static CURLcode set_ssl_version_min_max(struct Curl_cfilter *cf,
 
 static bool is_cipher_suite_strong(SSLCipherSuite suite_num)
 {
-  for(size_t i = 0; i < NUM_OF_CIPHERS; ++i) {
+  size_t i;
+  for(i = 0; i < NUM_OF_CIPHERS; ++i) {
     if(ciphertable[i].num == suite_num) {
       return !ciphertable[i].weak;
     }
@@ -1545,16 +1551,17 @@ static CURLcode sectransp_set_selected_ciphers(struct Curl_easy *data,
     size_t cipher_len = 0;
     const char *cipher_end = NULL;
     bool tls_name = FALSE;
+    size_t i;
 
     /* Skip separators */
     while(is_separator(*cipher_start))
-       cipher_start++;
+      cipher_start++;
     if(*cipher_start == '\0') {
       break;
     }
     /* Find last position of a cipher in the ciphers string */
     cipher_end = cipher_start;
-    while (*cipher_end != '\0' && !is_separator(*cipher_end)) {
+    while(*cipher_end != '\0' && !is_separator(*cipher_end)) {
       ++cipher_end;
     }
 
@@ -1568,7 +1575,7 @@ static CURLcode sectransp_set_selected_ciphers(struct Curl_easy *data,
     /* Iterate through the cipher table and look for the cipher, starting
        the cipher number 0x01 because the 0x00 is not the real cipher */
     cipher_len = cipher_end - cipher_start;
-    for(size_t i = 1; i < NUM_OF_CIPHERS; ++i) {
+    for(i = 1; i < NUM_OF_CIPHERS; ++i) {
       const char *table_cipher_name = NULL;
       if(tls_name) {
         table_cipher_name = ciphertable[i].name;
@@ -2150,50 +2157,39 @@ static long pem_to_der(const char *in, unsigned char **out, size_t *outlen)
   return sep_end - in;
 }
 
+#define MAX_CERTS_SIZE (50*1024*1024) /* arbitrary - to catch mistakes */
+
 static int read_cert(const char *file, unsigned char **out, size_t *outlen)
 {
   int fd;
-  ssize_t n, len = 0, cap = 512;
-  unsigned char buf[512], *data;
+  ssize_t n;
+  unsigned char buf[512];
+  struct dynbuf certs;
+
+  Curl_dyn_init(&certs, MAX_CERTS_SIZE);
 
   fd = open(file, 0);
   if(fd < 0)
     return -1;
 
-  data = malloc(cap);
-  if(!data) {
-    close(fd);
-    return -1;
-  }
-
   for(;;) {
     n = read(fd, buf, sizeof(buf));
+    if(!n)
+      break;
     if(n < 0) {
       close(fd);
-      free(data);
+      Curl_dyn_free(&certs);
       return -1;
     }
-    else if(n == 0) {
+    if(Curl_dyn_addn(&certs, buf, n)) {
       close(fd);
-      break;
+      return -1;
     }
-
-    if(len + n >= cap) {
-      cap *= 2;
-      data = Curl_saferealloc(data, cap);
-      if(!data) {
-        close(fd);
-        return -1;
-      }
-    }
-
-    memcpy(data + len, buf, n);
-    len += n;
   }
-  data[len] = '\0';
+  close(fd);
 
-  *out = data;
-  *outlen = len;
+  *out = Curl_dyn_uptr(&certs);
+  *outlen = Curl_dyn_len(&certs);
 
   return 0;
 }
@@ -2202,16 +2198,18 @@ static int append_cert_to_array(struct Curl_easy *data,
                                 const unsigned char *buf, size_t buflen,
                                 CFMutableArrayRef array)
 {
-    CFDataRef certdata = CFDataCreate(kCFAllocatorDefault, buf, buflen);
     char *certp;
     CURLcode result;
+    SecCertificateRef cacert;
+    CFDataRef certdata;
+
+    certdata = CFDataCreate(kCFAllocatorDefault, buf, buflen);
     if(!certdata) {
       failf(data, "SSL: failed to allocate array for CA certificate");
       return CURLE_OUT_OF_MEMORY;
     }
 
-    SecCertificateRef cacert =
-      SecCertificateCreateWithData(kCFAllocatorDefault, certdata);
+    cacert = SecCertificateCreateWithData(kCFAllocatorDefault, certdata);
     CFRelease(certdata);
     if(!cacert) {
       failf(data, "SSL: failed to create SecCertificate from CA certificate");
@@ -2425,11 +2423,15 @@ static CURLcode pkp_pin_peer_pubkey(struct Curl_easy *data,
 
   do {
     SecTrustRef trust;
-    OSStatus ret = SSLCopyPeerTrust(ctx, &trust);
+    OSStatus ret;
+    SecKeyRef keyRef;
+    OSStatus success;
+
+    ret = SSLCopyPeerTrust(ctx, &trust);
     if(ret != noErr || !trust)
       break;
 
-    SecKeyRef keyRef = SecTrustCopyPublicKey(trust);
+    keyRef = SecTrustCopyPublicKey(trust);
     CFRelease(trust);
     if(!keyRef)
       break;
@@ -2443,8 +2445,8 @@ static CURLcode pkp_pin_peer_pubkey(struct Curl_easy *data,
 
 #elif SECTRANSP_PINNEDPUBKEY_V2
 
-    OSStatus success = SecItemExport(keyRef, kSecFormatOpenSSL, 0, NULL,
-                                     &publicKeyBits);
+    success = SecItemExport(keyRef, kSecFormatOpenSSL, 0, NULL,
+                            &publicKeyBits);
     CFRelease(keyRef);
     if(success != errSecSuccess || !publicKeyBits)
       break;
@@ -2717,7 +2719,7 @@ check_handshake:
         failf(data, "Peer rejected unexpected message");
         break;
 #if CURL_BUILD_MAC_10_11 || CURL_BUILD_IOS_9
-      /* Treaing non-fatal error as fatal like before */
+      /* Treating non-fatal error as fatal like before */
       case errSSLClientHelloReceived:
         failf(data, "A non-fatal result for providing a server name "
                     "indication");
@@ -2801,7 +2803,7 @@ check_handshake:
     }
 
 #if(CURL_BUILD_MAC_10_13 || CURL_BUILD_IOS_11) && HAVE_BUILTIN_AVAILABLE == 1
-    if(cf->conn->bits.tls_enable_alpn) {
+    if(connssl->alpn) {
       if(__builtin_available(macOS 10.13.4, iOS 11, tvOS 11, *)) {
         CFArrayRef alpnArr = NULL;
         CFStringRef chosenProtocol = NULL;
@@ -2987,12 +2989,13 @@ static CURLcode sectransp_connect_step3(struct Curl_cfilter *cf,
                                         struct Curl_easy *data)
 {
   struct ssl_connect_data *connssl = cf->ctx;
+  CURLcode result;
 
   DEBUGF(LOG_CF(data, cf, "connect_step3"));
   /* There is no step 3!
    * Well, okay, let's collect server certificates, and if verbose mode is on,
    * let's print the details of the server certificates. */
-  const CURLcode result = collect_server_cert(cf, data);
+  result = collect_server_cert(cf, data);
   if(result)
     return result;
 
@@ -3237,35 +3240,6 @@ static size_t sectransp_version(char *buffer, size_t size)
   return msnprintf(buffer, size, "SecureTransport");
 }
 
-/*
- * This function uses SSLGetSessionState to determine connection status.
- *
- * Return codes:
- *     1 means the connection is still in place
- *     0 means the connection has been closed
- *    -1 means the connection status is unknown
- */
-static int sectransp_check_cxn(struct Curl_cfilter *cf,
-                               struct Curl_easy *data)
-{
-  struct ssl_connect_data *connssl = cf->ctx;
-  struct ssl_backend_data *backend = connssl->backend;
-  OSStatus err;
-  SSLSessionState state;
-
-  (void)data;
-  DEBUGASSERT(backend);
-
-  if(backend->ssl_ctx) {
-    DEBUGF(LOG_CF(data, cf, "check connection"));
-    err = SSLGetSessionState(backend->ssl_ctx, &state);
-    if(err == noErr)
-      return state == kSSLConnected || state == kSSLHandshake;
-    return -1;
-  }
-  return 0;
-}
-
 static bool sectransp_data_pending(struct Curl_cfilter *cf,
                                    const struct Curl_easy *data)
 {
@@ -3409,14 +3383,16 @@ static ssize_t sectransp_recv(struct Curl_cfilter *cf,
 
   DEBUGASSERT(backend);
 
-  again:
+again:
+  *curlcode = CURLE_OK;
   err = SSLRead(backend->ssl_ctx, buf, buffersize, &processed);
 
   if(err != noErr) {
     switch(err) {
       case errSSLWouldBlock:  /* return how much we read (if anything) */
-        if(processed)
+        if(processed) {
           return (ssize_t)processed;
+        }
         *curlcode = CURLE_AGAIN;
         return -1L;
         break;
@@ -3428,7 +3404,7 @@ static ssize_t sectransp_recv(struct Curl_cfilter *cf,
       case errSSLClosedGraceful:
       case errSSLClosedNoNotify:
         *curlcode = CURLE_OK;
-        return -1L;
+        return 0;
         break;
 
         /* The below is errSSLPeerAuthCompleted; it's not defined in
@@ -3439,8 +3415,10 @@ static ssize_t sectransp_recv(struct Curl_cfilter *cf,
           CURLcode result = verify_cert(cf, data, conn_config->CAfile,
                                         conn_config->ca_info_blob,
                                         backend->ssl_ctx);
-          if(result)
-            return result;
+          if(result) {
+            *curlcode = result;
+            return -1;
+          }
         }
         goto again;
       default:
@@ -3477,7 +3455,7 @@ const struct Curl_ssl Curl_ssl_sectransp = {
   Curl_none_init,                     /* init */
   Curl_none_cleanup,                  /* cleanup */
   sectransp_version,                  /* version */
-  sectransp_check_cxn,                /* check_cxn */
+  Curl_none_check_cxn,                /* check_cxn */
   sectransp_shutdown,                 /* shutdown */
   sectransp_data_pending,             /* data_pending */
   sectransp_random,                   /* random */

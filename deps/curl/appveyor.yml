@@ -21,6 +21,9 @@
 # SPDX-License-Identifier: curl
 #
 ###########################################################################
+# https://ci.appveyor.com/project/curlorg/curl/history
+# Appveyor configuration
+# https://www.appveyor.com/docs/appveyor-yml/
 
 version: 7.50.0.{build}
 
@@ -353,6 +356,15 @@ branches:
     only:
         - master
         - /\/ci$/
+
+skip_commits:
+  files:
+    - '.azure-pipelines.yml'
+    - '.circleci/**/*'
+    - '.cirrus.yml'
+    - '.github/**/*'
+    - 'packages/**/*'
+    - 'plan9/**/*'
 
 artifacts:
   - path: '**/curl.exe'
