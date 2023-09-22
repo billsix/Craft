@@ -91,7 +91,8 @@ class TestAuth:
         curl = CurlClient(env=env)
         url = f'https://{env.authority_for(env.domain1, proto)}/restricted/digest/data.json'
         r = curl.http_upload(urls=[url], data=data, alpn_proto=proto, extra_args=[
-            '--digest', '--user', f'test:{password}'
+            '--digest', '--user', f'test:{password}',
+            '--trace-config', 'http/2,http/3'
         ])
         # digest does not submit the password, but a hash of it, so all
         # works and, since the pw is not correct, we get a 401
@@ -102,13 +103,17 @@ class TestAuth:
     def test_14_05_basic_large_pw(self, env: Env, httpd, nghttpx, repeat, proto):
         if proto == 'h3' and not env.have_h3():
             pytest.skip("h3 not supported")
-        # just large enought that nghttp2 will submit
+        if proto == 'h3' and env.curl_uses_lib('quiche'):
+            # See <https://github.com/cloudflare/quiche/issues/1573>
+            pytest.skip("quiche has problems with large requests")
+        # just large enough that nghttp2 will submit
         password = 'x' * (47 * 1024)
         fdata = os.path.join(env.gen_dir, 'data-10m')
         curl = CurlClient(env=env)
         url = f'https://{env.authority_for(env.domain1, proto)}/restricted/digest/data.json'
         r = curl.http_upload(urls=[url], data=f'@{fdata}', alpn_proto=proto, extra_args=[
-            '--basic', '--user', f'test:{password}'
+            '--basic', '--user', f'test:{password}',
+            '--trace-config', 'http/2,http/3'
         ])
         # but apache denies on length limit
         r.check_response(http_status=431)
@@ -118,7 +123,9 @@ class TestAuth:
     def test_14_06_basic_very_large_pw(self, env: Env, httpd, nghttpx, repeat, proto):
         if proto == 'h3' and not env.have_h3():
             pytest.skip("h3 not supported")
-        data='0123456789'
+        if proto == 'h3' and env.curl_uses_lib('quiche'):
+            # See <https://github.com/cloudflare/quiche/issues/1573>
+            pytest.skip("quiche has problems with large requests")
         password = 'x' * (64 * 1024)
         fdata = os.path.join(env.gen_dir, 'data-10m')
         curl = CurlClient(env=env)
