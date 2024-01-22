@@ -60,8 +60,8 @@ Line_Attributes line_attrib;
 Text_Attributes text_attrib;
 Sky_Attributes sky_attrib;
 
-void gl_viewport(uint32_t x_min, uint32_t y_min, uint32_t x_width,
-                 uint32_t y_width) {
+void gl_viewport(GLint x_min, GLint y_min, GLsizei x_width,
+                 GLsizei y_width) {
   glViewport(x_min, y_min, x_width, y_width);
 }
 
@@ -73,13 +73,13 @@ void gl_enable_scissor_test() { glEnable(GL_SCISSOR_TEST); }
 
 void gl_disable_scissor_test() { glDisable(GL_SCISSOR_TEST); }
 
-void gl_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width,
-                uint32_t y_height) {
+void gl_scissor(GLint x_min, GLint y_min, GLsizei x_width,
+                GLsizei y_height) {
   glScissor(x_min, y_min, x_width, y_height);
 }
 
-uint32_t gl_gen_buffer(size_t size, const float *const data) {
-  uint32_t buffer;
+GLuint gl_gen_buffer(GLsizei size, const float *const data) {
+  GLuint buffer;
   glGenBuffers(1, &buffer);
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
@@ -89,14 +89,14 @@ uint32_t gl_gen_buffer(size_t size, const float *const data) {
 
 void gl_del_buffer(uint32_t buffer) { glDeleteBuffers(1, &buffer); }
 
-uint32_t gl_gen_faces(int components, int faces, float *data) {
-  uint32_t buffer = gl_gen_buffer(sizeof(float) * 6 * components * faces, data);
+GLuint gl_gen_faces(int components, int faces, float *data) {
+  GLuint buffer = gl_gen_buffer(sizeof(float) * 6 * components * faces, data);
   free(data);
   return buffer;
 }
 
-uint32_t gl_make_shader(uint32_t type, const char *const source) {
-  uint32_t shader = glCreateShader(type);
+GLuint gl_make_shader(GLenum type, const char *const source) {
+  GLuint shader = glCreateShader(type);
   glShaderSource(shader, 1, &source, NULL);
   glCompileShader(shader);
 
@@ -113,19 +113,19 @@ uint32_t gl_make_shader(uint32_t type, const char *const source) {
   return shader;
 }
 
-uint32_t gl_load_shader(uint32_t type, const char *const path) {
+GLuint gl_load_shader(GLenum type, const char *const path) {
   char *data = load_file(path);
-  uint32_t result = gl_make_shader(type, data);
+  GLuint result = gl_make_shader(type, data);
   free(data);
   return result;
 }
 
-uint32_t gl_make_program(uint32_t shader1, uint32_t shader2) {
-  uint32_t program = glCreateProgram();
+GLuint gl_make_program(GLuint shader1, GLuint shader2) {
+  GLuint program = glCreateProgram();
   glAttachShader(program, shader1);
   glAttachShader(program, shader2);
   glLinkProgram(program);
-  int32_t status;
+  GLint status;
   glGetProgramiv(program, GL_LINK_STATUS, &status);
   if (status == GL_FALSE) {
     int32_t length;
@@ -142,10 +142,10 @@ uint32_t gl_make_program(uint32_t shader1, uint32_t shader2) {
   return program;
 }
 
-uint32_t gl_load_program(const char *path1, const char *path2) {
-  uint32_t shader1 = gl_load_shader(GL_VERTEX_SHADER, path1),
-           shader2 = gl_load_shader(GL_FRAGMENT_SHADER, path2),
-           program = gl_make_program(shader1, shader2);
+GLuint gl_load_program(const char *path1, const char *path2) {
+  GLuint shader1 = gl_load_shader(GL_VERTEX_SHADER, path1),
+    shader2 = gl_load_shader(GL_FRAGMENT_SHADER, path2),
+    program = gl_make_program(shader1, shader2);
   return program;
 }
 
@@ -341,7 +341,7 @@ void gl_render_chunk(const Chunk *const chunk) {
   // also, remove magic numbers, like 6
 
   // draw chunk
-  uint32_t vertexArrayID;
+  GLuint vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
   glBindVertexArray(vertexArrayID);
   glBindBuffer(GL_ARRAY_BUFFER, chunk->buffer);
@@ -362,8 +362,8 @@ void gl_render_chunk(const Chunk *const chunk) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_draw_triangles_3d_text(uint32_t buffer, int count) {
-  uint32_t vertexArrayID;
+void gl_draw_triangles_3d_text(GLuint buffer, int count) {
+  GLuint vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
   glBindVertexArray(vertexArrayID);
 
@@ -420,7 +420,7 @@ void gl_render_sign(const float *const matrix, int x, int y, int z, int face) {
   text[MAX_SIGN_LENGTH - 1] = '\0';
   float *data = malloc_faces(5, (int)strlen(text));
   int length = _gen_sign_buffer(data, (float)x, (float)y, (float)z, face, text);
-  uint32_t buffer = gl_gen_faces(5, length, data);
+  GLuint buffer = gl_gen_faces(5, length, data);
 
   // draw sign
   glEnable(GL_POLYGON_OFFSET_FILL);
@@ -455,7 +455,7 @@ void gl_render_player(const Player *const other_player) {
   // also, remove magic numbers, like 36
 
   // draw player
-  uint32_t vertexArrayID;
+  GLuint vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
   glBindVertexArray(vertexArrayID);
   glBindBuffer(GL_ARRAY_BUFFER, other_player->buffer);
@@ -476,7 +476,7 @@ void gl_render_player(const Player *const other_player) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_sky(uint32_t buffer, const float *const matrix) {
+void gl_render_sky(GLuint buffer, const float *const matrix) {
   glUseProgram(sky_attrib.program);
   glUniformMatrix4fv(sky_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -492,7 +492,7 @@ void gl_render_sky(uint32_t buffer, const float *const matrix) {
   // 4) draw arrays 5) cleanup
   // TODO - remove magic numbers, like 512 * 3
 
-  uint32_t vertexArrayID;
+  GLuint vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
   glBindVertexArray(vertexArrayID);
 
@@ -530,9 +530,9 @@ void gl_render_sky(uint32_t buffer, const float *const matrix) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_draw_lines(uint32_t buffer, int components, int count) {
+void gl_draw_lines(GLuint buffer, int components, int count) {
 
-  uint32_t vertexArrayID;
+  GLuint vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
   glBindVertexArray(vertexArrayID);
 
@@ -552,7 +552,7 @@ void gl_render_wireframe(const float *const matrix, int hx, int hy, int hz) {
   glLineWidth(1);
   glEnable(GL_COLOR_LOGIC_OP);
   glUniformMatrix4fv(line_attrib.matrix, 1, GL_FALSE, matrix);
-  uint32_t wireframe_buffer;
+  GLuint wireframe_buffer;
   {
     // initilize wireframe_buffer
     float data[72];
@@ -575,7 +575,7 @@ void gl_render_text(const float *const matrix, int justify, float x, float y,
   glUniform1i(text_attrib.is_sign, 0);
   int length = (int)strlen(text);
   x -= n * justify * (length - 1) / 2;
-  uint32_t text_buffer;
+  GLuint text_buffer;
   {
     // initialize text_buffer
     const int length = (int)strlen(text);
@@ -590,7 +590,7 @@ void gl_render_text(const float *const matrix, int justify, float x, float y,
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  uint32_t vertexArrayID;
+  GLuint vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
   glBindVertexArray(vertexArrayID);
 
@@ -624,8 +624,8 @@ void gl_render_item(const float *const matrix) {
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
-void gl_render_plant(uint32_t plant_buffer) {
-  uint32_t vertexArrayID;
+void gl_render_plant(GLuint plant_buffer) {
+  GLuint vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
   glBindVertexArray(vertexArrayID);
   glBindBuffer(GL_ARRAY_BUFFER, plant_buffer);
@@ -646,7 +646,7 @@ void gl_render_plant(uint32_t plant_buffer) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_cube(uint32_t cube_buffer) {
+void gl_render_cube(GLuint cube_buffer) {
   // TODO -
   // make and initilize the VAO once at initilization time.
   // only thing that should happen here
@@ -655,7 +655,7 @@ void gl_render_cube(uint32_t cube_buffer) {
   // 4) draw arrays 5) cleanup
   // also, remove magic numbers, like 36
 
-  uint32_t vertexArrayID;
+  GLuint vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
   glBindVertexArray(vertexArrayID);
   glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
@@ -676,7 +676,7 @@ void gl_render_cube(uint32_t cube_buffer) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_crosshairs(uint32_t crosshair_buffer,
+void gl_render_crosshairs(GLuint crosshair_buffer,
                           const float *const matrix) {
   glUseProgram(line_attrib.program);
   // TODO -

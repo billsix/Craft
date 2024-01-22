@@ -23,8 +23,8 @@
 #ifndef _gl_render_h_
 #define _gl_render_h_
 
-void gl_viewport(uint32_t x_min, uint32_t y_min, uint32_t x_width,
-                 uint32_t y_width);
+void gl_viewport(GLint x_min, GLint y_min, GLsizei x_width,
+                 GLsizei y_width);
 
 void gl_clear_depth_buffer();
 void gl_clear_color_buffer();
@@ -32,16 +32,16 @@ void gl_clear_color_buffer();
 void gl_enable_scissor_test();
 void gl_disable_scissor_test();
 
-void gl_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width,
-                uint32_t y_height);
+void gl_scissor(GLint x_min, GLint y_min, GLsizei x_width,
+                GLsizei y_height);
 
-uint32_t gl_gen_buffer(size_t size, const float *const data);
+GLuint gl_gen_buffer(size_t size, const float *const data);
 void gl_del_buffer(uint32_t buffer);
-uint32_t gl_gen_faces(int components, int faces, float *data);
-uint32_t gl_make_shader(uint32_t type, const char *source);
-uint32_t gl_load_shader(uint32_t type, const char *path);
-uint32_t gl_make_program(uint32_t shader1, uint32_t shader2);
-uint32_t gl_load_program(const char *path1, const char *path2);
+GLuint gl_gen_faces(int components, int faces, float *data);
+GLuint gl_make_shader(GLenum type, const char *const source);
+GLuint gl_load_shader(GLenum type, const char *const path);
+GLuint gl_make_program(GLuint shader1, GLuint shader2);
+GLuint gl_load_program(const char *path1, const char *path2);
 void gl_load_png_texture(const char *file_name);
 
 int gl_graphics_loader_init();
@@ -54,7 +54,7 @@ void gl_setup_render_chunks(
 
 void gl_render_chunk(const Chunk *const chunk);
 
-void gl_draw_triangles_3d_text(uint32_t buffer, int count);
+void gl_draw_triangles_3d_text(GLuint buffer, int count);
 
 void gl_setup_render_signs(const float *const matrix);
 
@@ -68,9 +68,9 @@ void gl_setup_render_players(
 
 void gl_render_player(const Player *const other_player);
 
-void gl_render_sky(uint32_t buffer, const float *const matrix);
+void gl_render_sky(GLuint buffer, const float *const matrix);
 
-void gl_draw_lines(uint32_t buffer, int components, int count);
+void gl_draw_lines(GLuint buffer, int components, int count);
 
 void gl_render_wireframe(const float *const matrix, int hx, int hy, int hz);
 
@@ -79,10 +79,10 @@ void gl_render_text(const float *const matrix, int justify, float x, float y,
 
 void gl_render_item(const float *const matrix);
 
-void gl_render_plant(uint32_t plant_buffer);
+void gl_render_plant(GLuint plant_buffer);
 
-void gl_render_cube(uint32_t cube_buffer);
+void gl_render_cube(GLuint cube_buffer);
 
-void gl_render_crosshairs(uint32_t crosshair_buffer, const float *const matrix);
+void gl_render_crosshairs(GLuint crosshair_buffer, const float *const matrix);
 
 #endif
