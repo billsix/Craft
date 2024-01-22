@@ -784,8 +784,6 @@ void generate_chunk(Chunk *const chunk, WorkerItem *const item) {
   chunk->faces = item->faces;
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
   gl_del_buffer(chunk->buffer);
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
   chunk->buffer = gl_gen_faces(10, item->faces, item->data);
 #endif
 
@@ -810,8 +808,6 @@ void generate_chunk(Chunk *const chunk, WorkerItem *const item) {
 
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
   gl_del_buffer(chunk->sign_buffer);
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
   chunk->sign_buffer = gl_gen_faces(5, faces, data);
 #endif
   chunk->sign_faces = faces;
@@ -931,8 +927,6 @@ void delete_chunks() {
       sign_list_free(&chunk->signs);
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
       gl_del_buffer(chunk->buffer);
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
       gl_del_buffer(chunk->sign_buffer);
 #endif
       Chunk *other_chunk = g->chunks + (--count);
@@ -950,8 +944,6 @@ void delete_all_chunks() {
     sign_list_free(&chunk->signs);
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
     gl_del_buffer(chunk->buffer);
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
     gl_del_buffer(chunk->sign_buffer);
 #endif
   }
@@ -2418,13 +2410,7 @@ int initialize_craft(int argc, char **argv) {
     if (-1 == gl_graphics_loader_init()) {
       return -1;
     }
-#endif
-
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
     gl_initiliaze_global_state();
-#endif
-
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
     gl_initiliaze_textures();
 #endif
 
@@ -2643,8 +2629,6 @@ int main(int argc, char **argv) {
 
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
       gl_clear_color_buffer();
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
       gl_clear_depth_buffer();
 #endif
       if (do_render_sky) {
@@ -2818,20 +2802,10 @@ int main(int argc, char **argv) {
 
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
         gl_enable_scissor_test();
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
         gl_scissor(g->width - sw - offset + pad, offset - pad, sw, sh);
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
         gl_clear_color_buffer();
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
         gl_disable_scissor_test();
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
         gl_clear_depth_buffer();
-#endif
-#ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
         gl_viewport(g->width - pw - offset, offset, pw, ph);
 #endif
 
