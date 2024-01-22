@@ -60,8 +60,7 @@ Line_Attributes line_attrib;
 Text_Attributes text_attrib;
 Sky_Attributes sky_attrib;
 
-void gl_viewport(GLint x_min, GLint y_min, GLsizei x_width,
-                 GLsizei y_width) {
+void gl_viewport(GLint x_min, GLint y_min, GLsizei x_width, GLsizei y_width) {
   glViewport(x_min, y_min, x_width, y_width);
 }
 
@@ -73,8 +72,7 @@ void gl_enable_scissor_test() { glEnable(GL_SCISSOR_TEST); }
 
 void gl_disable_scissor_test() { glDisable(GL_SCISSOR_TEST); }
 
-void gl_scissor(GLint x_min, GLint y_min, GLsizei x_width,
-                GLsizei y_height) {
+void gl_scissor(GLint x_min, GLint y_min, GLsizei x_width, GLsizei y_height) {
   glScissor(x_min, y_min, x_width, y_height);
 }
 
@@ -144,8 +142,8 @@ GLuint gl_make_program(GLuint shader1, GLuint shader2) {
 
 GLuint gl_load_program(const char *path1, const char *path2) {
   GLuint shader1 = gl_load_shader(GL_VERTEX_SHADER, path1),
-    shader2 = gl_load_shader(GL_FRAGMENT_SHADER, path2),
-    program = gl_make_program(shader1, shader2);
+         shader2 = gl_load_shader(GL_FRAGMENT_SHADER, path2),
+         program = gl_make_program(shader1, shader2);
   return program;
 }
 
@@ -172,26 +170,26 @@ void GLAPIENTRY GLMessageCallback(GLenum source, GLenum type, GLuint id,
   char severity_name[100];
   memset(&severity_name, 0, sizeof(char) * sizeof(severity_name));
   switch (severity) {
-  case GL_DEBUG_SEVERITY_HIGH: {
-    const char name[] = "SEVERITY HIGH";
-    strncpy(severity_name, name, strlen(name));
-    break;
-  }
-  case GL_DEBUG_SEVERITY_MEDIUM: {
-    const char name[] = "SEVERITY MED";
-    strncpy(severity_name, name, strlen(name));
-    break;
-  }
-  case GL_DEBUG_SEVERITY_LOW: {
-    const char name[] = "SEVERITY LOW";
-    strncpy(severity_name, name, strlen(name));
-    break;
-  }
-  case GL_DEBUG_SEVERITY_NOTIFICATION: {
-    const char name[] = "SEVERITY NOTIFICATION";
-    strncpy(severity_name, name, strlen(name));
-    break;
-  }
+    case GL_DEBUG_SEVERITY_HIGH: {
+      const char name[] = "SEVERITY HIGH";
+      strncpy(severity_name, name, strlen(name));
+      break;
+    }
+    case GL_DEBUG_SEVERITY_MEDIUM: {
+      const char name[] = "SEVERITY MED";
+      strncpy(severity_name, name, strlen(name));
+      break;
+    }
+    case GL_DEBUG_SEVERITY_LOW: {
+      const char name[] = "SEVERITY LOW";
+      strncpy(severity_name, name, strlen(name));
+      break;
+    }
+    case GL_DEBUG_SEVERITY_NOTIFICATION: {
+      const char name[] = "SEVERITY NOTIFICATION";
+      strncpy(severity_name, name, strlen(name));
+      break;
+    }
   }
   fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = %s, message = %s\n",
           (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type,
@@ -199,7 +197,7 @@ void GLAPIENTRY GLMessageCallback(GLenum source, GLenum type, GLuint id,
 }
 
 int gl_graphics_loader_init() {
-  int return_code = -1; // error
+  int return_code = -1;  // error
   if (gl3wInit()) {
     goto exit;
   }
@@ -531,7 +529,6 @@ void gl_render_sky(GLuint buffer, const float *const matrix) {
 }
 
 void gl_draw_lines(GLuint buffer, int components, int count) {
-
   GLuint vertexArrayID;
   glGenVertexArrays(1, &vertexArrayID);
   glBindVertexArray(vertexArrayID);
@@ -676,8 +673,7 @@ void gl_render_cube(GLuint cube_buffer) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_crosshairs(GLuint crosshair_buffer,
-                          const float *const matrix) {
+void gl_render_crosshairs(GLuint crosshair_buffer, const float *const matrix) {
   glUseProgram(line_attrib.program);
   // TODO -
   //  do something with this, remove it, etc

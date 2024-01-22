@@ -102,7 +102,7 @@ typedef struct {
   int x;
   int y;
   int z;
-  int w; // cartesian x y z need to be divided by the w,
+  int w;  // cartesian x y z need to be divided by the w,
   // because this is in homogeneous coordinates
 } Block;
 

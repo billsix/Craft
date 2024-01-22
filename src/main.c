@@ -89,8 +89,6 @@ bool do_render_cube = true;
 bool do_render_crosshairs = true;
 bool enable_ambient_occlusion = true;
 
-
-
 int chunked(float x) { return floorf(roundf(x) / CHUNK_SIZE); }
 
 float time_of_day() {
@@ -201,7 +199,7 @@ Player *player_crosshair(Player *player) {
     }
 
     float player_crosshair_distance;
-    { // initialize player crosshair distance
+    {  // initialize player crosshair distance
       PositionAndOrientation *positionAndOrientation1 =
                                  &player->positionAndOrientation,
                              *positionAndOrientation2 =
@@ -508,8 +506,8 @@ void dirty_chunk(Chunk *const chunk) {
 #define XZ_LO (CHUNK_SIZE)
 #define XZ_HI (CHUNK_SIZE * 2 + 1)
 #define Y_SIZE 258
-#define XYZ(x, y, z) ((y)*XZ_SIZE * XZ_SIZE + (x)*XZ_SIZE + (z))
-#define XZ(x, z) ((x)*XZ_SIZE + (z))
+#define XYZ(x, y, z) ((y) * XZ_SIZE * XZ_SIZE + (x) * XZ_SIZE + (z))
+#define XZ(x, z) ((x) * XZ_SIZE + (z))
 
 void light_fill(const char *const opaque, char *light, int x, int y, int z,
                 int w, int force) {
@@ -2050,7 +2048,6 @@ void handle_orientation_input() {
 
     // handle controller input
     {
-
       // get input from controller 1
       int count;
       const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
@@ -2093,22 +2090,14 @@ void handle_movement(double dt) {
     float m = dt * 1.0;
     g->ortho = glfwGetKey(g->window, CRAFT_KEY_ORTHO) ? 64 : 0;
     g->fov = glfwGetKey(g->window, CRAFT_KEY_ZOOM) ? 15 : 65;
-    if (glfwGetKey(g->window, CRAFT_KEY_FORWARD))
-      sz--;
-    if (glfwGetKey(g->window, CRAFT_KEY_BACKWARD))
-      sz++;
-    if (glfwGetKey(g->window, CRAFT_KEY_LEFT))
-      sx--;
-    if (glfwGetKey(g->window, CRAFT_KEY_RIGHT))
-      sx++;
-    if (glfwGetKey(g->window, GLFW_KEY_LEFT))
-      positionAndOrientation->rx -= m;
-    if (glfwGetKey(g->window, GLFW_KEY_RIGHT))
-      positionAndOrientation->rx += m;
-    if (glfwGetKey(g->window, GLFW_KEY_UP))
-      positionAndOrientation->ry += m;
-    if (glfwGetKey(g->window, GLFW_KEY_DOWN))
-      positionAndOrientation->ry -= m;
+    if (glfwGetKey(g->window, CRAFT_KEY_FORWARD)) sz--;
+    if (glfwGetKey(g->window, CRAFT_KEY_BACKWARD)) sz++;
+    if (glfwGetKey(g->window, CRAFT_KEY_LEFT)) sx--;
+    if (glfwGetKey(g->window, CRAFT_KEY_RIGHT)) sx++;
+    if (glfwGetKey(g->window, GLFW_KEY_LEFT)) positionAndOrientation->rx -= m;
+    if (glfwGetKey(g->window, GLFW_KEY_RIGHT)) positionAndOrientation->rx += m;
+    if (glfwGetKey(g->window, GLFW_KEY_UP)) positionAndOrientation->ry += m;
+    if (glfwGetKey(g->window, GLFW_KEY_DOWN)) positionAndOrientation->ry -= m;
     // handle controller input
     {
       // get input from controller 1
@@ -2182,7 +2171,7 @@ void handle_movement(double dt) {
     positionAndOrientation->x += vx;
     positionAndOrientation->y += vy + dy * ut;
     positionAndOrientation->z += vz;
-    int collide = 0; // false
+    int collide = 0;  // false
     {
       // set collide to true, TODO explain
       // why it would be set to true
@@ -2284,7 +2273,7 @@ void parse_buffer(char *buffer) {
         player->id = pid;
         player->buffer = 0;
         snprintf(player->name, MAX_NAME_LENGTH, "player%d", pid);
-        update_player(player, px, py, pz, prx, pry, 1); // twice
+        update_player(player, px, py, pz, prx, pry, 1);  // twice
       }
       if (player) {
         update_player(player, px, py, pz, prx, pry, 1);
@@ -2374,7 +2363,6 @@ int initialize_craft(int argc, char **argv) {
   }
   // create window
   {
-
 #ifdef ENABLE_VULKAN_RENDERER
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     g->window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+Vulkan example",
@@ -2474,7 +2462,6 @@ int initialize_craft(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-
   if (-1 == initialize_craft(argc, argv)) {
     return -1;
   }
@@ -2666,7 +2653,7 @@ int main(int argc, char **argv) {
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
       gl_clear_depth_buffer();
 #endif
-      int face_count = 0; // default value
+      int face_count = 0;  // default value
       if (do_render_chunks) {
         face_count = render_chunks(player);
       }

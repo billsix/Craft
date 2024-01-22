@@ -23,8 +23,7 @@
 #ifndef _gl_render_h_
 #define _gl_render_h_
 
-void gl_viewport(GLint x_min, GLint y_min, GLsizei x_width,
-                 GLsizei y_width);
+void gl_viewport(GLint x_min, GLint y_min, GLsizei x_width, GLsizei y_width);
 
 void gl_clear_depth_buffer();
 void gl_clear_color_buffer();
@@ -32,8 +31,7 @@ void gl_clear_color_buffer();
 void gl_enable_scissor_test();
 void gl_disable_scissor_test();
 
-void gl_scissor(GLint x_min, GLint y_min, GLsizei x_width,
-                GLsizei y_height);
+void gl_scissor(GLint x_min, GLint y_min, GLsizei x_width, GLsizei y_height);
 
 GLuint gl_gen_buffer(GLsizei size, const float *const data);
 void gl_del_buffer(GLuint buffer);

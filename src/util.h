@@ -24,8 +24,8 @@
 #define _util_h_
 
 #define PI 3.14159265359
-#define DEGREES(radians) ((radians)*180 / PI)
-#define RADIANS(degrees) ((degrees)*PI / 180)
+#define DEGREES(radians) ((radians) * 180 / PI)
+#define RADIANS(degrees) ((degrees) * PI / 180)
 #define ABS(x) ((x) < 0 ? (-(x)) : (x))
 #define MIN_NUMBER(a, b) ((a) < (b) ? (a) : (b))
 #define MAX_NUMBER(a, b) ((a) > (b) ? (a) : (b))

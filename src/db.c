@@ -139,41 +139,29 @@ int db_init(char *path) {
       "values (?, ?, ?);";
   int rc;
   rc = sqlite3_open(path, &db);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_exec(db, create_query, NULL, NULL, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, insert_block_query, -1, &insert_block_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, insert_light_query, -1, &insert_light_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, insert_sign_query, -1, &insert_sign_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, delete_sign_query, -1, &delete_sign_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, delete_signs_query, -1, &delete_signs_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, load_blocks_query, -1, &load_blocks_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, load_lights_query, -1, &load_lights_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, load_signs_query, -1, &load_signs_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, get_key_query, -1, &get_key_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   rc = sqlite3_prepare_v2(db, set_key_query, -1, &set_key_stmt, NULL);
-  if (rc)
-    return rc;
+  if (rc) return rc;
   sqlite3_exec(db, "begin;", NULL, NULL, NULL);
   db_worker_start();
   return 0;
@@ -255,8 +243,9 @@ int db_auth_get(char *username, char *identity_token,
   if (!db_enabled) {
     return 0;
   }
-  static const char *const query = "select token from auth.identity_token "
-                                   "where username = ?;";
+  static const char *const query =
+      "select token from auth.identity_token "
+      "where username = ?;";
   int result = 0;
   sqlite3_stmt *stmt;
   sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
@@ -543,21 +532,21 @@ int db_worker_run(void *arg) {
     }
     mtx_unlock(&mtx);
     switch (e.type) {
-    case BLOCK:
-      _db_insert_block(e.p, e.q, e.x, e.y, e.z, e.w);
-      break;
-    case LIGHT:
-      _db_insert_light(e.p, e.q, e.x, e.y, e.z, e.w);
-      break;
-    case KEY:
-      _db_set_key(e.p, e.q, e.key);
-      break;
-    case COMMIT:
-      _db_commit();
-      break;
-    case EXIT:
-      running = 0;
-      break;
+      case BLOCK:
+        _db_insert_block(e.p, e.q, e.x, e.y, e.z, e.w);
+        break;
+      case LIGHT:
+        _db_insert_light(e.p, e.q, e.x, e.y, e.z, e.w);
+        break;
+      case KEY:
+        _db_set_key(e.p, e.q, e.key);
+        break;
+      case COMMIT:
+        _db_commit();
+        break;
+      case EXIT:
+        running = 0;
+        break;
     }
   }
   return 0;
