@@ -87,7 +87,7 @@ GLuint gl_gen_buffer(GLsizei size, const float *const data) {
   return buffer;
 }
 
-void gl_del_buffer(uint32_t buffer) { glDeleteBuffers(1, &buffer); }
+void gl_del_buffer(GLuint buffer) { glDeleteBuffers(1, &buffer); }
 
 GLuint gl_gen_faces(int components, int faces, float *data) {
   GLuint buffer = gl_gen_buffer(sizeof(float) * 6 * components * faces, data);

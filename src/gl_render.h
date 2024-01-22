@@ -35,8 +35,8 @@ void gl_disable_scissor_test();
 void gl_scissor(GLint x_min, GLint y_min, GLsizei x_width,
                 GLsizei y_height);
 
-GLuint gl_gen_buffer(size_t size, const float *const data);
-void gl_del_buffer(uint32_t buffer);
+GLuint gl_gen_buffer(GLsizei size, const float *const data);
+void gl_del_buffer(GLuint buffer);
 GLuint gl_gen_faces(int components, int faces, float *data);
 GLuint gl_make_shader(GLenum type, const char *const source);
 GLuint gl_load_shader(GLenum type, const char *const path);

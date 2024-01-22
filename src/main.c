@@ -1457,7 +1457,7 @@ void render_players(Player *player) {
   }
 }
 
-void render_sky(Player *player, GLUint buffer) {
+void render_sky(Player *player, GLuint buffer) {
   PositionAndOrientation *positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
