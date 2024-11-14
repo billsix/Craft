@@ -571,19 +571,19 @@ SPDX-License-Identifier: curl
 
  Curl supports encrypted fetches when built to use a TLS library and it can be
  built to use one out of a fairly large set of libraries - `curl -V` shows
- which one your curl was built to use (if any!). To get a page from an HTTPS
+ which one your curl was built to use (if any). To get a page from an HTTPS
  server, simply run curl like:
 
     curl https://secure.example.com
 
 ## Certificates
 
- In the HTTPS world, you use certificates to validate that you are the one
- you claim to be, as an addition to normal passwords. Curl supports client-
- side certificates. All certificates are locked with a pass phrase, which you
- need to enter before the certificate can be used by curl. The pass phrase
- can be specified on the command line or if not, entered interactively when
- curl queries for it. Use a certificate with curl on an HTTPS server like:
+ In the HTTPS world, you use certificates to validate that you are the one you
+ claim to be, as an addition to normal passwords. Curl supports client- side
+ certificates. All certificates are locked with a passphrase, which you need
+ to enter before the certificate can be used by curl. The passphrase can be
+ specified on the command line or if not, entered interactively when curl
+ queries for it. Use a certificate with curl on an HTTPS server like:
 
     curl --cert mycert.pem https://secure.example.com
 

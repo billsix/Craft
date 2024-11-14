@@ -3,9 +3,9 @@ c: Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
 SPDX-License-Identifier: curl
 Long: ech
 Arg: <config>
-Help: Configure Encrypted Client Hello (ECH) for use with the TLS session
+Help: Configure ECH
 Added: 8.8.0
-Category: tls ECH
+Category: tls
 Protocols: HTTPS
 Multi: single
 See-also:
@@ -20,7 +20,8 @@ Specifies how to do ECH (Encrypted Client Hello).
 
 The values allowed for \<config\> can be:
 
-## "false"
+## "false" (default)
+
 Do not attempt ECH
 
 ## "grease"

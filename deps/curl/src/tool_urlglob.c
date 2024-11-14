@@ -23,8 +23,6 @@
  ***************************************************************************/
 #include "tool_setup.h"
 
-#define ENABLE_CURLX_PRINTF
-/* use our own printf() functions */
 #include "curlx.h"
 #include "tool_cfgable.h"
 #include "tool_doswin.h"
@@ -80,7 +78,7 @@ static int multiply(curl_off_t *amount, curl_off_t with)
 #else
     sum = *amount * with;
     if(sum/with != *amount)
-      return 1; /* didn't fit, bail out */
+      return 1; /* did not fit, bail out */
 #endif
   }
   *amount = sum;
@@ -123,7 +121,7 @@ static CURLcode glob_set(struct URLGlob *glob, char **patternp,
         return GLOBERROR("empty string within braces", *posp,
                          CURLE_URL_MALFORMAT);
 
-      /* add 1 to size since it'll be incremented below */
+      /* add 1 to size since it will be incremented below */
       if(multiply(amount, pat->content.Set.size + 1))
         return GLOBERROR("range overflow", 0, CURLE_URL_MALFORMAT);
 
@@ -495,7 +493,7 @@ CURLcode glob_url(struct URLGlob **glob, char *url, curl_off_t *urlnum,
       fprintf(error, "curl: (%d) %s\n", res, t);
     }
     /* it failed, we cleanup */
-    glob_cleanup(glob_expand);
+    glob_cleanup(&glob_expand);
     *urlnum = 1;
     return res;
   }
@@ -504,10 +502,11 @@ CURLcode glob_url(struct URLGlob **glob, char *url, curl_off_t *urlnum,
   return CURLE_OK;
 }
 
-void glob_cleanup(struct URLGlob *glob)
+void glob_cleanup(struct URLGlob **globp)
 {
   size_t i;
   curl_off_t elem;
+  struct URLGlob *glob = *globp;
 
   if(!glob)
     return;
@@ -525,6 +524,7 @@ void glob_cleanup(struct URLGlob *glob)
   }
   Curl_safefree(glob->glob_buffer);
   Curl_safefree(glob);
+  *globp = NULL;
 }
 
 CURLcode glob_next_url(char **globbed, struct URLGlob *glob)
@@ -647,7 +647,7 @@ CURLcode glob_match_url(char **result, char *filename, struct URLGlob *glob)
         unsigned long i;
         num--; /* make it zero based */
         /* find the correct glob entry */
-        for(i = 0; i<glob->size; i++) {
+        for(i = 0; i < glob->size; i++) {
           if(glob->pattern[i].globindex == (int)num) {
             pat = &glob->pattern[i];
             break;
