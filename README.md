@@ -62,10 +62,10 @@ terminal.
     mkdir Craft
     cd Craft
     git clone https://github.com/fogleman/Craft.git
-    ./buildDebug.sh
-    # this will also launch craft,
-    # if you want to debug it through a debugger, look at the build script
-    # to see where craft is
+    export CC=clang
+    export CXX=clang++
+    make debug
+    ./debugBuildInstall/bin/craft
 
 ### Multiplayer
 

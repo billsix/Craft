@@ -8,25 +8,25 @@ all: clean image html ## Build the debug and release versions
 clean: ## delete all non-version controlled files
 	git clean -fdx .
 
+
 .PHONY: debug
 debug: ## build Craft in debug mode
-	mkdir debugBuild
-	mkdir debugBuildInstall
-	cd debugBuild && \
-		cmake -DCMAKE_INSTALL_PREFIX=../debugBuildInstall -DENABLE_VULKAN_RENDERER=NO \
-		-DENABLE_OPENGL_CORE_PROFILE_RENDERER=YES -DCMAKE_BUILD_TYPE=Debug ../ && \
-		cmake --build  . --target all && \
-		cmake --build  . --target install
+	mkdir -p debugBuild
+	mkdir -p debugBuildInstall
+	cmake -DCMAKE_INSTALL_PREFIX=./debugBuildInstall -DENABLE_VULKAN_RENDERER=NO \
+	-DENABLE_OPENGL_CORE_PROFILE_RENDERER=YES -DCMAKE_BUILD_TYPE=Debug -S. -BdebugBuild
+	cmake --build debugBuild
+	cmake --install debugBuild
 
 
 .PHONY: release
 release: ## build Craft in release mode
-	mkdir releaseBuild
-	mkdir releaseBuildInstall
-	cd releaseBuild && \
-		cmake -DCMAKE_INSTALL_PREFIX=../releaseBuildInstall -DCMAKE_BUILD_TYPE=Release ../ && \
-		cmake --build  . --target all && \
-		cmake --build  . --target install
+	mkdir -p releaseBuild
+	mkdir -p releaseBuildInstall
+	cmake -DCMAKE_INSTALL_PREFIX=./releaseBuildInstall  -DENABLE_VULKAN_RENDERER=NO \
+	-DENABLE_OPENGL_CORE_PROFILE_RENDERER=YES -DCMAKE_BUILD_TYPE=Release  -S. -BreleaseBuild
+	cmake --build releaseBuild
+	cmake --install releaseBuild
 
 
 .PHONY: help
