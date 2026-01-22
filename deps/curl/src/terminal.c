@@ -29,8 +29,6 @@
 
 #include "terminal.h"
 
-#include "memdebug.h" /* keep this as LAST include */
-
 #ifdef HAVE_TERMIOS_H
 #  include <termios.h>
 #elif defined(HAVE_TERMIO_H)
@@ -47,10 +45,9 @@ unsigned int get_terminal_columns(void)
   unsigned int width = 0;
   char *colp = curl_getenv("COLUMNS");
   if(colp) {
-    char *endptr;
-    long num = strtol(colp, &endptr, 10);
-    if((endptr != colp) && (endptr == colp + strlen(colp)) && (num > 20) &&
-       (num < 10000))
+    curl_off_t num;
+    const char *p = colp;
+    if(!curlx_str_number(&p, &num, 10000) && (num > 20))
       width = (unsigned int)num;
     curl_free(colp);
   }
@@ -68,7 +65,7 @@ unsigned int get_terminal_columns(void)
       cols = (int)ts.ws_col;
 #elif defined(_WIN32) && !defined(CURL_WINDOWS_UWP)
     {
-      HANDLE  stderr_hnd = GetStdHandle(STD_ERROR_HANDLE);
+      HANDLE stderr_hnd = GetStdHandle(STD_ERROR_HANDLE);
       CONSOLE_SCREEN_BUFFER_INFO console_info;
 
       if((stderr_hnd != INVALID_HANDLE_VALUE) &&
@@ -77,8 +74,7 @@ unsigned int get_terminal_columns(void)
          * Do not use +1 to get the true screen-width since writing a
          * character at the right edge will cause a line wrap.
          */
-        cols = (int)
-          (console_info.srWindow.Right - console_info.srWindow.Left);
+        cols = (int)(console_info.srWindow.Right - console_info.srWindow.Left);
       }
     }
 #endif /* TIOCGSIZE */

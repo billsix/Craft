@@ -16,7 +16,7 @@ Added-in: 7.15.2
 
 # NAME
 
-CURLINFO_LASTSOCKET - get the last socket used
+CURLINFO_LASTSOCKET - last socket used
 
 # SYNOPSIS
 
@@ -50,22 +50,22 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     long sockfd; /* does not work on win64 */
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
 
     /* Do not do the transfer - only connect to host */
     curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 1L);
-    res = curl_easy_perform(curl);
-    if(res != CURLE_OK) {
-      printf("Error: %s\n", curl_easy_strerror(res));
+    result = curl_easy_perform(curl);
+    if(result != CURLE_OK) {
+      printf("Error: %s\n", curl_easy_strerror(result));
       curl_easy_cleanup(curl);
       return 1;
     }
 
     /* Extract the socket from the curl handle */
-    res = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &sockfd);
-    if(!res && sockfd != -1) {
+    result = curl_easy_getinfo(curl, CURLINFO_LASTSOCKET, &sockfd);
+    if(!result && sockfd != -1) {
       /* operate on sockfd */
     }
 
@@ -78,4 +78,7 @@ int main(void)
 
 # RETURN VALUE
 
-Returns CURLE_OK if the option is supported, and CURLE_UNKNOWN_OPTION if not.
+curl_easy_getinfo(3) returns a CURLcode indicating success or error.
+
+CURLE_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).

@@ -62,14 +62,15 @@ CURLWWW="${CURLWWW:-../curl-www}"
       git -C "$CURLWWW" log --pretty=full --use-mailmap "$start..HEAD"
     fi
   } | \
-  grep -Eai '(^Author|^Commit|by):' | \
+  grep -Eai '(^Author|^Commit|^ +[a-z-]+-by):' | \
   cut -d: -f2- | \
   cut '-d(' -f1 | \
   cut '-d<' -f1 | \
   tr , '\012' | \
-  sed 's/ at github/ on github/' | \
+  sed 's/ at github/ on github/i' | \
+  sed 's/on github/on github/i' | \
   sed 's/ and /\n/' | \
-  sed -e 's/^ *//' -e 's/ $//g' -e 's/@users.noreply.github.com$/ on github/'
+  sed -e 's/^ *//' -e 's/ $//g' -e 's/@users.noreply.github.com$/ on github/i'
 
   grep -a "^  [^ \(]" RELEASE-NOTES| \
   sed 's/, */\n/g'| \

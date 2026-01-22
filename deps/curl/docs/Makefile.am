@@ -28,17 +28,23 @@ if BUILD_DOCS
 # if we disable man page building, ignore these
 MK_CA_DOCS = mk-ca-bundle.1
 CURLCONF_DOCS = curl-config.1
-man_MANS = curl-config.1
+TEST_DOCS = runtests.1 testcurl.1
+man_MANS = curl-config.1 wcurl.1
 endif
 
-CURLPAGES = curl-config.md mk-ca-bundle.md
+CURLPAGES = curl-config.md mk-ca-bundle.md wcurl.md runtests.md testcurl.md
 
 SUBDIRS = . cmdline-opts libcurl
 DIST_SUBDIRS = $(SUBDIRS) examples
 
 if BUILD_DOCS
-CLEANFILES = mk-ca-bundle.1 curl-config.1
+CLEANFILES = $(MK_CA_DOCS) $(man_MANS) $(TEST_DOCS)
 endif
+
+TESTDOCS =                                      \
+ tests/FILEFORMAT.md                            \
+ tests/HTTP.md                                  \
+ tests/TEST-SUITE.md
 
 INTERNALDOCS =                                  \
  internals/BUFQ.md                              \
@@ -48,19 +54,29 @@ INTERNALDOCS =                                  \
  internals/CLIENT-WRITERS.md                    \
  internals/CODE_STYLE.md                        \
  internals/CONNECTION-FILTERS.md                \
+ internals/CURLX.md                             \
  internals/DYNBUF.md                            \
  internals/HASH.md                              \
- internals/HYPER.md                             \
  internals/LLIST.md                             \
+ internals/MID.md                               \
  internals/MQTT.md                              \
+ internals/MULTI-EV.md                          \
  internals/NEW-PROTOCOL.md                      \
+ internals/PORTING.md                           \
+ internals/RATELIMITS.md                        \
  internals/README.md                            \
+ internals/SCORECARD.md                         \
  internals/SPLAY.md                             \
+ internals/STRPARSE.md                          \
+ internals/TIME-KEEPING.md                      \
+ internals/TLS-SESSIONS.md                      \
+ internals/UINT_SETS.md                         \
  internals/WEBSOCKET.md
 
 EXTRA_DIST =                                    \
  $(CURLPAGES)                                   \
  $(INTERNALDOCS)                                \
+ $(TESTDOCS)                                    \
  ALTSVC.md                                      \
  BINDINGS.md                                    \
  BUG-BOUNTY.md                                  \
@@ -78,7 +94,7 @@ EXTRA_DIST =                                    \
  EARLY-RELEASE.md                               \
  ECH.md                                         \
  EXPERIMENTAL.md                                \
- FAQ                                            \
+ FAQ.md                                         \
  FEATURES.md                                    \
  GOVERNANCE.md                                  \
  HELP-US.md                                     \
@@ -86,12 +102,15 @@ EXTRA_DIST =                                    \
  HSTS.md                                        \
  HTTP-COOKIES.md                                \
  HTTP3.md                                       \
+ HTTPSRR.md                                     \
+ INFRASTRUCTURE.md                              \
  INSTALL                                        \
  INSTALL-CMAKE.md                               \
  INSTALL.md                                     \
  INTERNALS.md                                   \
  IPFS.md                                        \
- KNOWN_BUGS                                     \
+ KNOWN_BUGS.md                                  \
+ KNOWN_RISKS.md                                 \
  MAIL-ETIQUETTE.md                              \
  MANUAL.md                                      \
  options-in-versions                            \
@@ -103,7 +122,8 @@ EXTRA_DIST =                                    \
  SPONSORS.md                                    \
  SSL-PROBLEMS.md                                \
  SSLCERTS.md                                    \
- THANKS TODO                                    \
+ THANKS                                         \
+ TODO.md                                        \
  TheArtOfHttpScripting.md                       \
  URL-SYNTAX.md                                  \
  VERSIONS.md                                    \
@@ -118,7 +138,7 @@ CD2_ = $(CD2_0)
 
 SUFFIXES = .1 .md
 
-all: $(MK_CA_DOCS) $(CURLCONF_DOCS)
+all: $(MK_CA_DOCS) $(CURLCONF_DOCS) $(TEST_DOCS)
 
 .md.1:
 	$(CD2)$(CD2NROFF)
@@ -126,6 +146,8 @@ all: $(MK_CA_DOCS) $(CURLCONF_DOCS)
 curl-config.1: curl-config.md
 
 mk-ca-bundle.1: mk-ca-bundle.md
+
+wcurl.1: wcurl.md
 
 distclean:
 	rm -f $(CLEANFILES)

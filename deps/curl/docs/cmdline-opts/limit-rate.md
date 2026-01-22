@@ -15,6 +15,7 @@ Example:
   - --limit-rate 100K $URL
   - --limit-rate 1000 $URL
   - --limit-rate 10M $URL
+  - --limit-rate 200K --max-time 60 $URL
 ---
 
 # `--limit-rate`
@@ -33,5 +34,5 @@ The rate limiting logic works on averaging the transfer speed to no more than
 the set threshold over a period of multiple seconds.
 
 If you also use the --speed-limit option, that option takes precedence and
-might cripple the rate-limiting slightly, to help keeping the speed-limit
+might cripple the rate-limiting slightly, to help keep the speed-limit
 logic working.

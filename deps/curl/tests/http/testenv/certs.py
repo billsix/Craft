@@ -24,15 +24,19 @@
 #
 ###########################################################################
 #
+import base64
 import ipaddress
 import os
 import re
+import shutil
+import subprocess
 from datetime import timedelta, datetime, timezone
 from typing import List, Any, Optional
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives._serialization import PublicFormat
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
@@ -149,6 +153,15 @@ class Credentials:
     def private_key(self) -> Any:
         return self._pkey
 
+    def pub_sha256_b64(self) -> Any:
+        pubkey = self._pkey.public_key()
+        sha256 = hashes.Hash(algorithm=hashes.SHA256())
+        sha256.update(pubkey.public_bytes(
+            encoding=Encoding.DER,
+            format=PublicFormat.SubjectPublicKeyInfo
+        ))
+        return base64.b64encode(sha256.finalize()).decode('utf8')
+
     @property
     def certificate(self) -> Any:
         return self._cert
@@ -189,6 +202,10 @@ class Credentials:
     def combined_file(self) -> Optional[str]:
         return self._combined_file
 
+    @property
+    def hashdir(self) -> Optional[str]:
+        return os.path.join(self._store.path, 'hashdir')
+
     def get_first(self, name) -> Optional['Credentials']:
         creds = self._store.get_credentials_for_name(name) if self._store else []
         return creds[0] if len(creds) else None
@@ -224,6 +241,16 @@ class Credentials:
             subchain.append(self)
             creds.issue_certs(spec.sub_specs, chain=subchain)
         return creds
+
+    def create_hashdir(self, openssl):
+        os.makedirs(self.hashdir, exist_ok=True)
+        p = subprocess.run(args=[
+            openssl, 'x509', '-hash', '-noout', '-in', self.cert_file
+        ], capture_output=True, text=True)
+        if p.returncode != 0:
+            raise Exception(f'openssl failed to compute cert hash: {p}')
+        cert_hname = f'{p.stdout.strip()}.0'
+        shutil.copy(self.cert_file, os.path.join(self.hashdir, cert_hname))
 
 
 class CertStore:
@@ -393,7 +420,7 @@ class TestCA:
             issuer_subject: Optional[Credentials],
             valid_from_delta: Optional[timedelta] = None,
             valid_until_delta: Optional[timedelta] = None
-    ):
+    ) -> x509.CertificateBuilder:
         pubkey = pkey.public_key()
         issuer_subject = issuer_subject if issuer_subject is not None else subject
 
@@ -448,11 +475,15 @@ class TestCA:
     def _add_leaf_usages(csr: Any, domains: List[str], issuer: Credentials) -> Any:
         names = []
         for name in domains:
-            try:
-                names.append(x509.IPAddress(ipaddress.ip_address(name)))
-            # TODO: specify specific exceptions here
-            except:  # noqa: E722
-                names.append(x509.DNSName(name))
+            m = re.match(r'dns:(.+)', name)
+            if m:
+                names.append(x509.DNSName(m.group(1)))
+            else:
+                try:
+                    names.append(x509.IPAddress(ipaddress.ip_address(name)))
+                # TODO: specify specific exceptions here
+                except:  # noqa: E722
+                    names.append(x509.DNSName(name))
 
         return csr.add_extension(
             x509.BasicConstraints(ca=False, path_length=None),

@@ -11,9 +11,8 @@ to and read from. It manages read and write positions and has a maximum size.
 
 ## read/write
 
-Its basic read/write functions have a similar signature and return code handling
-as many internal Curl read and write ones.
-
+Its basic read/write functions have a similar signature and return code
+handling as many internal curl read and write ones.
 
 ```
 ssize_t Curl_bufq_write(struct bufq *q, const unsigned char *buf, size_t len, CURLcode *err);
@@ -75,18 +74,6 @@ void Curl_bufq_skip(struct bufq *q, size_t amount);
 ```
 
 This removes `amount` number of bytes from the `bufq`.
-
-## unwrite
-
-It is possible to undo writes by calling:
-
-```
-CURLcode Curl_bufq_unwrite(struct bufq *q, size_t len);
-```
-
-This will remove `len` bytes from the end of the bufq again. When removing
-more bytes than are present, CURLE_AGAIN is returned and the bufq will be
-empty.
 
 ## lifetime
 
@@ -161,7 +148,6 @@ There is another variation to this. If you initialized a `bufq` with option
 reports **full**, but one can **still** write. This option is necessary, if
 partial writes need to be avoided. It means that you need other checks to keep
 the `bufq` from growing ever larger and larger.
-
 
 ## pools
 

@@ -49,11 +49,11 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode ret;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
-    /* switch off the use of a global, thread unsafe, cache */
+    /* switch off the use of a global, thread-unsafe, cache */
     curl_easy_setopt(curl, CURLOPT_DNS_USE_GLOBAL_CACHE, 0L);
-    ret = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
 }
@@ -68,4 +68,7 @@ Deprecated since 7.11.1. Functionality removed in 7.62.0.
 
 # RETURN VALUE
 
-Returns CURLE_OK if the option is supported, and CURLE_UNKNOWN_OPTION if not.
+curl_easy_setopt(3) returns a CURLcode indicating success or error.
+
+CURLE_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).

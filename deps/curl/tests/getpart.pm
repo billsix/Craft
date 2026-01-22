@@ -33,6 +33,7 @@ BEGIN {
     our @EXPORT = qw(
         compareparts
         fulltest
+        checktest
         getpart
         getpartattr
         loadarray
@@ -44,16 +45,15 @@ BEGIN {
 }
 
 use Memoize;
-use MIME::Base64;
 
 my @xml;      # test data file contents
-my $xmlfile;  # test data file name
+my $xmlfile;  # test data filename
 
 my $warning=0;
 my $trace=0;
 
 # Normalize the part function arguments for proper caching. This includes the
-# file name in the arguments since that is an implied parameter that affects the
+# filename in the arguments since that is an implied parameter that affects the
 # return value.  Any error messages will only be displayed the first time, but
 # those are disabled by default anyway, so should never been seen outside
 # development.
@@ -76,9 +76,10 @@ sub testcaseattr {
     for(@xml) {
         if(($_ =~ /^ *\<testcase ([^>]*)/)) {
             my $attr=$1;
-            while($attr =~ s/ *([^=]*)= *(\"([^\"]*)\"|([^\> ]*))//) {
+            while($attr =~ s/ *([^=]*)= *(\"([^\"]*)\"|\'([^\']*)\')//) {
                 my ($var, $cont)=($1, $2);
                 $cont =~ s/^\"(.*)\"$/$1/;
+                $cont =~ s/^\'(.*)\'$/$1/;
                 $hash{$var}=$cont;
             }
         }
@@ -102,24 +103,25 @@ sub getpartattr {
         if(!$inside && ($_ =~ /^ *\<$section/)) {
             $inside++;
         }
-        if((1 ==$inside) && ( ($_ =~ /^ *\<$part ([^>]*)/) ||
-                              !(defined($part)) )
+        if((1 == $inside) && (($_ =~ /^ *\<$part ([^>]*)/) ||
+                              !(defined($part)))
              ) {
             $inside++;
             my $attr=$1;
 
-            while($attr =~ s/ *([^=]*)= *(\"([^\"]*)\"|([^\> ]*))//) {
+            while($attr =~ s/ *([^=]*)= *(\"([^\"]*)\"|\'([^\']*)\')//) {
                 my ($var, $cont)=($1, $2);
                 $cont =~ s/^\"(.*)\"$/$1/;
+                $cont =~ s/^\'(.*)\'$/$1/;
                 $hash{$var}=$cont;
             }
             last;
         }
-        # detect end of section when part wasn't found
-        elsif((1 ==$inside) && ($_ =~ /^ *\<\/$section\>/)) {
+        # detect end of section when part was not found
+        elsif((1 == $inside) && ($_ =~ /^ *\<\/$section\>/)) {
             last;
         }
-        elsif((2 ==$inside) && ($_ =~ /^ *\<\/$part/)) {
+        elsif((2 == $inside) && ($_ =~ /^ *\<\/$part/)) {
             $inside--;
         }
     }
@@ -132,7 +134,6 @@ sub getpart {
 
     my @this;
     my $inside=0;
-    my $base64=0;
     my $hex=0;
     my $line;
 
@@ -144,10 +145,6 @@ sub getpart {
         elsif(($inside >= 1) && ($_ =~ /^ *\<$part[ \>]/)) {
             if($inside > 1) {
                 push @this, $_;
-            }
-            elsif($_ =~ /$part [^>]*base64=/) {
-                # attempt to detect our base64 encoded part
-                $base64=1;
             }
             elsif($_ =~ /$part [^>]*hex=/) {
                 # attempt to detect a hex-encoded part
@@ -172,14 +169,7 @@ sub getpart {
             if($warning && !@this) {
                 print STDERR "*** getpart.pm: $section/$part returned empty!\n";
             }
-            if($base64) {
-                # decode the whole array before returning it!
-                for(@this) {
-                    my $decoded = decode_base64($_);
-                    $_ = $decoded;
-                }
-            }
-            elsif($hex) {
+            if($hex) {
                 # decode the whole array before returning it!
                 for(@this) {
                     my $decoded = decode_hex($_);
@@ -229,7 +219,7 @@ sub partexists {
 # memoize('partexists', NORMALIZER => 'normalize_part');  # cache each result
 
 sub loadtest {
-    my ($file)=@_;
+    my ($file, $original)=@_;
 
     if(defined $xmlfile && $file eq $xmlfile) {
         # This test is already loaded
@@ -240,16 +230,25 @@ sub loadtest {
     $xmlfile = "";
 
     if(open(my $xmlh, "<", "$file")) {
-        binmode $xmlh; # for crapage systems, use binary
+        if($original) {
+            binmode $xmlh, ':crlf';
+        }
+        else {
+            binmode $xmlh; # for crapage systems, use binary
+        }
         while(<$xmlh>) {
             push @xml, $_;
         }
         close($xmlh);
+        if(!@xml) {
+            print STDERR "file $file is empty!\n";
+            return 1;
+        }
     }
     else {
         # failure
         if($warning) {
-            print STDERR "file $file wouldn't open!\n";
+            print STDERR "file $file would not open!\n";
         }
         return 1;
     }
@@ -257,10 +256,54 @@ sub loadtest {
     return 0;
 }
 
-
 # Return entire document as list of lines
 sub fulltest {
     return @xml;
+}
+
+sub eol_detect {
+    my ($content) = @_;
+
+    my $cr = () = $content =~ /\r/g;
+    my $lf = () = $content =~ /\n/g;
+
+    if($cr > 0 && $lf == 0) {
+        return "cr";
+    }
+    elsif($cr == 0 && $lf > 0) {
+        return "lf";
+    }
+    elsif($cr == 0 && $lf == 0) {
+        return "bin";
+    }
+    elsif($cr == $lf) {
+        return "crlf";
+    }
+
+    return "";
+}
+
+sub checktest {
+    my ($file) = @_;
+
+    if(open(my $xmlh, '<', $file)) {
+        binmode $xmlh; # we want the raw data to check original newlines
+        my $content = do { local $/; <$xmlh> };
+        close($xmlh);
+
+        if(index($content, '<?xml version="1.0" encoding="US-ASCII"?>') != 0) {
+            print STDERR "*** getpart.pm: $xmlfile is missing the XML prolog.\n";
+            return 1;
+        }
+
+        my $eol = eol_detect($content);
+        if($eol eq '') {
+            print STDERR "*** getpart.pm: $xmlfile has mixed newlines. Replace significant carriage return with %CR macro, or convert to consistent newlines.\n";
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 # write the test to the given file
@@ -277,7 +320,7 @@ sub savetest {
     else {
         # failure
         if($warning) {
-            print STDERR "file $file wouldn't open!\n";
+            print STDERR "file $file would not open!\n";
         }
         return 1;
     }
@@ -288,7 +331,6 @@ sub savetest {
 # Strip off all lines that match the specified pattern and return
 # the new array.
 #
-
 sub striparray {
     my ($pattern, $arrayref) = @_;
 
@@ -306,23 +348,56 @@ sub striparray {
 # pass array *REFERENCES* !
 #
 sub compareparts {
- my ($firstref, $secondref)=@_;
+    my ($firstref, $secondref)=@_;
 
- my $first = join("", @$firstref);
- my $second = join("", @$secondref);
+    # we cannot compare arrays index per index since with data chunks,
+    # they may not be "evenly" distributed
+    my $first = join("", @$firstref);
+    my $second = join("", @$secondref);
 
- # we cannot compare arrays index per index since with the base64 chunks,
- # they may not be "evenly" distributed
+    if($first =~ /%alternatives\[/) {
+        die "bad use of compareparts\n";
+    }
 
- # NOTE: this no longer strips off carriage returns from the arrays. Is that
- # really necessary? It ruins the testing of newlines. I believe it was once
- # added to enable tests on Windows.
+    if($second =~ /%alternatives\[([^,]*),([^\]]*)\]/) {
+        # there can be many %alternatives in this chunk, so we call
+        # this function recursively
+        my $alt = $second;
+        $alt =~ s/%alternatives\[([^,]*),([^\]]*)\]/$1/;
 
- if($first ne $second) {
-     return 1;
- }
+        # check first alternative
+        {
+            my @f;
+            my @s;
+            push @f, $first;
+            push @s, $alt;
+            if(!compareparts(\@f, \@s)) {
+                return 0;
+            }
+        }
 
- return 0;
+        $alt = $second;
+        $alt =~ s/%alternatives\[([^,]*),([^\]]*)\]/$2/;
+        # check second alternative
+        {
+            my @f;
+            my @s;
+            push @f, $first;
+            push @s, $alt;
+            if(!compareparts(\@f, \@s)) {
+                return 0;
+            }
+        }
+
+        # neither matched
+        return 1;
+    }
+
+    if($first ne $second) {
+        return 1;
+    }
+
+    return 0;
 }
 
 #
@@ -332,7 +407,7 @@ sub writearray {
     my ($filename, $arrayref)=@_;
 
     open(my $temp, ">", "$filename") || die "Failure writing file";
-    binmode($temp,":raw");  # Cygwin fix by Kevin Roth
+    binmode($temp,":raw");  # Cygwin fix
     for(@$arrayref) {
         print $temp $_;
     }
@@ -346,7 +421,7 @@ sub loadarray {
     my ($filename)=@_;
     my @array;
 
-    if (open(my $temp, "<", "$filename")) {
+    if(open(my $temp, "<", "$filename")) {
         while(<$temp>) {
             push @array, $_;
         }
@@ -354,6 +429,5 @@ sub loadarray {
     }
     return @array;
 }
-
 
 1;

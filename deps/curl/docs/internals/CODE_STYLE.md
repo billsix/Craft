@@ -24,8 +24,16 @@ need to copy the style already used in the source code and there are no
 particularly unusual rules in our set of rules.
 
 We also work hard on writing code that are warning-free on all the major
-platforms and in general on as many platforms as possible. Code that obviously
-causes warnings is not accepted as-is.
+platforms and in general on as many platforms as possible. Code that causes
+warnings is not accepted as-is.
+
+## Readability
+
+A primary characteristic for code is readability. The intent and meaning of
+the code should be visible to the reader. Being clear and unambiguous beats
+being clever and saving two lines of code. Write simple code. You and others
+who come back to this code over the coming decades want to be able to quickly
+understand it when debugging.
 
 ## Naming
 
@@ -245,7 +253,7 @@ If no parenthesis, use the default indent:
 
 ```c
 data->set.http_disable_hostname_check_before_authentication =
-  (0 != va_arg(param, long)) ? TRUE : FALSE;
+  va_arg(param, long) ? TRUE : FALSE;
 ```
 
 Function invoke with an open parenthesis:
@@ -314,3 +322,95 @@ typedef struct {
 } something;
 something instance;
 ```
+
+## Banned functions
+
+To avoid footguns and unintended consequences we forbid the use of a number of
+C functions. The `checksrc` script finds and yells about them if used. This
+makes us write better code.
+
+This is the full list of functions generally banned.
+
+    _access
+    _mbscat
+    _mbsncat
+    _open
+    _tcscat
+    _tcsdup
+    _tcsncat
+    _tcsncpy
+    _waccess
+    _wcscat
+    _wcsdup
+    _wcsncat
+    _wfopen
+    _wfreopen
+    _wopen
+    accept
+    accept4
+    access
+    aprintf
+    atoi
+    atol
+    calloc
+    CreateFile
+    CreateFileA
+    CreateFileW
+    fclose
+    fdopen
+    fopen
+    fprintf
+    free
+    freeaddrinfo
+    freopen
+    getaddrinfo
+    gets
+    gmtime
+    LoadLibrary
+    LoadLibraryA
+    LoadLibraryEx
+    LoadLibraryExA
+    LoadLibraryExW
+    LoadLibraryW
+    localtime
+    malloc
+    mbstowcs
+    MoveFileEx
+    MoveFileExA
+    MoveFileExW
+    msnprintf
+    mvsnprintf
+    open
+    printf
+    realloc
+    recv
+    rename
+    send
+    snprintf
+    socket
+    socketpair
+    sprintf
+    sscanf
+    stat
+    strcat
+    strcpy
+    strdup
+    strerror
+    strncat
+    strncpy
+    strtok
+    strtok_r
+    strtol
+    strtoul
+    vaprintf
+    vfprintf
+    vprintf
+    vsnprintf
+    vsprintf
+    wcscpy
+    wcsdup
+    wcsncpy
+    wcstombs
+    WSASocket
+    WSASocketA
+    WSASocketW

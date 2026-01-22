@@ -22,52 +22,30 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
-#if !defined(CURL_DISABLE_AWS) || !defined(CURL_DISABLE_DIGEST_AUTH) \
-    || defined(USE_LIBSSH2)
+#if !defined(CURL_DISABLE_AWS) || !defined(CURL_DISABLE_DIGEST_AUTH) || \
+  defined(USE_LIBSSH2) || defined(USE_SSL)
 
-#include "warnless.h"
 #include "curl_sha256.h"
-#include "curl_hmac.h"
-
-#ifdef USE_WOLFSSL
-#include <wolfssl/options.h>
-#endif
-
-#if defined(USE_OPENSSL)
-
-#include <openssl/opensslv.h>
-
-#if (OPENSSL_VERSION_NUMBER >= 0x0090800fL)
-#define USE_OPENSSL_SHA256
-#endif
-
-#endif /* USE_OPENSSL */
 
 #ifdef USE_MBEDTLS
-#include <mbedtls/version.h>
-
-#if(MBEDTLS_VERSION_NUMBER >= 0x02070000) && \
-   (MBEDTLS_VERSION_NUMBER < 0x03000000)
-  #define HAS_MBEDTLS_RESULT_CODE_BASED_FUNCTIONS
+  #include <mbedtls/version.h>
+  #if MBEDTLS_VERSION_NUMBER < 0x03020000
+    #error "mbedTLS 3.2.0 or later required"
+  #endif
+  #include <psa/crypto_config.h>
+  #if defined(PSA_WANT_ALG_SHA_256) && PSA_WANT_ALG_SHA_256  /* mbedTLS 4+ */
+    #define USE_MBEDTLS_SHA256
+  #endif
 #endif
-#endif /* USE_MBEDTLS */
 
-#if defined(USE_OPENSSL_SHA256)
-
-/* When OpenSSL or wolfSSL is available we use their SHA256-functions. */
-#if defined(USE_OPENSSL)
+#ifdef USE_OPENSSL
 #include <openssl/evp.h>
-#elif defined(USE_WOLFSSL)
-#include <wolfssl/openssl/evp.h>
-#endif
-
 #elif defined(USE_GNUTLS)
 #include <nettle/sha.h>
-#elif defined(USE_MBEDTLS)
-#include <mbedtls/sha256.h>
+#elif defined(USE_MBEDTLS_SHA256)
+#include <psa/crypto.h>
 #elif (defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && \
               (__MAC_OS_X_VERSION_MAX_ALLOWED >= 1040)) || \
       (defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && \
@@ -77,11 +55,6 @@
 #elif defined(USE_WIN32_CRYPTO)
 #include <wincrypt.h>
 #endif
-
-/* The last 3 #include files should be in this order */
-#include "curl_printf.h"
-#include "curl_memory.h"
-#include "memdebug.h"
 
 /* Please keep the SSL backend-specific #if branches in this order:
  *
@@ -95,7 +68,7 @@
  * file even if multiple backends are enabled at the same time.
  */
 
-#if defined(USE_OPENSSL_SHA256)
+#ifdef USE_OPENSSL
 
 struct ossl_sha256_ctx {
   EVP_MD_CTX *openssl_ctx;
@@ -153,17 +126,15 @@ static void my_sha256_final(unsigned char *digest, void *ctx)
   sha256_digest(ctx, SHA256_DIGEST_SIZE, digest);
 }
 
-#elif defined(USE_MBEDTLS)
+#elif defined(USE_MBEDTLS_SHA256)
 
-typedef mbedtls_sha256_context my_sha256_ctx;
+typedef psa_hash_operation_t my_sha256_ctx;
 
 static CURLcode my_sha256_init(void *ctx)
 {
-#if !defined(HAS_MBEDTLS_RESULT_CODE_BASED_FUNCTIONS)
-  (void) mbedtls_sha256_starts(ctx, 0);
-#else
-  (void) mbedtls_sha256_starts_ret(ctx, 0);
-#endif
+  memset(ctx, 0, sizeof(my_sha256_ctx));
+  if(psa_hash_setup(ctx, PSA_ALG_SHA_256) != PSA_SUCCESS)
+    return CURLE_OUT_OF_MEMORY;
   return CURLE_OK;
 }
 
@@ -171,20 +142,14 @@ static void my_sha256_update(void *ctx,
                              const unsigned char *data,
                              unsigned int length)
 {
-#if !defined(HAS_MBEDTLS_RESULT_CODE_BASED_FUNCTIONS)
-  (void) mbedtls_sha256_update(ctx, data, length);
-#else
-  (void) mbedtls_sha256_update_ret(ctx, data, length);
-#endif
+  (void)psa_hash_update(ctx, data, length);
 }
 
 static void my_sha256_final(unsigned char *digest, void *ctx)
 {
-#if !defined(HAS_MBEDTLS_RESULT_CODE_BASED_FUNCTIONS)
-  (void) mbedtls_sha256_finish(ctx, digest);
-#else
-  (void) mbedtls_sha256_finish_ret(ctx, digest);
-#endif
+  size_t actual_length;
+  (void)psa_hash_finish(ctx, digest, CURL_SHA256_DIGEST_LENGTH,
+                        &actual_length);
 }
 
 #elif defined(AN_APPLE_OS)
@@ -192,7 +157,7 @@ typedef CC_SHA256_CTX my_sha256_ctx;
 
 static CURLcode my_sha256_init(void *ctx)
 {
-  (void) CC_SHA256_Init(ctx);
+  (void)CC_SHA256_Init(ctx);
   return CURLE_OK;
 }
 
@@ -200,12 +165,12 @@ static void my_sha256_update(void *ctx,
                              const unsigned char *data,
                              unsigned int length)
 {
-  (void) CC_SHA256_Update(ctx, data, length);
+  (void)CC_SHA256_Update(ctx, data, length);
 }
 
 static void my_sha256_final(unsigned char *digest, void *ctx)
 {
-  (void) CC_SHA256_Final(digest, ctx);
+  (void)CC_SHA256_Final(digest, ctx);
 }
 
 #elif defined(USE_WIN32_CRYPTO)
@@ -216,7 +181,8 @@ struct sha256_ctx {
 };
 typedef struct sha256_ctx my_sha256_ctx;
 
-#if !defined(CALG_SHA_256)
+/* Offered when targeting Vista (XP SP2+) */
+#ifndef CALG_SHA_256
 #define CALG_SHA_256 0x0000800c
 #endif
 
@@ -224,7 +190,7 @@ static CURLcode my_sha256_init(void *in)
 {
   my_sha256_ctx *ctx = (my_sha256_ctx *)in;
   if(!CryptAcquireContext(&ctx->hCryptProv, NULL, NULL, PROV_RSA_AES,
-                         CRYPT_VERIFYCONTEXT | CRYPT_SILENT))
+                          CRYPT_VERIFYCONTEXT | CRYPT_SILENT))
     return CURLE_OUT_OF_MEMORY;
 
   if(!CryptCreateHash(ctx->hCryptProv, CALG_SHA_256, 0, 0, &ctx->hHash)) {
@@ -241,7 +207,7 @@ static void my_sha256_update(void *in,
                              unsigned int length)
 {
   my_sha256_ctx *ctx = (my_sha256_ctx *)in;
-  CryptHashData(ctx->hHash, (unsigned char *) data, length, 0);
+  CryptHashData(ctx->hHash, (const BYTE *)data, length, 0);
 }
 
 static void my_sha256_final(unsigned char *digest, void *in)
@@ -264,45 +230,46 @@ static void my_sha256_final(unsigned char *digest, void *in)
 
 /* When no other crypto library is available we use this code segment */
 
-/* This is based on SHA256 implementation in LibTomCrypt that was released into
- * public domain by Tom St Denis. */
+/* This is based on the SHA256 implementation in LibTomCrypt that was released
+ * into public domain. */
 
-#define WPA_GET_BE32(a) ((((unsigned long)(a)[0]) << 24) | \
-                         (((unsigned long)(a)[1]) << 16) | \
-                         (((unsigned long)(a)[2]) <<  8) | \
-                          ((unsigned long)(a)[3]))
-#define WPA_PUT_BE32(a, val)                                        \
-do {                                                                \
-  (a)[0] = (unsigned char)((((unsigned long) (val)) >> 24) & 0xff); \
-  (a)[1] = (unsigned char)((((unsigned long) (val)) >> 16) & 0xff); \
-  (a)[2] = (unsigned char)((((unsigned long) (val)) >> 8) & 0xff);  \
-  (a)[3] = (unsigned char)(((unsigned long) (val)) & 0xff);         \
-} while(0)
+#define WPA_GET_BE32(a)              \
+  ((((unsigned long)(a)[0]) << 24) | \
+   (((unsigned long)(a)[1]) << 16) | \
+   (((unsigned long)(a)[2]) <<  8) | \
+    ((unsigned long)(a)[3]))
+#define WPA_PUT_BE32(a, val)                                         \
+  do {                                                               \
+    (a)[0] = (unsigned char)((((unsigned long)(val)) >> 24) & 0xff); \
+    (a)[1] = (unsigned char)((((unsigned long)(val)) >> 16) & 0xff); \
+    (a)[2] = (unsigned char)((((unsigned long)(val)) >>  8) & 0xff); \
+    (a)[3] = (unsigned char) (((unsigned long)(val)) & 0xff);        \
+  } while(0)
 
 #ifdef HAVE_LONGLONG
-#define WPA_PUT_BE64(a, val)                                    \
-do {                                                            \
-  (a)[0] = (unsigned char)(((unsigned long long)(val)) >> 56);  \
-  (a)[1] = (unsigned char)(((unsigned long long)(val)) >> 48);  \
-  (a)[2] = (unsigned char)(((unsigned long long)(val)) >> 40);  \
-  (a)[3] = (unsigned char)(((unsigned long long)(val)) >> 32);  \
-  (a)[4] = (unsigned char)(((unsigned long long)(val)) >> 24);  \
-  (a)[5] = (unsigned char)(((unsigned long long)(val)) >> 16);  \
-  (a)[6] = (unsigned char)(((unsigned long long)(val)) >> 8);   \
-  (a)[7] = (unsigned char)(((unsigned long long)(val)) & 0xff); \
-} while(0)
+#define WPA_PUT_BE64(a, val)                                      \
+  do {                                                            \
+    (a)[0] = (unsigned char)(((unsigned long long)(val)) >> 56);  \
+    (a)[1] = (unsigned char)(((unsigned long long)(val)) >> 48);  \
+    (a)[2] = (unsigned char)(((unsigned long long)(val)) >> 40);  \
+    (a)[3] = (unsigned char)(((unsigned long long)(val)) >> 32);  \
+    (a)[4] = (unsigned char)(((unsigned long long)(val)) >> 24);  \
+    (a)[5] = (unsigned char)(((unsigned long long)(val)) >> 16);  \
+    (a)[6] = (unsigned char)(((unsigned long long)(val)) >>  8);  \
+    (a)[7] = (unsigned char)(((unsigned long long)(val)) & 0xff); \
+  } while(0)
 #else
-#define WPA_PUT_BE64(a, val)                                  \
-do {                                                          \
-  (a)[0] = (unsigned char)(((unsigned __int64)(val)) >> 56);  \
-  (a)[1] = (unsigned char)(((unsigned __int64)(val)) >> 48);  \
-  (a)[2] = (unsigned char)(((unsigned __int64)(val)) >> 40);  \
-  (a)[3] = (unsigned char)(((unsigned __int64)(val)) >> 32);  \
-  (a)[4] = (unsigned char)(((unsigned __int64)(val)) >> 24);  \
-  (a)[5] = (unsigned char)(((unsigned __int64)(val)) >> 16);  \
-  (a)[6] = (unsigned char)(((unsigned __int64)(val)) >> 8);   \
-  (a)[7] = (unsigned char)(((unsigned __int64)(val)) & 0xff); \
-} while(0)
+#define WPA_PUT_BE64(a, val)                                    \
+  do {                                                          \
+    (a)[0] = (unsigned char)(((unsigned __int64)(val)) >> 56);  \
+    (a)[1] = (unsigned char)(((unsigned __int64)(val)) >> 48);  \
+    (a)[2] = (unsigned char)(((unsigned __int64)(val)) >> 40);  \
+    (a)[3] = (unsigned char)(((unsigned __int64)(val)) >> 32);  \
+    (a)[4] = (unsigned char)(((unsigned __int64)(val)) >> 24);  \
+    (a)[5] = (unsigned char)(((unsigned __int64)(val)) >> 16);  \
+    (a)[6] = (unsigned char)(((unsigned __int64)(val)) >>  8);  \
+    (a)[7] = (unsigned char)(((unsigned __int64)(val)) & 0xff); \
+  } while(0)
 #endif
 
 struct sha256_state {
@@ -335,20 +302,21 @@ static const unsigned long K[64] = {
 
 /* Various logical functions */
 #define RORc(x, y) \
-(((((unsigned long)(x) & 0xFFFFFFFFUL) >> (unsigned long)((y) & 31)) | \
-   ((unsigned long)(x) << (unsigned long)(32 - ((y) & 31)))) & 0xFFFFFFFFUL)
-#define Sha256_Ch(x,y,z)  (z ^ (x & (y ^ z)))
-#define Sha256_Maj(x,y,z) (((x | y) & z) | (x & y))
-#define Sha256_S(x, n)    RORc((x), (n))
-#define Sha256_R(x, n)    (((x)&0xFFFFFFFFUL)>>(n))
+  (((((unsigned long)(x) & 0xFFFFFFFFUL) >> (unsigned long)((y) & 31)) | \
+     ((unsigned long)(x) << (unsigned long)(32 - ((y) & 31)))) & 0xFFFFFFFFUL)
+
+#define Sha256_Ch(x, y, z)  (z ^ (x & (y ^ z)))
+#define Sha256_Maj(x, y, z) (((x | y) & z) | (x & y))
+#define Sha256_S(x, n)      RORc((x), (n))
+#define Sha256_R(x, n)      (((x) & 0xFFFFFFFFUL) >> (n))
+
 #define Sigma0(x)         (Sha256_S(x, 2) ^ Sha256_S(x, 13) ^ Sha256_S(x, 22))
 #define Sigma1(x)         (Sha256_S(x, 6) ^ Sha256_S(x, 11) ^ Sha256_S(x, 25))
 #define Gamma0(x)         (Sha256_S(x, 7) ^ Sha256_S(x, 18) ^ Sha256_R(x, 3))
 #define Gamma1(x)         (Sha256_S(x, 17) ^ Sha256_S(x, 19) ^ Sha256_R(x, 10))
 
 /* Compress 512-bits */
-static int sha256_compress(struct sha256_state *md,
-                           unsigned char *buf)
+static int sha256_compress(struct sha256_state *md, const unsigned char *buf)
 {
   unsigned long S[8], W[64];
   int i;
@@ -362,12 +330,11 @@ static int sha256_compress(struct sha256_state *md,
     W[i] = WPA_GET_BE32(buf + (4 * i));
   /* fill W[16..63] */
   for(i = 16; i < 64; i++) {
-    W[i] = Gamma1(W[i - 2]) + W[i - 7] + Gamma0(W[i - 15]) +
-      W[i - 16];
+    W[i] = Gamma1(W[i - 2]) + W[i - 7] + Gamma0(W[i - 15]) + W[i - 16];
   }
 
   /* Compress */
-#define RND(a,b,c,d,e,f,g,h,i)                                           \
+#define RND(a, b, c, d, e, f, g, h, i)                                   \
   do {                                                                   \
     unsigned long t0 = h + Sigma1(e) + Sha256_Ch(e, f, g) + K[i] + W[i]; \
     unsigned long t1 = Sigma0(a) + Sha256_Maj(a, b, c);                  \
@@ -378,8 +345,15 @@ static int sha256_compress(struct sha256_state *md,
   for(i = 0; i < 64; ++i) {
     unsigned long t;
     RND(S[0], S[1], S[2], S[3], S[4], S[5], S[6], S[7], i);
-    t = S[7]; S[7] = S[6]; S[6] = S[5]; S[5] = S[4];
-    S[4] = S[3]; S[3] = S[2]; S[2] = S[1]; S[1] = S[0]; S[0] = t;
+    t = S[7];
+    S[7] = S[6];
+    S[6] = S[5];
+    S[5] = S[4];
+    S[4] = S[3];
+    S[3] = S[2];
+    S[2] = S[1];
+    S[1] = S[0];
+    S[0] = t;
   }
 
   /* Feedback */
@@ -426,7 +400,7 @@ static void my_sha256_update(void *ctx,
     return;
   while(inlen > 0) {
     if(md->curlen == 0 && inlen >= CURL_SHA256_BLOCK_SIZE) {
-      if(sha256_compress(md, (unsigned char *)in) < 0)
+      if(sha256_compress(md, in) < 0)
         return;
       md->length += CURL_SHA256_BLOCK_SIZE * 8;
       in += CURL_SHA256_BLOCK_SIZE;
@@ -523,7 +497,6 @@ CURLcode Curl_sha256it(unsigned char *output, const unsigned char *input,
   return result;
 }
 
-
 const struct HMAC_params Curl_HMAC_SHA256 = {
   my_sha256_init,        /* Hash initialization function. */
   my_sha256_update,      /* Hash update function. */
@@ -532,6 +505,5 @@ const struct HMAC_params Curl_HMAC_SHA256 = {
   64,                    /* Maximum key length. */
   32                     /* Result size. */
 };
-
 
 #endif /* AWS, DIGEST, or libssh2 */

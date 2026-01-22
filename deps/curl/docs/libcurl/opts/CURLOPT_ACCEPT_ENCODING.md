@@ -56,24 +56,28 @@ You can also opt to just include the Accept-Encoding: header in your request
 with CURLOPT_HTTPHEADER(3) but then there is no automatic decompressing when
 receiving data.
 
-This is a request, not an order; the server may or may not do it. This option
-must be set (to any non-NULL value) or else any unsolicited encoding done by
-the server is ignored.
+Setting this option is a request, not an order; the server may or may not do
+it. It must be set (to any non-NULL value) or else any encoding done by the
+server is ignored.
 
 Servers might respond with Content-Encoding even without getting a
 Accept-Encoding: in the request. Servers might respond with a different
 Content-Encoding than what was asked for in the request.
 
-The Content-Length: servers send for a compressed response is supposed to
-indicate the length of the compressed content so when auto decoding is enabled
-it may not match the sum of bytes reported by the write callbacks (although,
-sending the length of the non-compressed content is a common server mistake).
+The Content-Length: header field servers send for a compressed response is
+supposed to indicate the length of the compressed content so when auto
+decoding is enabled it may not match the sum of bytes reported by the write
+callbacks (although, sending the length of the non-compressed content is a
+common server mistake).
 
 The application does not have to keep the string around after setting this
 option.
 
 Using this option multiple times makes the last set string override the
 previous ones.
+
+**WARNING**: when decompressing data, even tiny transfers might be expanded
+and generate a huge amount of bytes.
 
 # HISTORY
 
@@ -114,5 +118,7 @@ int main(void)
 
 # RETURN VALUE
 
-Returns CURLE_OK if the option is supported, CURLE_UNKNOWN_OPTION if not, or
-CURLE_OUT_OF_MEMORY if there was insufficient heap space.
+curl_easy_setopt(3) returns a CURLcode indicating success or error.
+
+CURLE_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).

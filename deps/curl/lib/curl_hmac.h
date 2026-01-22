@@ -24,11 +24,9 @@
  *
  ***************************************************************************/
 
-#if (defined(USE_CURL_NTLM_CORE) && !defined(USE_WINDOWS_SSPI))         \
-  || !defined(CURL_DISABLE_AWS) || !defined(CURL_DISABLE_DIGEST_AUTH)   \
-  || defined(USE_LIBSSH2)
-
-#include <curl/curl.h>
+#if (defined(USE_CURL_NTLM_CORE) && !defined(USE_WINDOWS_SSPI)) ||      \
+  !defined(CURL_DISABLE_AWS) || !defined(CURL_DISABLE_DIGEST_AUTH) ||   \
+  defined(USE_LIBSSH2) || defined(USE_SSL)
 
 #define HMAC_MD5_LENGTH 16
 
@@ -48,14 +46,12 @@ struct HMAC_params {
   unsigned int     resultlen; /* Result length (bytes). */
 };
 
-
 /* HMAC computation context. */
 struct HMAC_context {
   const struct HMAC_params *hash; /* Hash function definition. */
   void *hashctxt1;         /* Hash function context 1. */
   void *hashctxt2;         /* Hash function context 2. */
 };
-
 
 /* Prototypes. */
 struct HMAC_context *Curl_HMAC_init(const struct HMAC_params *hashparams,

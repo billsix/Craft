@@ -21,29 +21,20 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 #ifndef CURL_DISABLE_GOPHER
 
 #include "urldata.h"
-#include <curl/curl.h>
 #include "transfer.h"
 #include "sendf.h"
+#include "curl_trc.h"
 #include "cfilters.h"
 #include "connect.h"
-#include "progress.h"
 #include "gopher.h"
 #include "select.h"
-#include "strdup.h"
-#include "vtls/vtls.h"
 #include "url.h"
 #include "escape.h"
-#include "warnless.h"
-#include "curl_printf.h"
-#include "curl_memory.h"
-/* The last #include file should be: */
-#include "memdebug.h"
 
 /*
  * Forward declarations.
@@ -70,15 +61,16 @@ const struct Curl_handler Curl_handler_gopher = {
   ZERO_NULL,                            /* connect_it */
   ZERO_NULL,                            /* connecting */
   ZERO_NULL,                            /* doing */
-  ZERO_NULL,                            /* proto_getsock */
-  ZERO_NULL,                            /* doing_getsock */
-  ZERO_NULL,                            /* domore_getsock */
-  ZERO_NULL,                            /* perform_getsock */
+  ZERO_NULL,                            /* proto_pollset */
+  ZERO_NULL,                            /* doing_pollset */
+  ZERO_NULL,                            /* domore_pollset */
+  ZERO_NULL,                            /* perform_pollset */
   ZERO_NULL,                            /* disconnect */
   ZERO_NULL,                            /* write_resp */
   ZERO_NULL,                            /* write_resp_hd */
   ZERO_NULL,                            /* connection_check */
   ZERO_NULL,                            /* attach connection */
+  ZERO_NULL,                            /* follow */
   PORT_GOPHER,                          /* defport */
   CURLPROTO_GOPHER,                     /* protocol */
   CURLPROTO_GOPHER,                     /* family */
@@ -95,15 +87,16 @@ const struct Curl_handler Curl_handler_gophers = {
   gopher_connect,                       /* connect_it */
   gopher_connecting,                    /* connecting */
   ZERO_NULL,                            /* doing */
-  ZERO_NULL,                            /* proto_getsock */
-  ZERO_NULL,                            /* doing_getsock */
-  ZERO_NULL,                            /* domore_getsock */
-  ZERO_NULL,                            /* perform_getsock */
+  ZERO_NULL,                            /* proto_pollset */
+  ZERO_NULL,                            /* doing_pollset */
+  ZERO_NULL,                            /* domore_pollset */
+  ZERO_NULL,                            /* perform_pollset */
   ZERO_NULL,                            /* disconnect */
   ZERO_NULL,                            /* write_resp */
   ZERO_NULL,                            /* write_resp_hd */
   ZERO_NULL,                            /* connection_check */
   ZERO_NULL,                            /* attach connection */
+  ZERO_NULL,                            /* follow */
   PORT_GOPHER,                          /* defport */
   CURLPROTO_GOPHERS,                    /* protocol */
   CURLPROTO_GOPHER,                     /* family */
@@ -138,11 +131,10 @@ static CURLcode gopher_do(struct Curl_easy *data, bool *done)
   char *gopherpath;
   char *path = data->state.up.path;
   char *query = data->state.up.query;
-  char *sel = NULL;
-  char *sel_org = NULL;
+  const char *buf = NULL;
+  char *buf_alloc = NULL;
+  size_t nwritten, buf_len;
   timediff_t timeout_ms;
-  ssize_t k;
-  size_t amount, len;
   int what;
 
   *done = TRUE; /* unconditionally */
@@ -151,18 +143,18 @@ static CURLcode gopher_do(struct Curl_easy *data, bool *done)
   DEBUGASSERT(path);
 
   if(query)
-    gopherpath = aprintf("%s?%s", path, query);
+    gopherpath = curl_maprintf("%s?%s", path, query);
   else
-    gopherpath = strdup(path);
+    gopherpath = curlx_strdup(path);
 
   if(!gopherpath)
     return CURLE_OUT_OF_MEMORY;
 
   /* Create selector. Degenerate cases: / and /1 => convert to "" */
   if(strlen(gopherpath) <= 2) {
-    sel = (char *)"";
-    len = strlen(sel);
-    free(gopherpath);
+    buf = "";
+    buf_len = 0;
+    curlx_free(gopherpath);
   }
   else {
     char *newp;
@@ -172,36 +164,34 @@ static CURLcode gopher_do(struct Curl_easy *data, bool *done)
     newp += 2;
 
     /* ... and finally unescape */
-    result = Curl_urldecode(newp, 0, &sel, &len, REJECT_ZERO);
-    free(gopherpath);
+    result = Curl_urldecode(newp, 0, &buf_alloc, &buf_len, REJECT_ZERO);
+    curlx_free(gopherpath);
     if(result)
       return result;
-    sel_org = sel;
+    buf = buf_alloc;
   }
 
-  k = curlx_uztosz(len);
+  for(; buf_len;) {
 
-  for(;;) {
-    /* Break out of the loop if the selector is empty because OpenSSL and/or
-       LibreSSL fail with errno 0 if this is the case. */
-    if(strlen(sel) < 1)
-      break;
-
-    result = Curl_xfer_send(data, sel, k, FALSE, &amount);
+    result = Curl_xfer_send(data, buf, buf_len, FALSE, &nwritten);
     if(!result) { /* Which may not have written it all! */
-      result = Curl_client_write(data, CLIENTWRITE_HEADER, sel, amount);
+      result = Curl_client_write(data, CLIENTWRITE_HEADER, buf, nwritten);
       if(result)
         break;
 
-      k -= amount;
-      sel += amount;
-      if(k < 1)
+      if(nwritten > buf_len) {
+        DEBUGASSERT(0);
+        break;
+      }
+      buf_len -= nwritten;
+      buf += nwritten;
+      if(!buf_len)
         break; /* but it did write it all */
     }
     else
       break;
 
-    timeout_ms = Curl_timeleft(data, NULL, FALSE);
+    timeout_ms = Curl_timeleft_ms(data, FALSE);
     if(timeout_ms < 0) {
       result = CURLE_OPERATION_TIMEDOUT;
       break;
@@ -226,19 +216,19 @@ static CURLcode gopher_do(struct Curl_easy *data, bool *done)
     }
   }
 
-  free(sel_org);
+  curlx_free(buf_alloc);
 
   if(!result)
-    result = Curl_xfer_send(data, "\r\n", 2, FALSE, &amount);
+    result = Curl_xfer_send(data, "\r\n", 2, FALSE, &nwritten);
   if(result) {
     failf(data, "Failed sending Gopher request");
     return result;
   }
-  result = Curl_client_write(data, CLIENTWRITE_HEADER, (char *)"\r\n", 2);
+  result = Curl_client_write(data, CLIENTWRITE_HEADER, "\r\n", 2);
   if(result)
     return result;
 
-  Curl_xfer_setup1(data, CURL_XFER_RECV, -1, FALSE);
+  Curl_xfer_setup_recv(data, FIRSTSOCKET, -1);
   return CURLE_OK;
 }
 #endif /* CURL_DISABLE_GOPHER */

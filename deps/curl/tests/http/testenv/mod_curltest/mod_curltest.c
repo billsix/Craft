@@ -45,13 +45,13 @@ static int curltest_sslinfo_handler(request_rec *r);
 AP_DECLARE_MODULE(curltest) =
 {
   STANDARD20_MODULE_STUFF,
-  NULL, /* func to create per dir config */
-  NULL,  /* func to merge per dir config */
-  NULL, /* func to create per server config */
-  NULL,  /* func to merge per server config */
+  NULL, /* func to create per-directory config */
+  NULL,  /* func to merge per-directory config */
+  NULL, /* func to create per-server config */
+  NULL,  /* func to merge per-server config */
   NULL,              /* command handlers */
   curltest_hooks,
-#if defined(AP_MODULE_FLAG_NONE)
+#ifdef AP_MODULE_FLAG_NONE
   AP_MODULE_FLAG_ALWAYS_MERGE
 #endif
 };
@@ -62,7 +62,8 @@ static int curltest_post_config(apr_pool_t *p, apr_pool_t *plog,
   void *data = NULL;
   const char *key = "mod_curltest_init_counter";
 
-  (void)plog;(void)ptemp;
+  (void)plog;
+  (void)ptemp;
 
   apr_pool_userdata_get(&data, key, s->process->pool);
   if(!data) {
@@ -93,8 +94,8 @@ static void curltest_hooks(apr_pool_t *pool)
   ap_hook_handler(curltest_sslinfo_handler, NULL, NULL, APR_HOOK_MIDDLE);
 }
 
-#define SECS_PER_HOUR      (60*60)
-#define SECS_PER_DAY       (24*SECS_PER_HOUR)
+#define SECS_PER_HOUR      (60 * 60)
+#define SECS_PER_DAY       (24 * SECS_PER_HOUR)
 
 static apr_status_t duration_parse(apr_interval_time_t *ptimeout,
                                    const char *value, const char *def_unit)
@@ -124,12 +125,12 @@ static apr_status_t duration_parse(apr_interval_time_t *ptimeout,
     break;
   case 's':
   case 'S':
-    *ptimeout = (apr_interval_time_t) apr_time_from_sec(n);
+    *ptimeout = (apr_interval_time_t)apr_time_from_sec(n);
     break;
   case 'h':
   case 'H':
     /* Time is in hours */
-    *ptimeout = (apr_interval_time_t) apr_time_from_sec(n * SECS_PER_HOUR);
+    *ptimeout = (apr_interval_time_t)apr_time_from_sec(n * SECS_PER_HOUR);
     break;
   case 'm':
   case 'M':
@@ -137,12 +138,12 @@ static apr_status_t duration_parse(apr_interval_time_t *ptimeout,
     /* Time is in milliseconds */
     case 's':
     case 'S':
-      *ptimeout = (apr_interval_time_t) n * 1000;
+      *ptimeout = (apr_interval_time_t)n * 1000;
       break;
     /* Time is in minutes */
     case 'i':
     case 'I':
-      *ptimeout = (apr_interval_time_t) apr_time_from_sec(n * 60);
+      *ptimeout = (apr_interval_time_t)apr_time_from_sec(n * 60);
       break;
     default:
       return APR_EGENERAL;
@@ -154,7 +155,7 @@ static apr_status_t duration_parse(apr_interval_time_t *ptimeout,
     /* Time is in microseconds */
     case 's':
     case 'S':
-      *ptimeout = (apr_interval_time_t) n;
+      *ptimeout = (apr_interval_time_t)n;
       break;
     default:
       return APR_EGENERAL;
@@ -188,6 +189,7 @@ static int curltest_echo_handler(request_rec *r)
   char buffer[8192];
   const char *ct;
   apr_off_t die_after_len = -1, total_read_len = 0;
+  apr_time_t read_delay = 0;
   int just_die = 0, die_after_100 = 0;
   long l;
 
@@ -221,6 +223,12 @@ static int curltest_echo_handler(request_rec *r)
           die_after_100 = 1;
           continue;
         }
+        else if(!strcmp("read_delay", arg)) {
+          rv = duration_parse(&read_delay, val, "s");
+          if(APR_SUCCESS == rv) {
+            continue;
+          }
+        }
       }
     }
   }
@@ -253,6 +261,15 @@ static int curltest_echo_handler(request_rec *r)
 
   ct = apr_table_get(r->headers_in, "content-type");
   ap_set_content_type(r, ct ? ct : "application/octet-stream");
+
+  if(apr_table_get(r->headers_in, "TE"))
+    apr_table_setn(r->headers_out, "Request-TE",
+                   apr_table_get(r->headers_in, "TE"));
+
+  if(read_delay) {
+    ap_log_rerror(APLOG_MARK, APLOG_TRACE1, 0, r, "put_handler: read_delay");
+    apr_sleep(read_delay);
+  }
 
   bb = apr_brigade_create(r->pool, c->bucket_alloc);
   /* copy any request body into the response */
@@ -326,7 +343,7 @@ static int curltest_tweak_handler(request_rec *r)
   apr_bucket_brigade *bb;
   apr_bucket *b;
   apr_status_t rv;
-  char buffer[16*1024];
+  char buffer[16 * 1024];
   int i, chunks = 3, error_bucket = 1;
   size_t chunk_size = sizeof(buffer);
   const char *request_id = "none";
@@ -335,6 +352,7 @@ static int curltest_tweak_handler(request_rec *r)
   int http_status = 200;
   apr_status_t error = APR_SUCCESS, body_error = APR_SUCCESS;
   int close_conn = 0, with_cl = 0;
+  int x_hd_len = 0, x_hd1_len = 0;
 
   if(strcmp(r->handler, "curltest-tweak")) {
     return DECLINED;
@@ -380,7 +398,7 @@ static int curltest_tweak_handler(request_rec *r)
           }
         }
         else if(!strcmp("id", arg)) {
-          /* just an id for repeated requests with curl's url globbing */
+          /* just an id for repeated requests with curl's URL globbing */
           request_id = val;
           continue;
         }
@@ -418,6 +436,14 @@ static int curltest_tweak_handler(request_rec *r)
             continue;
           }
         }
+        else if(!strcmp("x-hd", arg)) {
+          x_hd_len = (int)apr_atoi64(val);
+          continue;
+        }
+        else if(!strcmp("x-hd1", arg)) {
+          x_hd1_len = (int)apr_atoi64(val);
+          continue;
+        }
       }
       else if(!strcmp("close", arg)) {
         /* we are asked to close the connection */
@@ -450,9 +476,31 @@ static int curltest_tweak_handler(request_rec *r)
     apr_table_unset(r->headers_out, "Content-Length");
   /* Discourage content-encodings */
   apr_table_unset(r->headers_out, "Content-Encoding");
+  if(x_hd_len > 0) {
+    int i, hd_len = (16 * 1024);
+    int n = (x_hd_len / hd_len);
+    char *hd_val = apr_palloc(r->pool, x_hd_len);
+    memset(hd_val, 'X', hd_len);
+    hd_val[hd_len - 1] = 0;
+    for(i = 0; i < n; ++i) {
+      apr_table_setn(r->headers_out,
+                     apr_psprintf(r->pool, "X-Header-%d", i), hd_val);
+    }
+    if(x_hd_len % hd_len) {
+      hd_val[(x_hd_len % hd_len)] = 0;
+      apr_table_setn(r->headers_out,
+                     apr_psprintf(r->pool, "X-Header-%d", i), hd_val);
+    }
+  }
+  if(x_hd1_len > 0) {
+    char *hd_val = apr_palloc(r->pool, x_hd1_len);
+    memset(hd_val, 'Y', x_hd1_len);
+    hd_val[x_hd1_len - 1] = 0;
+    apr_table_setn(r->headers_out, "X-Mega-Header", hd_val);
+  }
+
   apr_table_setn(r->subprocess_env, "no-brotli", "1");
   apr_table_setn(r->subprocess_env, "no-gzip", "1");
-
   ap_set_content_type(r, "application/octet-stream");
   bb = apr_brigade_create(r->pool, c->bucket_alloc);
 
@@ -522,6 +570,10 @@ cleanup:
     APR_BRIGADE_INSERT_TAIL(bb, b);
     ap_pass_brigade(r->output_filters, bb);
   }
+  if(rv == APR_ECONNRESET) {
+    r->connection->aborted = 1;
+    return rv;
+  }
   return AP_FILTER_ERROR;
 }
 
@@ -531,7 +583,7 @@ static int curltest_put_handler(request_rec *r)
   apr_bucket_brigade *bb;
   apr_bucket *b;
   apr_status_t rv;
-  char buffer[128*1024];
+  char buffer[128 * 1024];
   const char *ct;
   apr_off_t rbody_len = 0;
   apr_off_t rbody_max_len = -1;
@@ -558,7 +610,7 @@ static int curltest_put_handler(request_rec *r)
         *s = '\0';
         val = s + 1;
         if(!strcmp("id", arg)) {
-          /* just an id for repeated requests with curl's url globbing */
+          /* just an id for repeated requests with curl's URL globbing */
           request_id = val;
           continue;
         }
@@ -575,7 +627,7 @@ static int curltest_put_handler(request_rec *r)
           }
         }
         else if(!strcmp("max_upload", arg)) {
-          rbody_max_len = (int)apr_atoi64(val);
+          rbody_max_len = (apr_off_t)apr_atoi64(val);
           continue;
         }
       }
@@ -594,6 +646,7 @@ static int curltest_put_handler(request_rec *r)
   apr_table_unset(r->headers_out, "Content-Length");
   /* Discourage content-encodings */
   apr_table_unset(r->headers_out, "Content-Encoding");
+  apr_table_setn(r->headers_out, "request-id", request_id);
   apr_table_setn(r->subprocess_env, "no-brotli", "1");
   apr_table_setn(r->subprocess_env, "no-gzip", "1");
 
@@ -601,6 +654,7 @@ static int curltest_put_handler(request_rec *r)
   ap_set_content_type(r, ct ? ct : "text/plain");
 
   if(read_delay) {
+    ap_log_rerror(APLOG_MARK, APLOG_TRACE1, 0, r, "put_handler: read_delay");
     apr_sleep(read_delay);
   }
   bb = apr_brigade_create(r->pool, c->bucket_alloc);
@@ -623,7 +677,7 @@ static int curltest_put_handler(request_rec *r)
     }
   }
   /* we are done */
-  s_rbody_len = apr_psprintf(r->pool, "%"APR_OFF_T_FMT, rbody_len);
+  s_rbody_len = apr_psprintf(r->pool, "%" APR_OFF_T_FMT, rbody_len);
   apr_table_setn(r->headers_out, "Received-Length", s_rbody_len);
   rv = apr_brigade_puts(bb, NULL, NULL, s_rbody_len);
   if(APR_SUCCESS != rv)
@@ -639,9 +693,9 @@ static int curltest_put_handler(request_rec *r)
   }
 
 cleanup:
-  if(rv == APR_SUCCESS
-     || r->status != HTTP_OK
-     || c->aborted) {
+  if(rv == APR_SUCCESS ||
+     r->status != HTTP_OK ||
+     c->aborted) {
     ap_log_rerror(APLOG_MARK, APLOG_TRACE1, rv, r, "put_handler: done");
     return OK;
   }
@@ -659,13 +713,7 @@ static int curltest_1_1_required(request_rec *r)
   apr_bucket_brigade *bb;
   apr_bucket *b;
   apr_status_t rv;
-  char buffer[16*1024];
   const char *ct;
-  const char *request_id = "none";
-  apr_time_t chunk_delay = 0;
-  apr_array_header_t *args = NULL;
-  long l;
-  int i;
 
   if(strcmp(r->handler, "curltest-1_1-required")) {
     return DECLINED;
@@ -709,9 +757,9 @@ static int curltest_1_1_required(request_rec *r)
   rv = ap_pass_brigade(r->output_filters, bb);
 
 cleanup:
-  if(rv == APR_SUCCESS
-     || r->status != HTTP_OK
-     || c->aborted) {
+  if(rv == APR_SUCCESS ||
+     r->status != HTTP_OK ||
+     c->aborted) {
     ap_log_rerror(APLOG_MARK, APLOG_TRACE1, rv, r, "1_1_handler: done");
     return OK;
   }
@@ -739,10 +787,8 @@ static int curltest_sslinfo_handler(request_rec *r)
   apr_bucket_brigade *bb;
   apr_bucket *b;
   apr_status_t rv;
-  apr_array_header_t *args = NULL;
   const char *request_id = NULL;
   int close_conn = 0;
-  long l;
   int i;
 
   if(strcmp(r->handler, "curltest-sslinfo")) {
@@ -761,7 +807,7 @@ static int curltest_sslinfo_handler(request_rec *r)
         *s = '\0';
         val = s + 1;
         if(!strcmp("id", arg)) {
-          /* just an id for repeated requests with curl's url globbing */
+          /* just an id for repeated requests with curl's URL globbing */
           request_id = val;
           continue;
         }
@@ -786,6 +832,8 @@ static int curltest_sslinfo_handler(request_rec *r)
   apr_table_unset(r->headers_out, "Content-Length");
   /* Discourage content-encodings */
   apr_table_unset(r->headers_out, "Content-Encoding");
+  if(request_id)
+    apr_table_setn(r->headers_out, "request-id", request_id);
   apr_table_setn(r->subprocess_env, "no-brotli", "1");
   apr_table_setn(r->subprocess_env, "no-gzip", "1");
 
@@ -821,9 +869,9 @@ static int curltest_sslinfo_handler(request_rec *r)
 cleanup:
   if(close_conn)
     r->connection->keepalive = AP_CONN_CLOSE;
-  if(rv == APR_SUCCESS
-     || r->status != HTTP_OK
-     || c->aborted) {
+  if(rv == APR_SUCCESS ||
+     r->status != HTTP_OK ||
+     c->aborted) {
     ap_log_rerror(APLOG_MARK, APLOG_TRACE1, rv, r, "1_1_handler: done");
     return OK;
   }

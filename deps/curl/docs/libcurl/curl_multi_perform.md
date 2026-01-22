@@ -74,19 +74,18 @@ int main(void)
   if(curl) {
     curl_multi_add_handle(multi, curl);
     do {
-      CURLMcode mc = curl_multi_perform(multi, &still_running);
+      CURLMcode mresult = curl_multi_perform(multi, &still_running);
 
-      if(!mc && still_running)
+      if(!mresult && still_running)
         /* wait for activity, timeout or "nothing" */
-        mc = curl_multi_poll(multi, NULL, 0, 1000, NULL);
+        mresult = curl_multi_poll(multi, NULL, 0, 1000, NULL);
 
-      if(mc) {
-        fprintf(stderr, "curl_multi_poll() failed, code %d.\n", (int)mc);
+      if(mresult) {
+        fprintf(stderr, "curl_multi_poll() failed, code %d.\n", (int)mresult);
         break;
       }
 
-    /* if there are still transfers, loop */
-    } while(still_running);
+    } while(still_running);  /* if there are still transfers, loop */
   }
 }
 ~~~
@@ -95,12 +94,15 @@ int main(void)
 
 # RETURN VALUE
 
-CURLMcode type, general libcurl multi interface error code.
+This function returns a CURLMcode indicating success or error.
+
+CURLM_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).
 
 This function returns errors regarding the whole multi stack. Problems on
 individual transfers may have occurred even when this function returns
-*CURLM_OK*. Use curl_multi_info_read(3) to figure out how individual
-transfers did.
+*CURLM_OK*. Use curl_multi_info_read(3) to figure out how individual transfers
+did.
 
 # TYPICAL USAGE
 

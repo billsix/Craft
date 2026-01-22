@@ -61,6 +61,16 @@ currently no length or size limit.
 
 NULL, no filename
 
+# SECURITY CONCERNS
+
+libcurl cannot fully protect against attacks where an attacker has write
+access to the same directory where it is directed to save files. This is
+particularly sensitive if you save files using elevated privileges.
+
+libcurl creates the file to store HSTS data in using default file permissions,
+meaning that on *nix systems you may need to restrict your umask to prevent
+other users on the same system to access the file.
+
 # %PROTOCOLS%
 
 # EXAMPLE
@@ -80,4 +90,7 @@ int main(void)
 
 # RETURN VALUE
 
-Returns CURLE_OK if the option is supported, and CURLE_UNKNOWN_OPTION if not.
+curl_easy_setopt(3) returns a CURLcode indicating success or error.
+
+CURLE_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).

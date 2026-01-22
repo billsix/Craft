@@ -1,6 +1,6 @@
 $! File: GENERATE_CONFIG_H_CURL.COM
 $!
-$! Curl like most open source products uses a variant of a config.h file.
+$! curl like most open source products uses a variant of a config.h file.
 $! Depending on the curl version, this could be config.h or curl_config.h.
 $!
 $! For GNV based builds, the configure script is run and that produces
@@ -197,7 +197,7 @@ $write cvh "#define __CONFIG_VMS_H__"
 $write cvh ""
 $write cvh "/* Define cpu-machine-OS */"
 $!
-$! Curl uses an OS macro to set the build environment.
+$! curl uses an OS macro to set the build environment.
 $!----------------------------------------------------
 $! Now the DCL builds usually say xxx-HP-VMS and configure scripts
 $! may put DEC or COMPAQ or HP for the middle part.
@@ -217,15 +217,6 @@ $! We are now setting this on the GNV build, so also do this
 $! for compatibility.
 $write cvh "/* Location of default ca path */"
 $write cvh "#define curl_ca_path ""gnv$curl_ca_path"""
-$!
-$! NTLM_WB_ENABLED requires fork() but configure does not know this
-$! We have to disable this in the configure command line.
-$! config_h.com finds that configure defaults to it being enabled so
-$! reports it.  So we need to turn it off here.
-$!
-$write cvh "#ifdef NTLM_WB_ENABLED"
-$write cvh "#undef NTLM_WB_ENABLED"
-$write cvh "#endif"
 $!
 $! The config_h.com finds a bunch of default disable commands in
 $! configure and will incorrectly disable these options.  The config_h.com
@@ -346,11 +337,6 @@ $write cvh "#ifdef USE_UNIX_SOCKETS"
 $write cvh "#undef USE_UNIX_SOCKETS"
 $write cvh "#endif"
 $!
-$write cvh "#ifndef HAVE_OLD_GSSMIT"
-$write cvh "#define gss_nt_service_name GSS_C_NT_HOSTBASED_SERVICE"
-$write cvh "#endif"
-$!
-$!
 $! Note:
 $! The CURL_EXTERN_SYMBOL is used for platforms that need the compiler
 $! to know about universal symbols.  VMS does not need this support so
@@ -359,7 +345,7 @@ $!
 $!
 $! I can not figure out where the C compiler is finding the ALLOCA.H file
 $! in the text libraries, so CONFIG_H.COM can not find it either.
-$! Usually the header file name is the module name in the text library.
+$! Usually the header filename is the module name in the text library.
 $! It does not appear to hurt anything to not find header file, so we
 $! are not overriding it here.
 $!

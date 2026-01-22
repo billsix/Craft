@@ -24,6 +24,7 @@
  *
  ***************************************************************************/
 #include "tool_setup.h"
+
 #ifndef CURL_DISABLE_LIBCURL_OPTION
 
 /* global variable declarations, for easy-interface source code generation */
@@ -43,8 +44,7 @@ extern CURLcode easysrc_addf(struct slist_wc **plist,
                              const char *fmt, ...) CURL_PRINTF(2, 3);
 extern CURLcode easysrc_perform(void);
 extern CURLcode easysrc_cleanup(void);
-
-void dumpeasysrc(struct GlobalConfig *config);
+void dumpeasysrc(void);
 
 #else /* CURL_DISABLE_LIBCURL_OPTION is defined */
 

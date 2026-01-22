@@ -23,10 +23,11 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
+
 #ifndef CURL_DISABLE_NETRC
-#include "dynbuf.h"
+
+#include "curlx/dynbuf.h"
 
 struct store_netrc {
   struct dynbuf filebuf;
@@ -34,20 +35,30 @@ struct store_netrc {
   BIT(loaded);
 };
 
+typedef enum {
+  NETRC_OK,
+  NETRC_NO_MATCH,      /* no matching entry in the file */
+  NETRC_SYNTAX_ERROR,  /* in the netrc file */
+  NETRC_FILE_MISSING,  /* the netrc file does not exist */
+  NETRC_OUT_OF_MEMORY, /* while parsing netrc */
+  NETRC_LAST /* never used */
+} NETRCcode;
+
+const char *Curl_netrc_strerror(NETRCcode ret);
 void Curl_netrc_init(struct store_netrc *s);
 void Curl_netrc_cleanup(struct store_netrc *s);
 
-/* returns -1 on failure, 0 if the host is found, 1 is the host is not found */
-int Curl_parsenetrc(struct store_netrc *s, const char *host, char **loginp,
-                    char **passwordp, char *filename);
-  /* Assume: (*passwordp)[0]=0, host[0] != 0.
-   * If (*loginp)[0] = 0, search for login and password within a machine
-   * section in the netrc.
-   * If (*loginp)[0] != 0, search for password within machine and login.
-   */
+NETRCcode Curl_parsenetrc(struct store_netrc *s, const char *host,
+                          char **loginp, char **passwordp,
+                          const char *filename);
+/* Assume: (*passwordp)[0]=0, host[0] != 0.
+ * If (*loginp)[0] = 0, search for login and password within a machine
+ * section in the netrc.
+ * If (*loginp)[0] != 0, search for password within machine and login.
+ */
 #else
 /* disabled */
-#define Curl_parsenetrc(a,b,c,d,e,f) 1
+#define Curl_parsenetrc(a, b, c, d, e, f) 1
 #define Curl_netrc_init(x)
 #define Curl_netrc_cleanup(x)
 #endif

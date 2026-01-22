@@ -21,13 +21,10 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curlcheck.h"
+#include "unitcheck.h"
 
 #include "llist.h"
-
-static struct Curl_llist llist;
-
-static struct Curl_llist llist_destination;
+#include "unitprotos.h"
 
 static void test_Curl_llist_dtor(void *key, void *value)
 {
@@ -36,19 +33,13 @@ static void test_Curl_llist_dtor(void *key, void *value)
   (void)value;
 }
 
-static CURLcode unit_setup(void)
+static CURLcode test_unit1300(const char *arg)
 {
-  Curl_llist_init(&llist, test_Curl_llist_dtor);
-  Curl_llist_init(&llist_destination, test_Curl_llist_dtor);
-  return CURLE_OK;
-}
+  UNITTEST_BEGIN_SIMPLE
 
-static void unit_stop(void)
-{
-}
+  struct Curl_llist llist;
+  struct Curl_llist llist_destination;
 
-UNITTEST_START
-{
   int unusedData_case1 = 1;
   int unusedData_case2 = 2;
   int unusedData_case3 = 3;
@@ -60,7 +51,10 @@ UNITTEST_START
   struct Curl_llist_node *element_next;
   struct Curl_llist_node *element_prev;
   struct Curl_llist_node *to_remove;
-  size_t llist_size = Curl_llist_count(&llist);
+  size_t llist_size;
+
+  Curl_llist_init(&llist, test_Curl_llist_dtor);
+  Curl_llist_init(&llist_destination, test_Curl_llist_dtor);
 
   /**
    * testing llist_init
@@ -71,7 +65,7 @@ UNITTEST_START
    * 2: list head will be NULL
    * 3: list tail will be NULL
    * 4: list dtor will be NULL
-  */
+   */
 
   fail_unless(Curl_llist_count(&llist) == 0,
               "list initial size should be zero");
@@ -114,7 +108,7 @@ UNITTEST_START
   Curl_llist_insert_next(&llist, Curl_llist_head(&llist),
                          &unusedData_case3, &case3_list);
   fail_unless(Curl_node_elem(Curl_node_next(Curl_llist_head(&llist))) ==
-              &unusedData_case3,
+                &unusedData_case3,
               "the node next to head is not getting set correctly");
   fail_unless(Curl_node_elem(Curl_llist_tail(&llist)) == &unusedData_case3,
               "the list tail is not getting set correctly");
@@ -131,9 +125,9 @@ UNITTEST_START
   Curl_llist_insert_next(&llist, Curl_llist_head(&llist),
                          &unusedData_case2, &case2_list);
   fail_unless(Curl_node_elem(Curl_node_next(Curl_llist_head(&llist))) ==
-              &unusedData_case2,
+                &unusedData_case2,
               "the node next to head is not getting set correctly");
-  /* better safe than sorry, check that the tail isn't corrupted */
+  /* better safe than sorry, check that the tail is not corrupted */
   fail_unless(Curl_node_elem(Curl_llist_tail(&llist)) != &unusedData_case2,
               "the list tail is not getting set correctly");
 
@@ -155,7 +149,7 @@ UNITTEST_START
 
   Curl_node_remove(Curl_llist_head(&llist));
 
-  fail_unless(Curl_llist_count(&llist) ==  (llist_size-1),
+  fail_unless(Curl_llist_count(&llist) == (llist_size - 1),
               "llist size not decremented as expected");
   fail_unless(Curl_llist_head(&llist) == element_next,
               "llist new head not modified properly");
@@ -249,7 +243,7 @@ UNITTEST_START
    */
   Curl_llist_append(&llist, &unusedData_case2, &case2_list);
   fail_unless(Curl_node_elem(Curl_node_next(Curl_llist_head(&llist))) ==
-              &unusedData_case2,
+                &unusedData_case2,
               "the node next to head is not getting set correctly");
   fail_unless(Curl_node_elem(Curl_llist_tail(&llist)) == &unusedData_case2,
               "the list tail is not getting set correctly");
@@ -264,12 +258,13 @@ UNITTEST_START
    */
   Curl_llist_append(&llist, &unusedData_case3, &case3_list);
   fail_unless(Curl_node_elem(Curl_node_next(Curl_llist_head(&llist))) ==
-              &unusedData_case2,
+                &unusedData_case2,
               "the node next to head did not stay the same");
   fail_unless(Curl_node_elem(Curl_llist_tail(&llist)) == &unusedData_case3,
               "the list tail is not getting set correctly");
 
   Curl_llist_destroy(&llist, NULL);
   Curl_llist_destroy(&llist_destination, NULL);
+
+  UNITTEST_END_SIMPLE
 }
-UNITTEST_STOP

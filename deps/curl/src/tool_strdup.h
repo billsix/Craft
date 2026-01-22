@@ -26,7 +26,8 @@
 #include "tool_setup.h"
 
 #ifndef HAVE_STRDUP
-extern char *strdup(const char *str);
+extern char *tool_strdup(const char *str);
 #endif
+char *memdup0(const char *data, size_t len);
 
 #endif /* HEADER_TOOL_STRDUP_H */

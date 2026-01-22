@@ -37,12 +37,14 @@ from testenv import Env, CurlClient
 
 log = logging.getLogger(__name__)
 
+
 class UDSFaker:
 
     def __init__(self, path):
         self._uds_path = path
         self._done = False
         self._socket = None
+        self._thread = None
 
     @property
     def path(self):
@@ -99,7 +101,7 @@ class TestUnix:
         faker.stop()
 
     # download http: via Unix socket
-    def test_11_01_unix_connect_http(self, env: Env, httpd, uds_faker, repeat):
+    def test_11_01_unix_connect_http(self, env: Env, httpd, uds_faker):
         curl = CurlClient(env=env)
         url = f'http://{env.domain1}:{env.http_port}/data.json'
         r = curl.http_download(urls=[url], with_stats=True,
@@ -107,10 +109,12 @@ class TestUnix:
                                  '--unix-socket', uds_faker.path,
                                ])
         r.check_response(count=1, http_status=200)
+        assert r.stats[0]['remote_port'] == -1, f'{r.dump_logs()}'
+        assert r.stats[0]['local_port'] == -1, f'{r.dump_logs()}'
 
     # download https: via Unix socket
     @pytest.mark.skipif(condition=not Env.have_ssl_curl(), reason="curl without SSL")
-    def test_11_02_unix_connect_http(self, env: Env, httpd, uds_faker, repeat):
+    def test_11_02_unix_connect_http(self, env: Env, httpd, uds_faker):
         curl = CurlClient(env=env)
         url = f'https://{env.domain1}:{env.https_port}/data.json'
         r = curl.http_download(urls=[url], with_stats=True,
@@ -118,10 +122,12 @@ class TestUnix:
                                  '--unix-socket', uds_faker.path,
                                ])
         r.check_response(exitcode=35, http_status=None)
+        assert r.stats[0]['remote_port'] == -1, f'{r.dump_logs()}'
+        assert r.stats[0]['local_port'] == -1, f'{r.dump_logs()}'
 
     # download HTTP/3 via Unix socket
     @pytest.mark.skipif(condition=not Env.have_h3(), reason='h3 not supported')
-    def test_11_03_unix_connect_quic(self, env: Env, httpd, uds_faker, repeat):
+    def test_11_03_unix_connect_quic(self, env: Env, httpd, uds_faker):
         curl = CurlClient(env=env)
         url = f'https://{env.domain1}:{env.https_port}/data.json'
         r = curl.http_download(urls=[url], with_stats=True,
@@ -130,3 +136,5 @@ class TestUnix:
                                  '--unix-socket', uds_faker.path,
                                ])
         r.check_response(exitcode=96, http_status=None)
+        assert r.stats[0]['remote_port'] == -1, f'{r.dump_logs()}'
+        assert r.stats[0]['local_port'] == -1, f'{r.dump_logs()}'

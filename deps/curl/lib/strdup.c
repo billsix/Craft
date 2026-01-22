@@ -21,20 +21,13 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
-
-#include <curl/curl.h>
 
 #ifdef _WIN32
 #include <wchar.h>
 #endif
 
 #include "strdup.h"
-#include "curl_memory.h"
-
-/* The last #include file should be: */
-#include "memdebug.h"
 
 #ifndef HAVE_STRDUP
 char *Curl_strdup(const char *str)
@@ -47,7 +40,7 @@ char *Curl_strdup(const char *str)
 
   len = strlen(str) + 1;
 
-  newstr = malloc(len);
+  newstr = curlx_malloc(len);
   if(!newstr)
     return (char *)NULL;
 
@@ -71,7 +64,7 @@ wchar_t *Curl_wcsdup(const wchar_t *src)
 {
   size_t length = wcslen(src);
 
-  if(length > (SIZE_T_MAX / sizeof(wchar_t)) - 1)
+  if(length > (SIZE_MAX / sizeof(wchar_t)) - 1)
     return (wchar_t *)NULL; /* integer overflow */
 
   return (wchar_t *)Curl_memdup(src, (length + 1) * sizeof(wchar_t));
@@ -90,7 +83,7 @@ wchar_t *Curl_wcsdup(const wchar_t *src)
  ***************************************************************************/
 void *Curl_memdup(const void *src, size_t length)
 {
-  void *buffer = malloc(length);
+  void *buffer = curlx_malloc(length);
   if(!buffer)
     return NULL; /* fail */
 
@@ -104,17 +97,20 @@ void *Curl_memdup(const void *src, size_t length)
  * Curl_memdup0(source, length)
  *
  * Copies the 'source' string to a newly allocated buffer (that is returned).
- * Copies 'length' bytes then adds a null terminator.
+ * Copies 'length' bytes then adds a null-terminator.
  *
  * Returns the new pointer or NULL on failure.
  *
  ***************************************************************************/
 void *Curl_memdup0(const char *src, size_t length)
 {
-  char *buf = malloc(length + 1);
+  char *buf = (length < SIZE_MAX) ? curlx_malloc(length + 1) : NULL;
   if(!buf)
     return NULL;
-  memcpy(buf, src, length);
+  if(length) {
+    DEBUGASSERT(src); /* must never be NULL */
+    memcpy(buf, src, length);
+  }
   buf[length] = 0;
   return buf;
 }
@@ -123,7 +119,7 @@ void *Curl_memdup0(const char *src, size_t length)
  *
  * Curl_saferealloc(ptr, size)
  *
- * Does a normal realloc(), but will free the data pointer if the realloc
+ * Does a normal curlx_realloc(), but will free the data pointer if the realloc
  * fails. If 'size' is non-zero, it will free the data and return a failure.
  *
  * This convenience function is provided and used to help us avoid a common
@@ -135,9 +131,9 @@ void *Curl_memdup0(const char *src, size_t length)
  ***************************************************************************/
 void *Curl_saferealloc(void *ptr, size_t size)
 {
-  void *datap = realloc(ptr, size);
+  void *datap = curlx_realloc(ptr, size);
   if(size && !datap)
     /* only free 'ptr' if size was non-zero */
-    free(ptr);
+    curlx_free(ptr);
   return datap;
 }

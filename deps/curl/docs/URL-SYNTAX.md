@@ -130,7 +130,7 @@ character or string.
 
 For example, this could look like:
 
-    http://user:password@www.example.com:80/index.html?foo=bar#top
+    https://user:password@www.example.com:80/index.html?foo=bar#top
 
 ## Scheme
 
@@ -169,13 +169,13 @@ local network name of the machine on your network or the IP address of the
 server or machine represented by either an IPv4 or IPv6 address (within
 brackets). For example:
 
-    http://www.example.com/
+    https://www.example.com/
 
-    http://hostname/
+    https://hostname.example/
 
-    http://192.168.0.1/
+    https://192.168.0.1/
 
-    http://[2001:1890:1112:1::20]/
+    https://[2001:1890:1112:1::20]/
 
 ### "localhost"
 
@@ -194,8 +194,8 @@ handle hostnames using non-ASCII characters.
 When built with libidn2, curl uses the IDNA 2008 standard. This is equivalent
 to the WHATWG URL spec, but differs from certain browsers that use IDNA 2003
 Transitional Processing. The two standards have a huge overlap but differ
-slightly, perhaps most famously in how they deal with the German "double s"
-(`ß`).
+slightly, perhaps most famously in how they deal with the
+[German "double s"](https://en.wikipedia.org/wiki/%c3%9f).
 
 When WinIDN is used, curl uses IDNA 2003 Transitional Processing, like the rest
 of Windows.
@@ -317,9 +317,9 @@ was specified in the URL. That was a bug fixed in 7.62.0, which added
 
 ## LDAP
 
-The path part of a LDAP request can be used to specify the: Distinguished
-Name, Attributes, Scope, Filter and Extension for a LDAP search. Each field is
-separated by a question mark and when that field is not required an empty
+The path part of an LDAP request can be used to specify the: Distinguished
+Name, Attributes, Scope, Filter and Extension for an LDAP search. Each field
+is separated by a question mark and when that field is not required an empty
 string with the question mark separator should be included.
 
 Search for the `DN` as `My Organization`:
@@ -335,8 +335,8 @@ Search for an empty `DN` and request information about the
 
     ldap://ldap.example.com/?rootDomainNamingContext
 
-For more information about the individual components of a LDAP URL please
-see [RFC 4516](https://datatracker.ietf.org/doc/html/rfc4516).
+For more information about the individual components of an LDAP URL please see
+[RFC 4516](https://datatracker.ietf.org/doc/html/rfc4516).
 
 ## POP3
 
@@ -360,7 +360,7 @@ file. If the path is omitted entirely then the directory listing for the root
 / home directory is returned.
 
 ## SMB
-The path part of a SMB request specifies the file to retrieve and from what
+The path part of an SMB request specifies the file to retrieve and from what
 share and directory or the share to upload to and as such, may not be omitted.
 If the username is embedded in the URL then it must contain the domain name
 and as such, the backslash must be URL encoded as %2f.
@@ -372,7 +372,7 @@ curl supports SMB version 1 (only)
 
 ## SMTP
 
-The path part of a SMTP request specifies the hostname to present during
+The path part of an SMTP request specifies the hostname to present during
 communication with the mail server. If the path is omitted, then libcurl
 attempts to resolve the local computer's hostname. However, this may not
 return the fully qualified domain name that is required by some mail servers

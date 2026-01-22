@@ -67,7 +67,7 @@ int main(void)
   CURL *curl = curl_easy_init();
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
-    curl_easy_setopt(curl, CURLOPT_PROXY, "https://proxy:443");
+    curl_easy_setopt(curl, CURLOPT_PROXY, "https://proxy.example:443");
     curl_easy_setopt(curl, CURLOPT_PROXY_PINNEDPUBLICKEY,
                      "sha256//YhKJKSzoTt2b5FP18fvpHo7fJYqQCjA"
                      "a3HWY3tvRMwE=;sha256//t62CeU2tQiqkexU74"
@@ -131,5 +131,7 @@ Other SSL backends not supported.
 
 # RETURN VALUE
 
-Returns CURLE_OK if TLS enabled, CURLE_UNKNOWN_OPTION if not, or
-CURLE_OUT_OF_MEMORY if there was insufficient heap space.
+curl_easy_setopt(3) returns a CURLcode indicating success or error.
+
+CURLE_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).

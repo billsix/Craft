@@ -23,7 +23,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 /* defaults:
@@ -62,11 +61,11 @@
 
 /* int send(int, const char *, int, int); */
 #define SEND_TYPE_ARG1 int
+#define SEND_QUAL_ARG2
 #define SEND_TYPE_ARG2 char *
 #define SEND_TYPE_ARG3 int
 #define SEND_TYPE_RETV int
 #endif
-
 
 #ifndef RECV_TYPE_ARG1
 #define RECV_TYPE_ARG1 int

@@ -23,12 +23,9 @@
  ***************************************************************************/
 #include "tool_setup.h"
 
-#include "strcase.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-#include "curlx.h"
 
 #include "tool_cfgable.h"
 #include "tool_doswin.h"
@@ -37,29 +34,28 @@
 #include "tool_cb_wrt.h"
 #include "tool_operate.h"
 #include "tool_libinfo.h"
-
-#include "memdebug.h" /* keep this as LAST include */
+#include "tool_strdup.h"
 
 static char *parse_filename(const char *ptr, size_t len);
 
 #ifdef _WIN32
-#define BOLD "\x1b[1m"
+#define BOLD    "\x1b[1m"
 #define BOLDOFF "\x1b[22m"
 #else
-#define BOLD "\x1b[1m"
+#define BOLD    "\x1b[1m"
 /* Switch off bold by setting "all attributes off" since the explicit
    bold-off code (21) is not supported everywhere - like in the mac
    Terminal. */
 #define BOLDOFF "\x1b[0m"
 /* OSC 8 hyperlink escape sequence */
-#define LINK "\x1b]8;;"
-#define LINKST "\x1b\\"
+#define LINK    "\x1b]8;;"
+#define LINKST  "\x1b\\"
 #define LINKOFF LINK LINKST
 #endif
 
 #ifdef LINK
 static void write_linked_location(CURL *curl, const char *location,
-    size_t loclen, FILE *stream);
+                                  size_t loclen, FILE *stream);
 #endif
 
 int tool_write_headers(struct HdrCbData *hdrcbdata, FILE *stream)
@@ -80,11 +76,11 @@ fail:
   return rc;
 }
 
-
 /*
 ** callback for CURLOPT_HEADERFUNCTION
+*
+* 'size' is always 1
 */
-
 size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
   struct per_transfer *per = userdata;
@@ -102,7 +98,7 @@ size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
 
 #ifdef DEBUGBUILD
   if(size * nmemb > (size_t)CURL_MAX_HTTP_HEADER) {
-    warnf(per->config->global, "Header data exceeds single call write limit");
+    warnf("Header data exceeds write limit");
     return CURL_WRITEFUNC_ERROR;
   }
 #endif
@@ -119,12 +115,11 @@ size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   if(per->config->headerfile && heads->stream) {
     size_t rc = fwrite(ptr, size, nmemb, heads->stream);
-    if(rc != cb)
+    if(rc != nmemb)
       return rc;
     /* flush the stream to send off what we got earlier */
     if(fflush(heads->stream)) {
-      errorf(per->config->global, "Failed writing headers to %s",
-             per->config->headerfile);
+      errorf("Failed writing headers to %s", per->config->headerfile);
       return CURL_WRITEFUNC_ERROR;
     }
   }
@@ -135,7 +130,7 @@ size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
     long response = 0;
     curl_easy_getinfo(per->curl, CURLINFO_RESPONSE_CODE, &response);
 
-    if((response/100 != 2) && (response/100 != 3))
+    if((response / 100 != 2) && (response / 100 != 3))
       /* only care about etag and content-disposition headers in 2xx and 3xx
          responses */
       ;
@@ -168,7 +163,7 @@ size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
           }
 #endif
 
-          fwrite(etag_h, size, etag_length, etag_save->stream);
+          fwrite(etag_h, 1, etag_length, etag_save->stream);
           /* terminate with newline */
           fputc('\n', etag_save->stream);
           (void)fflush(etag_save->stream);
@@ -214,14 +209,14 @@ size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
           if(filename) {
             if(outs->stream) {
               /* indication of problem, get out! */
-              free(filename);
+              curlx_free(filename);
               return CURL_WRITEFUNC_ERROR;
             }
 
             if(per->config->output_dir) {
-              outs->filename = aprintf("%s/%s", per->config->output_dir,
-                                       filename);
-              free(filename);
+              outs->filename = curl_maprintf("%s/%s", per->config->output_dir,
+                                             filename);
+              curlx_free(filename);
               if(!outs->filename)
                 return CURL_WRITEFUNC_ERROR;
             }
@@ -249,12 +244,12 @@ size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
       if(hdrcbdata->honor_cd_filename &&
          hdrcbdata->config->show_headers) {
         /* still awaiting the Content-Disposition header, store the header in
-           memory. Since it is not zero terminated, we need an extra dance. */
-        char *clone = aprintf("%.*s", (int)cb, (char *)str);
+           memory. Since it is not null-terminated, we need an extra dance. */
+        char *clone = curl_maprintf("%.*s", (int)cb, str);
         if(clone) {
           struct curl_slist *old = hdrcbdata->headlist;
           hdrcbdata->headlist = curl_slist_append(old, clone);
-          free(clone);
+          curlx_free(clone);
           if(!hdrcbdata->headlist) {
             curl_slist_free_all(old);
             return CURL_WRITEFUNC_ERROR;
@@ -289,21 +284,21 @@ size_t tool_header_cb(char *ptr, size_t size, size_t nmemb, void *userdata)
     if(!outs->stream && !tool_create_output_file(outs, per->config))
       return CURL_WRITEFUNC_ERROR;
 
-    if(hdrcbdata->global->isatty &&
+    if(global->isatty &&
 #ifdef _WIN32
        tool_term_has_bold &&
 #endif
-       hdrcbdata->global->styled_output)
+       global->styled_output)
       value = memchr(ptr, ':', cb);
     if(value) {
       size_t namelen = value - ptr;
-      fprintf(outs->stream, BOLD "%.*s" BOLDOFF ":", (int)namelen, ptr);
+      curl_mfprintf(outs->stream, BOLD "%.*s" BOLDOFF ":", (int)namelen, ptr);
 #ifndef LINK
       fwrite(&value[1], cb - namelen - 1, 1, outs->stream);
 #else
       if(curl_strnequal("Location", ptr, namelen)) {
         write_linked_location(per->curl, &value[1], cb - namelen - 1,
-            outs->stream);
+                              outs->stream);
       }
       else
         fwrite(&value[1], cb - namelen - 1, 1, outs->stream);
@@ -324,14 +319,11 @@ static char *parse_filename(const char *ptr, size_t len)
   char *copy;
   char *p;
   char *q;
-  char  stop = '\0';
+  char stop = '\0';
 
-  /* simple implementation of strndup() */
-  copy = malloc(len + 1);
+  copy = memdup0(ptr, len);
   if(!copy)
     return NULL;
-  memcpy(copy, ptr, len);
-  copy[len] = '\0';
 
   p = copy;
   if(*p == '\'' || *p == '"') {
@@ -352,7 +344,7 @@ static char *parse_filename(const char *ptr, size_t len)
   if(q) {
     p = q + 1;
     if(!*p) {
-      Curl_safefree(copy);
+      tool_safefree(copy);
       return NULL;
     }
   }
@@ -364,7 +356,7 @@ static char *parse_filename(const char *ptr, size_t len)
   if(q) {
     p = q + 1;
     if(!*p) {
-      Curl_safefree(copy);
+      tool_safefree(copy);
       return NULL;
     }
   }
@@ -385,32 +377,12 @@ static char *parse_filename(const char *ptr, size_t len)
   {
     char *sanitized;
     SANITIZEcode sc = sanitize_file_name(&sanitized, copy, 0);
-    Curl_safefree(copy);
+    tool_safefree(copy);
     if(sc)
       return NULL;
     copy = sanitized;
   }
 #endif /* _WIN32 || MSDOS */
-
-  /* in case we built debug enabled, we allow an environment variable
-   * named CURL_TESTDIR to prefix the given filename to put it into a
-   * specific directory
-   */
-#ifdef DEBUGBUILD
-  {
-    char *tdir = curl_getenv("CURL_TESTDIR");
-    if(tdir) {
-      char buffer[512]; /* suitably large */
-      msnprintf(buffer, sizeof(buffer), "%s/%s", tdir, copy);
-      Curl_safefree(copy);
-      copy = strdup(buffer); /* clone the buffer, we do not use the libcurl
-                                aprintf() or similar since we want to use the
-                                same memory code as the "real" parse_filename
-                                function */
-      curl_free(tdir);
-    }
-  }
-#endif
 
   return copy;
 }
@@ -425,22 +397,23 @@ static char *parse_filename(const char *ptr, size_t len)
  * should not be needed but the real world returns plenty of relative
  * URLs here.
  */
-static
-void write_linked_location(CURL *curl, const char *location, size_t loclen,
-                           FILE *stream) {
+static void write_linked_location(CURL *curl, const char *location,
+                                  size_t loclen, FILE *stream)
+{
   /* This would so simple if CURLINFO_REDIRECT_URL were available here */
   CURLU *u = NULL;
   char *copyloc = NULL, *locurl = NULL, *scheme = NULL, *finalurl = NULL;
   const char *loc = location;
   size_t llen = loclen;
   int space_skipped = 0;
-  char *vver = getenv("VTE_VERSION");
+  const char *vver = getenv("VTE_VERSION");
 
   if(vver) {
-    long vvn = strtol(vver, NULL, 10);
-    /* Skip formatting for old versions of VTE <= 0.48.1 (Mar 2017) since some
-       of those versions have formatting bugs. (#10428) */
-    if(0 < vvn && vvn <= 4801)
+    curl_off_t num;
+    if(curlx_str_number(&vver, &num, CURL_OFF_T_MAX) ||
+       /* Skip formatting for old versions of VTE <= 0.48.1 (Mar 2017) since
+          some of those versions have formatting bugs. (#10428) */
+       (num <= 4801))
       goto locout;
   }
 
@@ -452,7 +425,7 @@ void write_linked_location(CURL *curl, const char *location, size_t loclen,
   }
 
   /* Strip the trailing end-of-line characters, normally "\r\n" */
-  while(llen && (loc[llen-1] == '\n' || loc[llen-1] == '\r'))
+  while(llen && (loc[llen - 1] == '\n' || loc[llen - 1] == '\r'))
     --llen;
 
   /* CURLU makes it easy to handle the relative URL case */
@@ -460,12 +433,10 @@ void write_linked_location(CURL *curl, const char *location, size_t loclen,
   if(!u)
     goto locout;
 
-  /* Create a NUL-terminated and whitespace-stripped copy of Location: */
-  copyloc = malloc(llen + 1);
+  /* Create a null-terminated and whitespace-stripped copy of Location: */
+  copyloc = memdup0(loc, llen);
   if(!copyloc)
     goto locout;
-  memcpy(copyloc, loc, llen);
-  copyloc[llen] = 0;
 
   /* The original URL to use as a base for a relative redirect URL */
   if(curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &locurl))
@@ -487,10 +458,10 @@ void write_linked_location(CURL *curl, const char *location, size_t loclen,
      !strcmp("https", scheme) ||
      !strcmp("ftp", scheme) ||
      !strcmp("ftps", scheme)) {
-    fprintf(stream, "%.*s" LINK "%s" LINKST "%.*s" LINKOFF,
-            space_skipped, location,
-            finalurl,
-            (int)loclen - space_skipped, loc);
+    curl_mfprintf(stream, "%.*s" LINK "%s" LINKST "%.*s" LINKOFF,
+                  space_skipped, location,
+                  finalurl,
+                  (int)loclen - space_skipped, loc);
     goto locdone;
   }
 
@@ -505,7 +476,7 @@ locdone:
     curl_free(finalurl);
     curl_free(scheme);
     curl_url_cleanup(u);
-    free(copyloc);
+    curlx_free(copyloc);
   }
 }
 #endif

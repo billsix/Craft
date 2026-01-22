@@ -24,7 +24,7 @@
 #include "tool_strdup.h"
 
 #ifndef HAVE_STRDUP
-char *strdup(const char *str)
+char *tool_strdup(const char *str)
 {
   size_t len;
   char *newstr;
@@ -34,7 +34,7 @@ char *strdup(const char *str)
 
   len = strlen(str) + 1;
 
-  newstr = malloc(len);
+  newstr = curlx_malloc(len);
   if(!newstr)
     return (char *)NULL;
 
@@ -42,3 +42,14 @@ char *strdup(const char *str)
   return newstr;
 }
 #endif
+
+char *memdup0(const char *data, size_t len)
+{
+  char *p = curlx_malloc(len + 1);
+  if(!p)
+    return NULL;
+  if(len)
+    memcpy(p, data, len);
+  p[len] = 0;
+  return p;
+}

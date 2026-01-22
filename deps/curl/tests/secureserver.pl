@@ -70,8 +70,9 @@ my $ipvnum = 4;       # default IP version of stunneled server
 my $idnum = 1;        # default stunneled server instance number
 my $proto = 'https';  # default secure server protocol
 my $conffile;         # stunnel configuration file
-my $capath;           # certificate chain PEM folder
+my $cafile;           # certificate CA PEM file
 my $certfile;         # certificate chain PEM file
+my $mtls = 0;         # Whether to verify client certificates
 
 #***************************************************************************
 # stunnel requires full path specification for several files.
@@ -171,8 +172,11 @@ while(@ARGV) {
             shift @ARGV;
         }
     }
+    elsif($ARGV[0] eq '--mtls') {
+        $mtls = 1;
+    }
     else {
-        print STDERR "\nWarning: secureserver.pl unknown parameter: $ARGV[0]\n";
+        print STDERR "\nWarning: secureserver.pl unknown parameter: '$ARGV[0]'\n";
     }
     shift @ARGV;
 }
@@ -195,8 +199,8 @@ if(!$logfile) {
 
 $conffile = "$piddir/${proto}_stunnel.conf";
 
-$capath = abs_path($path);
-$certfile = "$srcdir/". ($stuncert?"certs/$stuncert":"stunnel.pem");
+$cafile = abs_path("$path/certs/test-ca.cacert");
+$certfile = $stuncert ? "certs/$stuncert" : "certs/test-localhost.pem";
 $certfile = abs_path($certfile);
 
 my $ssltext = uc($proto) ." SSL/TLS:";
@@ -213,7 +217,7 @@ foreach my $veropt (('-version', '-V')) {
             $ver_minor = $2;
         }
         elsif($verstr =~ /^sslVersion.*fips *= *yes/) {
-            # the fips option causes an error if stunnel doesn't support it
+            # the fips option causes an error if stunnel does not support it
             $fips_support = 1;
             last
         }
@@ -246,7 +250,7 @@ if($stunnel =~ /tstunnel(\.exe)?$/) {
     $tstunnel_windows = 1;
 
     # convert Cygwin/MinGW paths to Windows format
-    $capath = pathhelp::sys_native_abs_path($capath);
+    $cafile = pathhelp::sys_native_abs_path($cafile);
     $certfile = pathhelp::sys_native_abs_path($certfile);
 }
 
@@ -292,12 +296,15 @@ if($stunnel_version >= 400) {
     $SIG{TERM} = \&exit_signal_handler;
     # stunnel configuration file
     if(open(my $stunconf, ">", "$conffile")) {
-        print $stunconf "CApath = $capath\n";
         print $stunconf "cert = $certfile\n";
         print $stunconf "debug = $loglevel\n";
         print $stunconf "socket = $socketopt\n";
+        if($mtls) {
+            print $stunconf "CAfile = $cafile\n";
+            print $stunconf "verifyChain = yes\n";
+        }
         if($fips_support) {
-            # disable fips in case OpenSSL doesn't support it
+            # disable fips in case OpenSSL does not support it
             print $stunconf "fips = no\n";
         }
         if(!$tstunnel_windows) {
@@ -322,22 +329,11 @@ if($stunnel_version >= 400) {
     if($verbose) {
         print uc($proto) ." server (stunnel $ver_major.$ver_minor)\n";
         print "cmd: $cmd\n";
-        print "CApath = $capath\n";
-        print "cert = $certfile\n";
-        print "debug = $loglevel\n";
-        print "socket = $socketopt\n";
-        if($fips_support) {
-            print "fips = no\n";
-        }
-        if(!$tstunnel_windows) {
-            print "pid = $pidfile\n";
-            print "output = $logfile\n";
-            print "foreground = yes\n";
-        }
+        print "stunnel config at $conffile:\n";
+        open (my $writtenconf, '<', "$conffile") or die "$ssltext could not open the config file after writing\n";
+        print <$writtenconf>;
         print "\n";
-        print "[curltest]\n";
-        print "accept = $host_ip:$accept_port\n";
-        print "connect = $host_ip:$target_port\n";
+        close ($writtenconf);
     }
 }
 
@@ -362,7 +358,7 @@ if($tstunnel_windows) {
 
     # Put an "exec" in front of the command so that the child process
     # keeps this child's process ID by being tied to the spawned shell.
-    exec("exec $cmd") || die "Can't exec() $cmd: $!";
+    exec("exec $cmd") || die "Cannot exec() $cmd: $!";
     # exec() will create a new process, but ties the existence of the
     # new process to the parent waiting perl.exe and sh.exe processes.
 

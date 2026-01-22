@@ -55,12 +55,12 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode ret;
+    CURLcode result;
     curl_off_t ridiculous = (curl_off_t)1 << 48;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
     /* refuse to download if larger than ridiculous */
     curl_easy_setopt(curl, CURLOPT_MAXFILESIZE_LARGE, ridiculous);
-    ret = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
   }
 }
 ~~~
@@ -69,5 +69,7 @@ int main(void)
 
 # RETURN VALUE
 
-Returns CURLE_OK if the option is supported, CURLE_UNKNOWN_OPTION if not, or
-CURLE_BAD_FUNCTION_ARGUMENT if the size passed is invalid.
+curl_easy_setopt(3) returns a CURLcode indicating success or error.
+
+CURLE_OK (0) means everything was OK, non-zero means an error occurred, see
+libcurl-errors(3).
