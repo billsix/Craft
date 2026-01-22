@@ -1,7 +1,7 @@
 /*
-LodePNG version 20250506
+LodePNG version 20260119
 
-Copyright (c) 2005-2025 Lode Vandevenne
+Copyright (c) 2005-2026 Lode Vandevenne
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -771,6 +771,7 @@ typedef struct LodePNGInfo {
 
 /*init, cleanup and copy functions to use with this struct*/
 void lodepng_info_init(LodePNGInfo* info);
+/*destructs the LodePNGInfo and brings it to invalid state, requiring lodepng_info_init again before reusing it*/
 void lodepng_info_cleanup(LodePNGInfo* info);
 /*return value is error code (0 means no error)*/
 unsigned lodepng_info_copy(LodePNGInfo* dest, const LodePNGInfo* source);
@@ -944,7 +945,17 @@ void lodepng_encoder_settings_init(LodePNGEncoderSettings* settings);
 
 
 #if defined(LODEPNG_COMPILE_DECODER) || defined(LODEPNG_COMPILE_ENCODER)
-/*The settings, state and information for extended encoding and decoding.*/
+/*The settings, state and information for extended encoding and decoding.
+
+Using this struct requires using lodepng_state_init to initialize it
+and using lodepng_state_cleanup to deconstruct it. If using C++, you can
+use lodepng::State instead which does those things automatically with RAII.
+
+While a LodePNGState can be reused once in a chain of lodepng_decode followed by
+lodepng_encode, it's not recommended to reuse it for multiple encode, decode
+or inspect calls, and if any such function returns an error code, the
+LodePNGState should not be reused at all as it can be in an unexpected state..
+*/
 typedef struct LodePNGState {
 #ifdef LODEPNG_COMPILE_DECODER
   LodePNGDecoderSettings decoder; /*the decoding settings*/
@@ -954,13 +965,15 @@ typedef struct LodePNGState {
 #endif /*LODEPNG_COMPILE_ENCODER*/
   LodePNGColorMode info_raw; /*specifies the format in which you would like to get the raw pixel buffer*/
   LodePNGInfo info_png; /*info of the PNG image obtained after decoding*/
-  unsigned error;
+  unsigned error; /*deprecated, use the return value of the encode/decode functions to check errors instead*/
 } LodePNGState;
 
 /*init, cleanup and copy functions to use with this struct*/
 void lodepng_state_init(LodePNGState* state);
+/*destructs the LodePNGState and brings it to invalid state, requiring lodepng_info_init again before reusing it*/
 void lodepng_state_cleanup(LodePNGState* state);
-void lodepng_state_copy(LodePNGState* dest, const LodePNGState* source);
+/*return value is error code (0 means no error)*/
+unsigned lodepng_state_copy(LodePNGState* dest, const LodePNGState* source);
 #endif /* defined(LODEPNG_COMPILE_DECODER) || defined(LODEPNG_COMPILE_ENCODER) */
 
 #ifdef LODEPNG_COMPILE_DECODER
@@ -1183,6 +1196,8 @@ unsigned lodepng_save_file(const unsigned char* buffer, size_t buffersize, const
 /* The LodePNG C++ wrapper uses std::vectors instead of manually allocated memory buffers. */
 namespace lodepng {
 #ifdef LODEPNG_COMPILE_PNG
+/* Wrapper around LodePNGState, which automatically calls lodepng_state_init in the constructor
+and lodepng_state_cleanup in the desctructor.*/
 class State : public LodePNGState {
   public:
     State();
@@ -2003,10 +2018,10 @@ symbol.
 Not all changes are listed here, the commit history in github lists more:
 https://github.com/lvandeve/lodepng
 
-*) 6 may 2025: renamed mDCv to mDCV and cLLi to cLLI as per the recent rename
-   in the draft png third edition spec. Please note that while the third
-   edition is not finalized, backwards-incompatible changes to its features are
-   possible.
+*) 6 may 2025 (!): renamed mDCv to mDCV and cLLi to cLLI as per the recent
+   rename in the draft png third edition spec. Please note that as long as the
+   third edition is not finalized, backwards-incompatible changes to its
+   features are possible.
 *) 23 dec 2024: added support for the mDCv and cLLi chunks (for png third
    edition spec)
 *) 22 dec 2024: added support for the cICP chunk (for png third edition spec)
