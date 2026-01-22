@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #   This file is part of gl3w, hosted at https://github.com/skaslev/gl3w
 #
@@ -103,9 +103,9 @@ touch_dir(os.path.join(args.root, 'include/KHR'))
 touch_dir(os.path.join(args.root, 'src'))
 
 # Download glcorearb.h and khrplatform.h
-download('https://www.khronos.org/registry/OpenGL/api/GL/glcorearb.h',
+download('https://registry.khronos.org/OpenGL/api/GL/glcorearb.h',
          os.path.join(args.root, 'include/GL/glcorearb.h'))
-download('https://www.khronos.org/registry/EGL/api/KHR/khrplatform.h',
+download('https://registry.khronos.org/EGL/api/KHR/khrplatform.h',
          os.path.join(args.root, 'include/KHR/khrplatform.h'))
 
 # Parse function names from glcorearb.h
@@ -196,6 +196,11 @@ with open(os.path.join(args.root, 'src/gl3w.c'), 'wb') as f:
 #endif
 #include <windows.h>
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 static HMODULE libgl;
 typedef PROC(__stdcall* GL3WglGetProcAddr)(LPCSTR);
 static GL3WglGetProcAddr wgl_get_proc_address;
@@ -224,6 +229,10 @@ static GL3WglProc get_proc(const char *proc)
 		res = (GL3WglProc)GetProcAddress(libgl, proc);
 	return res;
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 #elif defined(__APPLE__)
 #include <dlfcn.h>
 
@@ -276,7 +285,11 @@ static void close_libgl(void)
 
 static int is_library_loaded(const char *name, void **lib)
 {
+#if defined(__HAIKU__)
+	*lib = NULL;
+#else
 	*lib = dlopen(name, RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
+#endif
 	return *lib != NULL;
 }
 
