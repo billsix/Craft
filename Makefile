@@ -11,7 +11,7 @@ clean: ## delete all non-version controlled files
 
 .PHONY: debug
 debug: ## build Craft in debug mode
-	mkdir -p debugBuild
+	cmake -S. -BdebugBuild
 	mkdir -p debugBuildInstall
 	cmake -DCMAKE_INSTALL_PREFIX=./debugBuildInstall -DENABLE_VULKAN_RENDERER=NO \
 	-DENABLE_OPENGL_CORE_PROFILE_RENDERER=YES -DCMAKE_BUILD_TYPE=Debug -S. -BdebugBuild
@@ -21,7 +21,7 @@ debug: ## build Craft in debug mode
 
 .PHONY: release
 release: ## build Craft in release mode
-	mkdir -p releaseBuild
+	cmake -S. -BreleaseBuild
 	mkdir -p releaseBuildInstall
 	cmake -DCMAKE_INSTALL_PREFIX=./releaseBuildInstall  -DENABLE_VULKAN_RENDERER=NO \
 	-DENABLE_OPENGL_CORE_PROFILE_RENDERER=YES -DCMAKE_BUILD_TYPE=Release  -S. -BreleaseBuild
