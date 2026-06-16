@@ -1,223 +1,217 @@
 ## Craft
 
-Minecraft clone for Windows, Mac OS X and Linux. Just a few thousand lines of C using modern OpenGL (shaders). Online multiplayer support is included using a Python-based server.
+A voxel ("Minecraft-like") game in **C with modern OpenGL** (shaders) — just a
+few thousand lines of first-party code. Cross-platform (Linux, macOS, Windows),
+with optional Python-based multiplayer.
 
-Based off of : http://www.michaelfogleman.com/craft/, https://github.com/fogleman/Craft
+This is **William Emerison Six's fork** of **Michael Fogleman's Craft**
+(<http://www.michaelfogleman.com/craft/>,
+<https://github.com/fogleman/Craft>). On top of upstream it adds:
+
+* a **pluggable render backend** — the working OpenGL 3.3 core-profile renderer
+  and an **in-progress Vulkan** renderer, selected at build time;
+* **Dear ImGui** integration for in-game UI;
+* refactors that split the renderer out of `main.c` behind a backend-agnostic
+  API (`gl_render.*` / `vulkan_render.*`), plus regularly-refreshed vendored
+  dependencies.
 
 ![Screenshot](https://i.imgur.com/SH7wcas.png)
 
 ### Features
 
-* Simple but nice looking terrain generation using perlin / simplex noise.
-* More than 10 types of blocks and more can be added easily.
-* Supports plants (grass, flowers, trees, etc.) and transparency (glass).
-* Simple clouds in the sky (they don't move).
-* Day / night cycles and a textured sky dome.
+* Simple but nice-looking terrain generation using Perlin / simplex noise.
+* More than 10 types of blocks, easily extended.
+* Plants (grass, flowers, trees, …) and transparency (glass).
+* Simple clouds, day/night cycle, and a textured sky dome.
 * World changes persisted in a sqlite3 database.
-* Multiplayer support!
+* Ambient occlusion, frustum culling, and exposed-face-only meshing.
+* Multiplayer support via a Python server.
 
+### Install dependencies
 
-### Install Dependencies
+#### Linux (Fedora)
 
-#### Windows
+    sudo dnf install cmake gcc gcc-c++ glfw-devel libcurl-devel sqlite-devel \
+                     mesa-libGL-devel libXi-devel libXcursor-devel
+    # for the Vulkan backend (optional): sudo dnf install vulkan-loader-devel vulkan-headers
 
-Download and install [CMake](http://www.cmake.org/cmake/resources/software.html).
+#### Linux (Ubuntu/Debian)
 
+    sudo apt-get install cmake build-essential libglfw3-dev libcurl4-openssl-dev \
+                         libsqlite3-dev xorg-dev
+    # for the Vulkan backend (optional): sudo apt-get install libvulkan-dev vulkan-headers
 
-#### Mac OS X
+On Linux, GLFW / CURL / sqlite3 are taken from the system (via `pkg-config`);
+`gl3w`, `imgui`, `lodepng`, `noise`, and `tinycthread` are bundled under `deps/`.
 
-Download and install [CMake](http://www.cmake.org/cmake/resources/software.html)
-if you don't already have it. You may use [Homebrew](http://brew.sh) to simplify
-the installation:
+#### macOS
 
     brew install cmake
 
-#### Linux (Ubuntu)
-
-    sudo apt-get install cmake xorg-dev libcurl4-openssl-dev
-    sudo apt-get install build-dep glfw
-
-### Compile and Run
-
 #### Windows
 
+Install [CMake](https://cmake.org/download/) and Visual Studio.
+
+### Compile and run
+
+#### Linux / macOS
+
+The `Makefile` is a thin wrapper over CMake:
+
     git clone https://github.com/billsix/Craft.git
-
-Use the Visual Studio 2019 developer command prompt.
-cd to the project root
-
-    buildDebug.bat
-
-Open up the main solution file under the "build" directory"
-Set the craft project to be the startup item.  Run
-
-To build it in release mode,
-    buildRelease.bat
-
-#### Linux/MacOS
-
-Once you have the dependencies (see above), run the following commands in your
-terminal.
-
-    mkdir Craft
     cd Craft
-    git clone https://github.com/fogleman/Craft.git
-    export CC=clang
-    export CXX=clang++
+    export CC=clang CXX=clang++      # gcc works too
     make debug
     ./debugBuildInstall/bin/craft
 
+`make release` builds an optimized tree under `releaseBuildInstall/`. Both
+wrappers build the **OpenGL** backend and install the binary plus its
+shaders/textures.
+
+To configure CMake directly (e.g. to try the Vulkan backend or other options):
+
+    cmake -S. -Bbuild -DENABLE_VULKAN_RENDERER=YES
+    cmake --build build
+
+#### Windows
+
+Use a Visual Studio developer command prompt at the project root:
+
+    buildDebug.bat       # or buildRelease.bat
+
+Open the generated solution under `build/`, set `craft` as the startup project,
+and run.
+
+### Render backends & build options
+
+Pick **exactly one** renderer. CMake compiles only the selected backend's
+sources (`gl_render.c` + `gui-gl.cpp`, or `vulkan_render.c` + `gui-vulkan.cpp`).
+
+| CMake option                            | Default | Effect                                              |
+|-----------------------------------------|---------|-----------------------------------------------------|
+| `ENABLE_OPENGL_CORE_PROFILE_RENDERER`   | `ON`    | OpenGL 3.3+ core-profile renderer (complete)        |
+| `ENABLE_VULKAN_RENDERER`                | `OFF`   | Vulkan renderer (**work in progress** — see `TODO.md`) |
+| `ENABLE_PYTHON`                         | `OFF`   | build the bundled Python (Win/macOS)                |
+| `ENABLE_ONLY_RENDER_ONE_CHUNK`          | `OFF`   | debug: render a single chunk, to visualize a chunk  |
+| `ENABLE_NO_THREADS`                     | `OFF`   | single-threaded chunk generation (old-hardware FPS) |
+
+Debug builds load shaders/textures from the source tree; Release builds load them
+from the install prefix (`share/craft/`), so run a Release build from its
+install.
+
 ### Multiplayer
 
-After many years, craft.michaelfogleman.com has been taken down. See the [Server](#server) section for info on self-hosting.
+The original hosted server (`craft.michaelfogleman.com`) is gone; you self-host.
 
 #### Client
 
-You can connect to a server with command line arguments...
+Connect with command-line arguments or the in-game command:
 
-```bash
-./craft [HOST [PORT]]
-```
-
-Or, with the "/online" command in the game itself.
-
+    ./craft [HOST [PORT]]      # default port 4080
     /online [HOST [PORT]]
 
 #### Server
 
-You can run your own server or connect to mine. The server is written in Python
-but requires a compiled DLL so it can perform the terrain generation just like
-the client.
+The server is Python, but needs a compiled shared library so it generates terrain
+identically to the client:
 
-```bash
-gcc -std=c99 -O3 -fPIC -shared -o world -I src -I deps/noise deps/noise/noise.c src/world.c
-python server.py [HOST [PORT]]
-```
+    cmake -S. -Bbuild && cmake --build build      # builds libworld.so
+    cp build/libworld.so .                         # world.py loads ./libworld.so
+    python server.py [HOST [PORT]]
+
+> Note: `server.py` is legacy (Python-2-flavored `SocketServer` usage) and may
+> need a Python-3 port before it runs. `world.py` (terrain via `ctypes`) and
+> `builder.py` (scripted block placement) accompany it.
 
 ### Controls
 
-- WASD to move forward, left, backward, right.
-- Space to jump.
-- Left Click to destroy a block.
-- Right Click or Cmd + Left Click to create a block.
-- Ctrl + Right Click to toggle a block as a light source.
-- 1-9 to select the block type to create.
-- E to cycle through the block types.
-- Tab to toggle between walking and flying.
-- ZXCVBN to move in exact directions along the XYZ axes.
-- Left shift to zoom.
-- F to show the scene in orthographic mode.
-- O to observe players in the main view.
-- P to observe players in the picture-in-picture view.
-- T to type text into chat.
-- Forward slash (/) to enter a command.
-- Backquote (`) to write text on any block (signs).
-- Arrow keys emulate mouse movement.
-- Enter emulates mouse click.
+- WASD to move; Space to jump.
+- Left Click destroys a block; Right Click (or Cmd + Left Click) creates one.
+- Ctrl + Right Click toggles a block as a light source.
+- 1–9 select the block to place; E / R cycle the block type.
+- Tab toggles walking / flying.
+- ZXCVBN move along exact XYZ axes; Left Shift to zoom.
+- F toggles orthographic mode.
+- O observes players in the main view; P in a picture-in-picture inset.
+- T to chat; `/` to enter a command; `` ` `` to write on a block (signs).
+- Arrow keys emulate mouse movement; Enter emulates a mouse click.
 
-### Chat Commands
+### Chat commands
 
-    /goto [NAME]
+    /goto [NAME]      teleport to another user (random if NAME omitted)
+    /list             list connected users
+    /login NAME       switch registered username (re-contacts login server)
+    /logout           become a guest
+    /offline [FILE]   switch to offline mode (FILE save, defaults to "craft")
+    /online HOST [PORT]   connect to a server
+    /pq P Q           teleport to chunk (P, Q)
+    /spawn            teleport to spawn
 
-Teleport to another user.
-If NAME is unspecified, a random user is chosen.
+### Implementation details
 
-    /list
+#### Terrain generation
 
-Display a list of connected users.
-
-    /login NAME
-
-Switch to another registered username.
-The login server will be re-contacted. The username is case-sensitive.
-
-    /logout
-
-Unauthenticate and become a guest user.
-Automatic logins will not occur again until the /login command is re-issued.
-
-    /offline [FILE]
-
-Switch to offline mode.
-FILE specifies the save file to use and defaults to "craft".
-
-    /online HOST [PORT]
-
-Connect to the specified server.
-
-    /pq P Q
-
-Teleport to the specified chunk.
-
-    /spawn
-
-Teleport back to the spawn point.
-
-### Screenshot
-
-![Screenshot](https://i.imgur.com/foYz3aN.png)
-
-### Implementation Details
-
-#### Terrain Generation
-
-The terrain is generated using Simplex noise - a deterministic noise function seeded based on position. So the world will always be generated the same way in a given location.
-
-The world is split up into 32x32 block chunks in the XZ plane (Y is up). This allows the world to be “infinite” (floating point precision is currently a problem at large X or Z values) and also makes it easier to manage the data. Only visible chunks need to be queried from the database.
+Generated from deterministic simplex noise seeded by position, so a given
+location always generates the same way. The world is split into 32×32-block
+chunks in the XZ plane (Y is up), making it effectively "infinite" (floating
+point precision is the limit at extreme X/Z) and easy to stream — only visible
+chunks are queried from the database.
 
 #### Rendering
 
-Only exposed faces are rendered. This is an important optimization as the vast majority of blocks are either completely hidden or are only exposing one or two faces. Each chunk records a one-block width overlap for each neighboring chunk so it knows which blocks along its perimeter are exposed.
+Only **exposed faces** are meshed (the vast majority of blocks are hidden); each
+chunk keeps a one-block overlap with its neighbors so it knows which perimeter
+faces are exposed. Only **visible chunks** are drawn (naive frustum culling). A
+chunk's vertex buffer is fully regenerated when any block in it changes. Text is
+a bitmap atlas (two triangles per glyph). Modern OpenGL only — no fixed-function;
+VBOs for position/normal/UV and GLSL shaders. The simple models (cubes, planes)
+are generated in code (`cube.c`); matrices come from `matrix.c`. Transparency in
+glass and plants is done by discarding magenta pixels in the fragment shader.
 
-Only visible chunks are rendered. A naive frustum-culling approach is used to test if a chunk is in the camera’s view. If it is not, it is not rendered. This results in a pretty decent performance improvement as well.
-
-Chunk buffers are completely regenerated when a block is changed in that chunk, instead of trying to update the VBO.
-
-Text is rendered using a bitmap atlas. Each character is rendered onto two triangles forming a 2D rectangle.
-
-“Modern” OpenGL is used - no deprecated, fixed-function pipeline functions are used. Vertex buffer objects are used for position, normal and texture coordinates. Vertex and fragment shaders are used for rendering. Matrix manipulation functions are in matrix.c for translation, rotation, perspective, orthographic, etc. matrices. The 3D models are made up of very simple primitives - mostly cubes and rectangles. These models are generated in code in cube.c.
-
-Transparency in glass blocks and plants (plants don’t take up the full rectangular shape of their triangle primitives) is implemented by discarding magenta-colored pixels in the fragment shader.
+In this fork all of the above is reached through a backend-agnostic API
+(`gl_render.h` / `vulkan_render.h`); `main.c` does not call OpenGL directly, so a
+second backend (Vulkan, eventually Metal) can be dropped in by implementing the
+same functions. Dear ImGui (`gui.cpp` + a per-backend glue file) draws the UI.
 
 #### Database
 
-User changes to the world are stored in a sqlite database. Only the delta is stored, so the default world is generated and then the user changes are applied on top when loading.
+User changes are stored as a delta in a sqlite database — the default world is
+generated, then user edits applied on load. The main `block` table is
+`(p, q, x, y, z, w)`: `(p, q)` is the chunk, `(x, y, z)` the position, `w` the
+block type (0 = air). In memory, chunks store blocks in a hash map (`map.c`):
+`(x, y, z) → w`. Y is limited to `0 ≤ y < 256`; `y = 0` blocks can't be destroyed
+(so you can't fall out of the world).
 
-The main database table is named “block” and has columns p, q, x, y, z, w. (p, q) identifies the chunk, (x, y, z) identifies the block position and (w) identifies the block type. 0 represents an empty block (air).
+#### Multiplayer protocol
 
-In game, the chunks store their blocks in a hash map. An (x, y, z) key maps to a (w) value.
+Plain sockets, a line-based ASCII protocol: each line is a command code plus
+comma-separated args. The client requests a chunk with `C,p,q,key`; the server
+replies with block updates `B,p,q,x,y,z,w` and a new cache key `K,p,q,key` (the
+key lets the server send only changes since the client last asked). Player
+positions are `P,pid,x,y,z,rx,ry`; the client interpolates the last two updates
+for smoother motion and sends its own position at most every 0.1 s. Client-side
+sqlite caching runs on a background thread, batched in a transaction committed
+every few seconds, fed by a ring buffer (`ring.c`).
 
-The y-position of blocks are limited to 0 <= y < 256. The upper limit is mainly an artificial limitation to prevent users from building unnecessarily tall structures. Users are not allowed to destroy blocks at y = 0 to avoid falling underneath the world.
+#### Collision & hit testing
 
-#### Multiplayer
+Hit testing ray-casts from the player along the sight vector (step rate trades
+accuracy for cost). Collision keeps the player a fixed distance from obstacle
+blocks; clouds and plants aren't obstacles, so you pass through them.
 
-Multiplayer mode is implemented using plain-old sockets. A simple, ASCII, line-based protocol is used. Each line is made up of a command code and zero or more comma-separated arguments. The client requests chunks from the server with a simple command: C,p,q,key. “C” means “Chunk” and (p, q) identifies the chunk. The key is used for caching - the server will only send block updates that have been performed since the client last asked for that chunk. Block updates (in realtime or as part of a chunk request) are sent to the client in the format: B,p,q,x,y,z,w. After sending all of the blocks for a requested chunk, the server will send an updated cache key in the format: K,p,q,key. The client will store this key and use it the next time it needs to ask for that chunk. Player positions are sent in the format: P,pid,x,y,z,rx,ry. The pid is the player ID and the rx and ry values indicate the player’s rotation in two different axes. The client interpolates player positions from the past two position updates for smoother animation. The client sends its position to the server at most every 0.1 seconds (less if not moving).
+#### Sky dome & ambient occlusion
 
-Client-side caching to the sqlite database can be performance intensive when connecting to a server for the first time. For this reason, sqlite writes are performed on a background thread. All writes occur in a transaction for performance. The transaction is committed every 5 seconds as opposed to some logical amount of work completed. A ring / circular buffer is used as a queue for what data is to be written to the database.
+A textured sky dome encodes time-of-day on the texture's X axis; the block
+shaders also sample it to pick a fog color. Ambient occlusion follows
+<http://0fps.wordpress.com/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/>.
 
-In multiplayer mode, players can observe one another in the main view or in a picture-in-picture view. Implementation of the PnP was surprisingly simple - just change the viewport and render the scene again from the other player’s point of view.
+### Dependencies
 
-#### Collision Testing
+`gl3w` (OpenGL extension loading), `glfw` (windowing), `curl` (HTTPS auth),
+`lodepng` (PNG textures), `sqlite3` (save data), `tinycthread` (threads), `imgui`
+(UI), and `noise` (simplex noise). On Linux, GLFW/CURL/sqlite3 come from the
+system; the rest are vendored under `deps/`.
 
-Hit testing (what block the user is pointing at) is implemented by scanning a ray from the player’s position outward, following their sight vector. This is not a precise method, so the step rate can be made smaller to be more accurate.
+### License
 
-Collision testing simply adjusts the player’s position to remain a certain distance away from any adjacent blocks that are obstacles. (Clouds and plants are not marked as obstacles, so you pass right through them.)
-
-#### Sky Dome
-
-A textured sky dome is used for the sky. The X-coordinate of the texture represents time of day. The Y-values map from the bottom of the sky sphere to the top of the sky sphere. The player is always in the center of the sphere. The fragment shaders for the blocks also sample the sky texture to determine the appropriate fog color to blend with based on the block’s position relative to the backing sky.
-
-#### Ambient Occlusion
-
-Ambient occlusion is implemented as described on this page:
-
-http://0fps.wordpress.com/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/
-
-#### Dependencies
-
-* GL3W is used for managing OpenGL extensions across platforms.
-* GLFW is used for cross-platform window management.
-* CURL is used for HTTPS / SSL POST for the authentication process.
-* lodepng is used for loading PNG textures.
-* sqlite3 is used for saving the blocks added / removed by the user.
-* tinycthread is used for cross-platform threading.
+MIT — Michael Fogleman (2013) and William Emerison Six (2020). See `LICENSE.md`.
