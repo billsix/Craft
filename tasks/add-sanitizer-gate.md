@@ -73,7 +73,7 @@ non-GL surface with adversarial inputs:
 - `make_cube`/mesh helpers and `matrix.c` operations on representative inputs.
 
 Run this harness under each sanitizer; **any trap/abort fails the build.** This
-is honest coverage of the genuinely testable part — it does **not** cover the
+is honest coverage of the testable part — it does **not** cover the
 render/input/networking code, which needs a display and is out of scope for an
 automated gate.
 
