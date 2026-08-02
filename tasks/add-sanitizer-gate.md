@@ -1,6 +1,8 @@
 # Add an ASan + UBSan(trap) build gate to Craft
 
 **Status:** proposed — needs go-ahead
+**Priority:** 5
+**Difficulty:** 7
 **Created:** 2026-06-16
 
 ## Goal
