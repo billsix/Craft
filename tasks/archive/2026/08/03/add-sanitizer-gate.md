@@ -1,9 +1,101 @@
 # Add an ASan + UBSan(trap) build gate to Craft
 
-**Status:** proposed — needs go-ahead
+**Status:** complete
 **Priority:** 5
 **Difficulty:** 7
 **Created:** 2026-06-16
+**Implemented:** 2026-08-03
+**Completed:** 2026-08-03
+**Decision (step 5, Bill 2026-08-03):** leave `make sanitize` **on-demand** — NOT
+wired into CI/automated build. Craft has no CI or container template yet, so the
+human/CI-invokable `make sanitize` target is the intended interface for now.
+
+## Work log (2026-08-03)
+
+Built the gate as planned: scope option 1 (per-target flags, deps
+un-instrumented). Verified natively in-sandbox with clang 22 (no nested-podman
+image build — the harness is a light standalone target, not the game).
+
+**Files added / changed:**
+
+- `tests/smoke.c` (new) — the non-GL smoke harness. Drives every GL-free unit
+  with adversarial inputs: `create_world` over a 3x3 grid of chunks into a Map
+  (world-gen + noise + heavy `map_grow` rehashing); a standalone Map stress
+  (small mask, ~1600 sets forcing grows, hit/miss `map_get`, `map_copy`); a
+  Ring fill/drain past capacity across all 5 entry types; a SignList past
+  capacity with duplicate-coord and over-length text; `db_init(":memory:")`
+  driving both the synchronous paths (signs, auth, save/load state) and the
+  async ring/worker-thread paths (blocks, lights, keys, commit) then loading
+  back into a Map/SignList and `db_close`; the full `cube.c` mesh set
+  (`make_cube` over all `items[]`, `make_plant`, `make_player`,
+  `make_cube_wireframe`, `make_character` over the printable range,
+  `make_character_3d` over all 8 faces, `make_sphere` detail 0-3); the whole
+  `matrix.c` API; the `item.c` predicates over the negative ids world-gen
+  produces; and the pure `util.c` helpers (`rand_*`, `char/string_width`,
+  `wrap`, `tokenize`, `flip_image_vertical`, `malloc_faces`). Buffers are sized
+  to each generator's exact maximum output so ASan overflow checks are
+  meaningful. LSan is disabled via a weak `__asan_default_options` (guarded).
+- `CMakeLists.txt` — `option(ENABLE_SANITIZER_GATE ... OFF)` +
+  `SANITIZER_GATE_KIND` cache string, and a Linux-only block building
+  `craft_smoke` from the harness + the 9 GL-free `src/*.c` units with the
+  sanitizer flags scoped via `target_compile_options`/`target_link_options`.
+  `deps/noise` + `deps/tinycthread` go into a separate un-instrumented
+  `craft_gate_deps` OBJECT library; sqlite is the system library. The full
+  `craft` game target is untouched and the block is inert when the option is
+  OFF (verified: default configure succeeds, `craft_smoke` target absent).
+- `Makefile` — `make sanitize` target: configures + builds + runs the harness
+  for `address` then `undefined`, **accumulating a `status` var and
+  `exit $status`** so a failure in either config (or in configure/build) fails
+  the target — it does not rely on the last command's exit code.
+- `.gitignore` — ignore `craft_smoke` and the `sanitizeBuild-*/` scratch dirs.
+- `src/map.c` — **UB fix** (see below).
+
+**UB/memory site fixed (step 4):**
+
+- `src/map.c:32` `hash_int` — Thomas Wang's integer hash did its intended
+  modulo-2^32 wraparound in signed `int`: `key << 15` on a negative `key`
+  (left-shift of negative value) and `key * 2057` (signed overflow) are both
+  UB, and diagnostic UBSan flagged exactly those two lines (reached via every
+  `map_set`/`map_get`, i.e. world-gen and the map stress). Fixed by computing
+  in `unsigned int` and casting back — the standard, well-defined form of this
+  hash. Only the low bits are ever used (`& map->mask`), the map is transient
+  and never persisted by hash layout, so the bucket-distribution change is
+  behaviour-safe. This was the **only** UB site in `src/`; everything else was
+  clean on the first diagnostic pass.
+
+**Verification (all native in-sandbox, clang 22.1.8):**
+
+- `make sanitize` → exit 0. ASan config: clean. UBSan-trap config: clean.
+- Diagnostic (non-trap) UBSan over the whole harness after the fix: **0**
+  runtime errors (was 2, both `map.c` `hash_int`).
+- Negative test (confirms the gate bites and stays scoped to `src/`): injecting
+  a signed overflow into `matrix.c` traps under UBSan (SIGILL, rc 132);
+  injecting a heap overflow into `sign.c` aborts under ASan
+  (`heap-buffer-overflow`). Deps compiled un-instrumented, so their intentional
+  UB cannot fail the gate.
+- Default build path unaffected: configure with the option OFF succeeds and
+  exposes no `craft_smoke` target.
+- **Not run:** the full `craft` game binary under sanitizers — impossible by
+  design (interactive OpenGL, needs a display/GPU, no headless mode); and no
+  nested-podman image build (resource limit + Craft has no container template).
+  The harness is the honest coverage of the sanitizable surface.
+
+**Latent issues noticed, deliberately NOT fixed here (out of scope, low-risk,
+flagged for Bill):**
+
+- `src/db.c:499` `db_worker_start(char *path)` is defined taking an argument but
+  declared `void db_worker_start()` in `db.h:53` and called with no argument at
+  `db.c:166` — clang warns (`-Wdeprecated-non-prototype`), and the `path`
+  parameter is read from a garbage register/slot and handed to `thrd_create`,
+  though `db_worker_run` ignores its arg so it's harmless in practice. A
+  one-line fix (drop the unused `char *path` param, or thread the db path
+  through) would clear the warning; left alone to keep this change scoped to the
+  sanitizer gate.
+- `src/util.c:117` `wrap()` guards its `strncat` lengths with
+  `max_length - strlen(output) - 1` (a `size_t`); the guard holds for the game's
+  realistic callers (generous 1 KB buffers) so the harness drives it that way
+  and it's clean, but the arithmetic is fragile if `output` ever fills. Not a
+  gate finding; noted as a possible hardening follow-up.
 
 ## Goal
 

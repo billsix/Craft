@@ -30,13 +30,20 @@
  * https://en.wikipedia.org/wiki/Hash_function
  */
 int hash_int(int key) {
-  key = ~key + (key << 15);
-  key = key ^ (key >> 12);
-  key = key + (key << 2);
-  key = key ^ (key >> 4);
-  key = key * 2057;
-  key = key ^ (key >> 16);
-  return key;
+  /*
+   * Thomas Wang's integer hash. The shifts and the multiply are meant to wrap
+   * modulo 2^32, so compute in unsigned to keep that well-defined (a signed
+   * left-shift of a negative value and a signed multiply overflow are both
+   * undefined behaviour). Only the low bits are used, via `& map->mask`.
+   */
+  unsigned int h = (unsigned int)key;
+  h = ~h + (h << 15);
+  h = h ^ (h >> 12);
+  h = h + (h << 2);
+  h = h ^ (h >> 4);
+  h = h * 2057;
+  h = h ^ (h >> 16);
+  return (int)h;
 }
 
 /*

@@ -5,8 +5,11 @@ CMakeFiles
 cmake_install.cmake
 config.py
 craft
+craft_smoke
 world
 env
+sanitizeBuild-address/
+sanitizeBuild-undefined/
 log.txt
 .idea/
 *.o

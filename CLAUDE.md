@@ -169,11 +169,12 @@ Keep this list honest — remove items when fixed (don't annotate them "done").
 - **Vulkan backend is incomplete** — scaffolded only; `TODO.md` is the roadmap
   (open a window → sky → blocks → parity with the GL event loop). Metal is not
   started.
-- **No test suite / no headless mode.** Nothing exercises the code without a
-  display+GPU. This is the central obstacle for the proposed sanitizer gate
-  (`tasks/add-sanitizer-gate.md`): the GL-free core (`world/map/ring/db/cube/
-  item/matrix/sign`) is the realistically testable+sanitizable surface and would
-  need a smoke/unit harness first.
+- **The game binary has no headless mode.** Nothing exercises `main.c` / the
+  render / input / networking code without a display+GPU. The GL-free core
+  (`world/map/ring/db/cube/item/matrix/sign` + the pure `util` helpers) *is* now
+  covered: `tests/smoke.c` drives it and `make sanitize` runs it under ASan and
+  UBSan-trap (scoped to `src/`, deps un-instrumented). See
+  `tasks/archive/2026/08/03/add-sanitizer-gate.md`. There is still no general unit-test suite.
 - **`Makefile` `all` target is broken** — `all: clean image html` depends on
   `image` and `html`, which don't exist. Use `debug`/`release` directly.
 - **README is partly stale** — it predates the Vulkan/ImGui work, its Linux
@@ -187,9 +188,13 @@ Keep this list honest — remove items when fixed (don't annotate them "done").
 ## Tasks
 
 Per the global convention, in-flight work lives in `tasks/<slug>.md`; completed
-work moves to `tasks/archive/<YYYY>/<MM>/<DD>/`. Current:
+work moves to `tasks/archive/<YYYY>/<MM>/<DD>/`. No in-flight tasks.
 
-- `tasks/add-sanitizer-gate.md` — proposed ASan + UBSan(trap) build gate, scoped
-  to the GL-free `src/` core (needs a smoke harness first). Mirrors the gate in
-  the sibling **spimulator** project; background primer on ASan/UBSan lives at
+Completed:
+
+- `tasks/archive/2026/08/03/add-sanitizer-gate.md` — ASan + UBSan(trap) build
+  gate, scoped to the GL-free `src/` core (`tests/smoke.c` + `make sanitize`,
+  both sanitizers green; fixed one signed-UB site in `map.c` `hash_int`). Bill's
+  call (2026-08-03): kept **on-demand**, not CI-wired. Mirrors the gate in the
+  sibling **spimulator** project; background primer on ASan/UBSan lives at
   `/billopt/spimulator/tasks/archive/2026/06/16/ubsan-sweep.md`.

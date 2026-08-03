@@ -12,6 +12,8 @@ option(ENABLE_VULKAN_RENDERER "Build the Vulkan Renderer" OFF)
 option(ENABLE_PYTHON "Build Python" OFF)
 option(ENABLE_ONLY_RENDER_ONE_CHUNK "Only render one chunk" OFF)
 option(ENABLE_NO_THREADS "Don't use threads.  This increases the framerate on old hardware significantly, at the cost of poor user experience" OFF)
+option(ENABLE_SANITIZER_GATE "Build the src/-scoped ASan/UBSan smoke harness (craft_smoke); Linux-only, driven by 'make sanitize'" OFF)
+set(SANITIZER_GATE_KIND "address" CACHE STRING "Sanitizer for the gate target: 'address' or 'undefined'")
 
 
 if(ENABLE_OPENGL_CORE_PROFILE_RENDERER)
@@ -197,3 +199,76 @@ install(DIRECTORY textures/ DESTINATION share/craft/textures)
 install(DIRECTORY shaders/ DESTINATION share/craft/shaders)
 install(FILES world.py server.py builder.py DESTINATION server)
 install(TARGETS world DESTINATION server)
+
+
+# ---------------------------------------------------------------------------
+# Sanitizer gate (see github.com/billsix/Craft tasks/add-sanitizer-gate.md)
+#
+# Builds craft_smoke: a non-GL smoke harness (tests/smoke.c) linked against
+# Craft's own GL-free src/ units and run under a sanitizer. Craft's full binary
+# is an interactive OpenGL game with no headless mode, so it cannot be a gate;
+# the harness exercises the substantial GL-free core instead (world-gen, the
+# voxel hash map, ring buffer, sqlite persistence, cube/matrix/sign/item logic,
+# and the pure util helpers).
+#
+# The sanitizer flags are scoped to the harness target's own translation units.
+# The bundled deps/ it needs (noise, tinycthread) are compiled as a separate
+# UN-instrumented object library, and sqlite is the system library -- so
+# third-party UB/leaks (sqlite is notorious for intentional unsigned/shift
+# tricks) can never fail the gate. Linux-only; clang; drive it with
+# 'make sanitize', which builds and runs both the ASan and UBSan-trap configs.
+# ---------------------------------------------------------------------------
+if(ENABLE_SANITIZER_GATE)
+  if(WIN32 OR APPLE)
+    message(FATAL_ERROR "ENABLE_SANITIZER_GATE is supported on Linux only")
+  endif()
+
+  if(SANITIZER_GATE_KIND STREQUAL "address")
+    set(GATE_SAN_FLAGS -fsanitize=address -fno-omit-frame-pointer -g)
+  elseif(SANITIZER_GATE_KIND STREQUAL "undefined")
+    # Trap mode: any UB emits ud2 and dies with SIGILL -- the reliable pass/fail
+    # gate. Diagnostic UBSan (no trap) under-reports, so trap mode is
+    # authoritative.
+    set(GATE_SAN_FLAGS -fsanitize=undefined -fsanitize-trap=undefined
+                       -fno-omit-frame-pointer -g)
+  else()
+    message(FATAL_ERROR
+      "SANITIZER_GATE_KIND must be 'address' or 'undefined', got "
+      "'${SANITIZER_GATE_KIND}'")
+  endif()
+
+  # Deps the harness pulls in, compiled WITHOUT the sanitizer flags so their
+  # (benign, intentional) UB never trips the gate.
+  add_library(craft_gate_deps OBJECT
+    deps/noise/noise.c
+    deps/tinycthread/tinycthread.c)
+  target_include_directories(craft_gate_deps PRIVATE
+    deps/noise deps/tinycthread)
+
+  add_executable(craft_smoke
+    tests/smoke.c
+    src/world.c
+    src/map.c
+    src/ring.c
+    src/db.c
+    src/cube.c
+    src/item.c
+    src/matrix.c
+    src/sign.c
+    src/util.c
+    $<TARGET_OBJECTS:craft_gate_deps>)
+  set_property(TARGET craft_smoke PROPERTY C_STANDARD 11)
+  target_include_directories(craft_smoke PRIVATE
+    src
+    ${CMAKE_CURRENT_BINARY_DIR}/src
+    deps/noise
+    deps/tinycthread
+    ${GLFW_INCLUDE_DIRS}
+    ${SQLITE_INCLUDE_DIRS})
+  # Sanitizer flags apply to craft_smoke's own sources only (the injected
+  # craft_gate_deps objects are already compiled, un-instrumented).
+  target_compile_options(craft_smoke PRIVATE ${GATE_SAN_FLAGS})
+  target_link_options(craft_smoke PRIVATE ${GATE_SAN_FLAGS})
+  target_link_libraries(craft_smoke
+    m pthread dl ${GLFW_LIBRARIES} ${SQLITE_LIBRARIES})
+endif()
