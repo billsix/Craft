@@ -17,6 +17,12 @@ This project is **not** on Bill's Fedora-44 + Podman container template — it's
 plain CMake project (no `Dockerfile`, no `entrypoint/`). That's a legitimate
 divergence (it's an upstream fork), not drift.
 
+## Reference docs
+
+- **`tasks/reference/architecture-overview.md`** — the deep, `file:line`-anchored companion to this
+  file: every subsystem mapped, plus a **verified live-vs-dead table** and a known-bugs list. Read it
+  before touching a subsystem. (This file stays the lean high-level map; detail lives there.)
+
 ## Layout
 
 ```

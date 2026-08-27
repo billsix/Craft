@@ -22,10 +22,14 @@ once confirmed, so it isn't built as one unmanageable combined effort.
 - The renderer is a compile-time-selected abstraction: parallel free-function sets `gl_*`
   (`src/gl_render.h`) and `vulkan_*` (`src/vulkan_render.{c,h}`), chosen via CMake options
   (`CMakeLists.txt:19-34`). Any new backend plugs into this seam.
-- **Vulkan is already scaffolded** — `src/vulkan_render.{c,h}`, `src/gui-vulkan.cpp`,
-  `CMakeLists.txt:28-34,162-171` (`ENABLE_VULKAN_RENDERER`, `find_package(Vulkan)`), `GLFW_NO_API` at
-  `main.c:2359`. There is an existing **Vulkan roadmap at `TODO.md:3-13`** and a **Metal roadmap at
-  `TODO.md:15-25`**. **Metal and D3D have no code at all**; **D3D is not in `TODO.md`.**
+- **Vulkan is scaffolded at the build/signature level only — the game renderer is EMPTY STUBS**
+  (verified 2026-08-27, see `tasks/reference/architecture-overview.md`): every function in
+  `src/vulkan_render.c` is an empty body / `return 0` with zero real `vk*` calls — so a Vulkan backend is
+  effectively **greenfield**, not a partial port. The signatures mirror the `gl_*` API (interface
+  defined) and the build wiring exists (`CMakeLists.txt:28-34,162-171`, `GLFW_NO_API` at `main.c:2359`),
+  and `src/gui-vulkan.cpp` has a **real** ImGui Vulkan device/swapchain bring-up reusable as reference
+  (it draws only the ImGui overlay). There is a **Vulkan roadmap at `TODO.md:3-13`** and a **Metal
+  roadmap at `TODO.md:15-25`**. **Metal and D3D have no code at all**; **D3D is not in `TODO.md`.**
 - Platform constraints: Metal = macOS-only; D3D = Windows-only; Vulkan = cross-platform.
 
 ## Recommended shape (from triage — confirm via Q1)
