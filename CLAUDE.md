@@ -25,6 +25,9 @@ divergence (it's an upstream fork), not drift.
 - **`tasks/reference/threading.md`** — the threading deep-dive: the two subsystems (chunk worker pool +
   DB commit thread), the invariants that keep them safe, the sqlite-handle concurrency caveat, the
   `ENABLE_NO_THREADS` finding (it does not work as written), and the recorded C++-vs-C11 decision.
+- **`tasks/reference/scriptability-options.md`** — survey of ways to make Craft scriptable (extend the
+  `/command`+protocol, embedded Lua, embedded Python, protobuf-RPC), with a recommendation (Lua for
+  in-game scripting; `builder.py` already covers out-of-process). Read before designing a scripting layer.
 
 ## Layout
 
