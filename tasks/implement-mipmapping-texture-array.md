@@ -6,8 +6,11 @@
 **Started:** 2026-08-27 (William Emerison Six <billsix@gmail.com>)
 **Blocked on:** the maintainer's aesthetic decision — **is the crisp pixel-art look mandatory, or do you
 want to reduce distant texture shimmer/aliasing?** If crisp is mandatory, **drop this task** (keep
-`GL_NEAREST`, no mipmaps). This task only exists if you want the smoother look.
-**Recheck:** the aesthetic decision is answered (maintainer-gated; `/recheck-blocked` surfaces it).
+`GL_NEAREST`, no mipmaps). This task only exists if you want the smoother look. **The way to resolve this
+is `tasks/mipmapping-experiment-and-decide.md`** — an interactive spike that renders variants headless and
+gets your visual feedback; it either drops this task or hands off to it.
+**Recheck:** the aesthetic decision is answered — most likely via `mipmapping-experiment-and-decide.md`
+(maintainer-gated; `/recheck-blocked` surfaces it).
 
 ## Goal
 
