@@ -28,6 +28,9 @@ divergence (it's an upstream fork), not drift.
 - **`tasks/reference/scriptability-options.md`** — survey of ways to make Craft scriptable (extend the
   `/command`+protocol, embedded Lua, embedded Python, protobuf-RPC), with a recommendation (Lua for
   in-game scripting; `builder.py` already covers out-of-process). Read before designing a scripting layer.
+- **`tasks/reference/mipmapping-feasibility.md`** — whether the block atlas can be mipmapped: verdict is
+  "not a drop-in" (atlas bleed + color-key transparency both fight it); the clean fix is a texture array +
+  real alpha. Read before touching texture filtering.
 
 ## Layout
 
