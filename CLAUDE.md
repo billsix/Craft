@@ -31,6 +31,9 @@ divergence (it's an upstream fork), not drift.
 - **`tasks/reference/mipmapping-feasibility.md`** — whether the block atlas can be mipmapped: verdict is
   "not a drop-in" (atlas bleed + color-key transparency both fight it); the clean fix is a texture array +
   real alpha. Read before touching texture filtering.
+- **`tasks/reference/opengl-draw-overhead-and-azdo.md`** — the chunk draw path costs (~2,400 draws/frame,
+  per-frame VAO churn) and the AZDO ladder (hoist the VAO → persistent-mapped streaming → multi-draw-
+  indirect). Read before touching the render hot path or a "faster GL" build.
 
 ## Layout
 
