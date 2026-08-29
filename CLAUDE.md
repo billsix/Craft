@@ -206,7 +206,10 @@ Keep this list honest — remove items when fixed (don't annotate them "done").
 ## Tasks
 
 Per the global convention, in-flight work lives in `tasks/<slug>.md`; completed
-work moves to `tasks/archive/<YYYY>/<MM>/<DD>/`. No in-flight tasks.
+work moves to `tasks/archive/<YYYY>/<MM>/<DD>/`. **Several in-flight tasks were added
+2026-08-27** (C23 port, const sweep, rename, threading/scriptability/mipmapping/AZDO
+follow-ons, graphics backends, server revive/dockerfile, `fix-verified-bugs`, …) — see
+`tasks/` and the reference docs above. Most are `blocked`/`proposed — needs go-ahead`.
 
 Completed:
 
