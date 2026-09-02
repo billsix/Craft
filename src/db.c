@@ -29,6 +29,19 @@
 #include "tinycthread.h"
 #include <string.h>
 
+/*
+ * Coordinate vocabulary used throughout this file. The single-letter names are
+ * deliberately kept identical to the sqlite column names they bind to (see the
+ * CREATE TABLE statements in db_init), so a parameter and its column line up:
+ *
+ *   p, q  - chunk column indices (p along world X, q along world Z); a chunk
+ *           is CHUNK_SIZE blocks square. Rows are looked up by (p, q).
+ *   x, y, z - the block's world coordinates (y is up).
+ *   w     - the block type for a block/light row (grass, sand, ...). For a
+ *           light row it is instead the light level.
+ *   face  - which of a block's 6 faces a sign is attached to.
+ *   key   - a per-chunk change counter used to sync with the server.
+ */
 static int db_enabled = 0;
 
 static sqlite3 *db;
