@@ -1,6 +1,7 @@
 # Fix the verified bugs found during the architecture review
 
-**Status:** proposed — needs go-ahead. Created 2026-08-27 (William Emerison Six <billsix@gmail.com>).
+**Status:** A1–A3 done (2026-09-02, Claude Opus 4.8, granted discretion); B4–B7 still open (need
+maintainer decisions — Q1–Q5). Created 2026-08-27 (William Emerison Six <billsix@gmail.com>).
 **Priority:** 5
 **Difficulty:** 3
 
@@ -13,25 +14,28 @@ maintainer judgment call (see Open questions) before touching.
 
 Scope note: all fixes are in **`src/` first-party code** — never `deps/` (vendored, upstream).
 
-## A. Clear mechanical fixes (unambiguous — ready on go-ahead)
+## A. Clear mechanical fixes — DONE (2026-09-02)
 
-1. **`client_sendall` sends the wrong length** — `src/client.c:61`. The loop does
-   `send(sd, data + count, length, 0)` but decrements `length` each iteration and advances `data+count`,
-   so a real partial send re-sends from the right offset with a **stale/too-large length**. Harmless
-   today only because messages are small single packets. **Fix:** `send(sd, data + count, length - count,
-   0)` and stop mutating `length` (or track remaining consistently).
+All three applied and verified: `make debug` compiled clean and `make sanitize` (ASan + UBSan) stayed
+green (exit 0). A2 additionally cleared the C23 `-Wdeprecated-non-prototype` warning. A3 was
+compile-verified by a standalone syntax-check of `vulkan_render.c` under `-DENABLE_VULKAN_RENDERER=YES`
+(the full Vulkan `craft` target is separately broken by `main.c`'s unconditional GL coupling — that is
+item B4 / the known incomplete-Vulkan issue, not A3).
 
-2. **`db_worker_start` signature mismatch** — `src/db.h:53` declares `void db_worker_start();` (empty
-   parens = unspecified args in C), but `src/db.c:499` defines `void db_worker_start(char *path)`; `path`
-   is passed as the thread arg yet `db_worker_run` ignores it. **Fix:** either make the header
-   `void db_worker_start(char *path);` (and actually use/keep `path`), or drop the unused parameter and
-   the arg passed to `thrd_create`. Pick one so header and definition agree.
+1. **DONE — `client_sendall` sent the wrong length** — `src/client.c:61`. Root cause was subtler than
+   "stale length": the loop both advanced `count` and decremented `length` by `n`, so with condition
+   `count < length` the two met at the halfway point and a real partial send **stopped early with data
+   unsent**. **Fixed:** pass `length - count` to `send` and stop mutating `length`.
 
-3. **`vulkan_viewport` parameter-order mismatch** — `src/vulkan_render.h:26` is
-   `(x_min, y_min, x_width, y_height)` but `src/vulkan_render.c:51` is `(x_min, x_max, y_min, y_max)`.
-   Latent (the body is an empty stub), but it will bite whoever implements the Vulkan backend. **Fix:**
-   align the two. *(Or fold into `tasks/graphics-backends-vulkan-metal-d3d.md` since Vulkan is
-   greenfield anyway — see Q4.)*
+2. **DONE — `db_worker_start` signature mismatch** — `src/db.h:53` vs `src/db.c:499`. The sole caller
+   (`db.c:166`) already passed no argument, and `db_worker_run` ignores its thread `arg` (state is the
+   file-scope ring/mtx/cnd). **Fixed:** dropped the unused parameter — declaration and definition are
+   now `(void)`, `thrd_create` passes `NULL`.
+
+3. **DONE — `vulkan_viewport` parameter-order mismatch** — `src/vulkan_render.c:51` was
+   `(x_min, x_max, y_min, y_max)`. **Fixed:** aligned the definition to the header
+   `(x_min, y_min, x_width, y_width)`, which already matches the parallel `gl_viewport` signature.
+   (Kept here rather than folded into the graphics-backends task — it was a one-line consistency fix.)
 
 ## B. Fixes that need a judgment call (see Open questions)
 
@@ -68,9 +72,9 @@ Scope note: all fixes are in **`src/` first-party code** — never `deps/` (vend
 
 ## Plan
 
-- [ ] Apply A1–A3 (mechanical) on go-ahead; rebuild (`make debug`) + `make sanitize` stays green.
-- [ ] Resolve Q1–Q5, then apply B4–B7 as decided.
-- [ ] Re-verify: build clean, sanitizer gate green, `git status` staged.
+- [x] Apply A1–A3 (mechanical); rebuild (`make debug`) + `make sanitize` green. **Done 2026-09-02.**
+- [ ] Resolve Q1–Q5, then apply B4–B7 as decided. **Still open — untouched this pass.**
+- [x] Re-verify: build clean, sanitizer gate green (A1–A3 only).
 
 ## Open questions
 
