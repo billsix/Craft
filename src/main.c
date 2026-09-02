@@ -284,8 +284,8 @@ int highest_block(float x, float z) {
       if (EMPTY_ENTRY(entry)) {
         continue;
       }
-      const int ex = entry->e.x + map->dx, ey = entry->e.y + map->dy,
-                ez = entry->e.z + map->dz, ew = entry->e.w;
+      const int ex = entry->e.x + map->origin_x, ey = entry->e.y + map->origin_y,
+                ez = entry->e.z + map->origin_z, ew = entry->e.w;
       if (is_obstacle(ew) && ex == nx && ez == nz) {
         result = MAX_NUMBER(result, ey);
       }
@@ -569,9 +569,9 @@ void compute_chunk(WorkerItem *item) {
         if (EMPTY_ENTRY(entry)) {
           continue;
         }
-        const int ex = entry->e.x + map->dx;
-        const int ey = entry->e.y + map->dy;
-        const int ez = entry->e.z + map->dz;
+        const int ex = entry->e.x + map->origin_x;
+        const int ey = entry->e.y + map->origin_y;
+        const int ez = entry->e.z + map->origin_z;
         const int ew = entry->e.w;
         const int x = ex - ox;
         const int y = ey - oy;
@@ -606,9 +606,9 @@ void compute_chunk(WorkerItem *item) {
           if (EMPTY_ENTRY(entry)) {
             continue;
           }
-          const int ex = entry->e.x + map->dx;
-          const int ey = entry->e.y + map->dy;
-          const int ez = entry->e.z + map->dz;
+          const int ex = entry->e.x + map->origin_x;
+          const int ey = entry->e.y + map->origin_y;
+          const int ez = entry->e.z + map->origin_z;
           const int ew = entry->e.w;
           const int x = ex - ox;
           const int y = ey - oy;
@@ -630,9 +630,9 @@ void compute_chunk(WorkerItem *item) {
     if (EMPTY_ENTRY(entry)) {
       continue;
     }
-    const int ex = entry->e.x + map->dx;
-    const int ey = entry->e.y + map->dy;
-    const int ez = entry->e.z + map->dz;
+    const int ex = entry->e.x + map->origin_x;
+    const int ey = entry->e.y + map->origin_y;
+    const int ez = entry->e.z + map->origin_z;
     const int ew = entry->e.w;
     if (ew <= 0) {
       continue;
@@ -663,9 +663,9 @@ void compute_chunk(WorkerItem *item) {
     if (EMPTY_ENTRY(entry)) {
       continue;
     }
-    const int ex = entry->e.x + map->dx;
-    const int ey = entry->e.y + map->dy;
-    const int ez = entry->e.z + map->dz;
+    const int ex = entry->e.x + map->origin_x;
+    const int ey = entry->e.y + map->origin_y;
+    const int ez = entry->e.z + map->origin_z;
     const int ew = entry->e.w;
     if (ew <= 0) {
       continue;
@@ -874,11 +874,13 @@ void init_chunk(Chunk *chunk, int p, int q) {
   db_load_signs(signs, p, q);
   Map *const block_map = &chunk->map;
   Map *const light_map = &chunk->lights;
-  const int dx = p * CHUNK_SIZE - 1;
-  const int dy = 0;
-  const int dz = q * CHUNK_SIZE - 1;
-  map_alloc(block_map, dx, dy, dz, 0x7fff);
-  map_alloc(light_map, dx, dy, dz, 0xf);
+  /* World-space origin of this chunk's maps (see Map in map.h). The -1 is a
+   * one-block pad so the map can also hold the neighbouring chunks' edges. */
+  const int origin_x = p * CHUNK_SIZE - 1;
+  const int origin_y = 0;
+  const int origin_z = q * CHUNK_SIZE - 1;
+  map_alloc(block_map, origin_x, origin_y, origin_z, 0x7fff);
+  map_alloc(light_map, origin_x, origin_y, origin_z, 0xf);
 }
 
 void create_chunk(Chunk *chunk, int p, int q) {
