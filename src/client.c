@@ -58,12 +58,11 @@ int client_sendall(int sd, char *data, int length) {
   }
   int count = 0;
   while (count < length) {
-    int n = send(sd, data + count, length, 0);
+    int n = send(sd, data + count, length - count, 0);
     if (n == -1) {
       return -1;
     }
     count += n;
-    length -= n;
     bytes_sent += n;
   }
   return 0;
