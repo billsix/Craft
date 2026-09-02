@@ -85,6 +85,11 @@ byte-identical output.
 
 ## Chunk / coordinate vocabulary — DECODED (2026-09-02, pass 2)
 
+> **The decoded vocabulary is now canonical in
+> [`tasks/reference/coordinate-and-chunk-vocabulary.md`](reference/coordinate-and-chunk-vocabulary.md).**
+> Read that for the full table with evidence. The copy below is retained as this pass's work
+> record; when this task is archived, slim it to a pointer at the reference doc.
+
 The maintainer's follow-up request (verbatim): *"in Craft there are a lot of variables with
 single-letter names that I have no idea what they are, I think they had to do with chunks."* Pass 1
 had deliberately left these as a preserved upstream convention; pass 2 decodes them from the source
