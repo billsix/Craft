@@ -1,6 +1,10 @@
 # Rename Craft's generic/terse variables to meaningful names
 
-**Status:** in progress — GL-free core done; chunk/coordinate vocabulary decoded (2026-09-02 pass 2); `main.c` bulk p/q rename still deferred (see below)
+**Status:** DONE 2026-09-02 (William Emerison Six <billsix@gmail.com>). "Done" = renamed the
+safely-verifiable identifiers (gate-checked), documented the pervasive upstream `p/q/x/y/z/w`
+convention rather than renaming it, and left `main.c`'s bulk `p/q` rename for a separate
+game-runnable pass — spun out to `tasks/rename-main-c-chunk-coords.md`. Durable vocabulary
+harvested to `tasks/reference/coordinate-and-chunk-vocabulary.md`.
 **Priority:** 7
 **Difficulty:** 4
 **Started:** 2026-08-27 (William Emerison Six <billsix@gmail.com>)
@@ -85,10 +89,10 @@ byte-identical output.
 
 ## Chunk / coordinate vocabulary — DECODED (2026-09-02, pass 2)
 
-> **The decoded vocabulary is now canonical in
-> [`tasks/reference/coordinate-and-chunk-vocabulary.md`](reference/coordinate-and-chunk-vocabulary.md).**
-> Read that for the full table with evidence. The copy below is retained as this pass's work
-> record; when this task is archived, slim it to a pointer at the reference doc.
+> **The decoded vocabulary is canonical in
+> [`tasks/reference/coordinate-and-chunk-vocabulary.md`](../../../../reference/coordinate-and-chunk-vocabulary.md).**
+> Read that for the living version. The table below is this (now-archived) pass's historical work
+> record — kept as-is; the reference doc is the one to update if the vocabulary changes.
 
 The maintainer's follow-up request (verbatim): *"in Craft there are a lot of variables with
 single-letter names that I have no idea what they are, I think they had to do with chunks."* Pass 1
@@ -145,9 +149,9 @@ builder primitives never divide by it. Comment corrected.
   block above `chunked()`. If the maintainer wants the full rename, do it with the game runnable to
   verify, as its own reviewed pass.
 
-## Next steps (open)
+## Follow-on (spun out on completion)
 
-- [ ] (Optional, maintainer decision) Bulk-rename `main.c` `p/q` → `chunk_x/chunk_z` (Chunk/WorkerItem
-      fields + all locals). Deferred: pervasive upstream convention, no headless test, ~hundreds of
-      sites. Best done with the running game to verify, or as a reviewed pass. The vocabulary is now
-      fully documented in-file, so this is lower-risk than before if undertaken.
+The one deferred item — bulk-renaming `main.c`'s `p/q` chunk coordinates — is now its own task:
+**`tasks/rename-main-c-chunk-coords.md`** (proposed; best done with the game runnable to verify).
+It is *optional* and does not reopen this task; the vocabulary it needs is documented in
+`tasks/reference/coordinate-and-chunk-vocabulary.md`.
