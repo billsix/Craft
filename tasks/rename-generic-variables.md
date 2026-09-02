@@ -1,6 +1,6 @@
 # Rename Craft's generic/terse variables to meaningful names
 
-**Status:** in progress — GL-free core done; `main.c` deferred (see below)
+**Status:** in progress — GL-free core done; chunk/coordinate vocabulary decoded (2026-09-02 pass 2); `main.c` bulk p/q rename still deferred (see below)
 **Priority:** 7
 **Difficulty:** 4
 **Started:** 2026-08-27 (William Emerison Six <billsix@gmail.com>)
@@ -83,8 +83,66 @@ byte-identical output.
   it should be a separate, carefully-reviewed pass (ideally with the ability to run the game to
   confirm behaviour). Much of what looks terse there is the preserved `p/q/x/y/z/w` convention anyway.
 
+## Chunk / coordinate vocabulary — DECODED (2026-09-02, pass 2)
+
+The maintainer's follow-up request (verbatim): *"in Craft there are a lot of variables with
+single-letter names that I have no idea what they are, I think they had to do with chunks."* Pass 1
+had deliberately left these as a preserved upstream convention; pass 2 decodes them from the source
+and math, documents them, and renames where confident and safe.
+
+**The decode table (evidence in parentheses):**
+
+| Name | Meaning | Evidence |
+|------|---------|----------|
+| `p` | Chunk column index along world **X**. A "chunk" is one `CHUNK_SIZE`(=32)-wide column of the world. | `p = chunked(x) = floor(round(x)/CHUNK_SIZE)` (`main.c` `chunked`); `create_world`/`compute_chunk` compute world X as `p*CHUNK_SIZE + …`. |
+| `q` | Chunk column index along world **Z**. | Symmetric to `p`: world Z `= q*CHUNK_SIZE + …`. |
+| `x, y, z` | Block/**world** coordinates; **y is up**. | Used as absolute world coords everywhere (`map_get`, `builder_block`, `hit_test`, world gen). |
+| `w` | **Block type** ("what": grass/sand/stone/…), signed so world gen can mark a neighbour chunk's edge blocks negative; consumers take `ABS(w)`. | `builder_block(x,y,z,w)`; `blocks[ABS(w)][…]` in `item.c`; `MapEntry.e.w` union field. **Context exception:** in `light_fill` `w` is the **light level** being flooded (it is decremented `w--` as it spreads), not a block type. |
+| `dx, dy, dz` **(Map struct)** | The map's **world-space origin** — subtracted from a world coord to get the local 0..255 byte stored in an entry (`map_set`/`map_get`), added back to recover the world coord (`map_grow`). For chunk (p,q): `origin_x = p*CHUNK_SIZE-1`, `origin_y = 0`, `origin_z = q*CHUNK_SIZE-1` (the `-1` is a one-block pad). | `main.c init_chunk` sets them; `map.c` subtracts/adds them. **Renamed → `origin_x/origin_y/origin_z`.** |
+| `dx, dz` **(`create_world` locals)** | **Different meaning:** the block's **offset within the chunk** (loop `-pad..CHUNK_SIZE+pad`). | `x = p*CHUNK_SIZE + dx` in `world.c`. **Renamed → `local_x/local_z`.** |
+| `dp, dq` **(`main.c`)** | Neighbour **offset in chunk space** (`-1..1`); `a = p+dp`, `b = q+dq` name a neighbouring chunk's column. | `ensure_chunks_worker`, the `block_maps[dp+1][dq+1]` fill. |
+| `ox, oy, oz` **(`compute_chunk`)** | A **scratch array's world-space origin** (world coord minus origin → index into the 3×3-chunk opaque/light scratch arrays). Analogous to `Map.origin_*` but for a temporary array, so left as-is. | `ox = item->p*CHUNK_SIZE - CHUNK_SIZE - 1`, then `x = ex - ox`. |
+| `ex, ey, ez / ew` | A stored entry's **recovered world coordinate** (`entry.local + map->origin`) and its type. | `ex = entry->e.x + map->origin_x`. |
+| `face` **(db/sign)** | Which of a block's **6 faces** a sign is attached to. | `db_insert_sign(…, face, text)`; `sign` table. |
+| `key` **(db)** | A per-chunk **change counter** used to sync with the server. | `db_get_key/db_set_key`, `key` table. |
+| `n, e, f, s, u, v` **(`main.c`)** | Not a chunk vocabulary — these are ordinary conventional locals, decoded per site: `n` = a count/length (`strlen`, loop bound), `e` = a `Sign*`/`RingEntry` entry pointer, `u` = the Unicode codepoint in `on_char`, `du/dv`/`uvs` = texture-coord deltas in `cube.c`. Left as-is. |
+
+**Correction found while decoding:** the `Block` struct comment in `main.h` claimed `x/y/z/w` were
+*homogeneous coordinates* ("divide x/y/z by w"). That is wrong — `w` is the block type, and the
+builder primitives never divide by it. Comment corrected.
+
+## Renamed vs left (pass 2)
+
+**Renamed (confident + gate-verified):**
+
+- **`Map.dx/dy/dz` → `origin_x/origin_y/origin_z`** (`map.h`, `map.c`, + the field-access sites and
+  `init_chunk` origin locals in `main.c`). map.c is exercised by `tests/smoke.c`; the main.c edits are
+  mechanical, compiler-checked. Replaces the two `map.h` "TODO figure out what this is" comments with
+  real documentation. *(This resolves pass-1's open item that wanted a maintainer bless first — the
+  maintainer's follow-up request is that bless.)*
+- **`create_world` `p→chunk_x`, `q→chunk_z`, `dx→local_x`, `dz→local_z`** (`world.c`, `world.h`).
+  Fully exercised by `exercise_world`.
+
+**Left as-is (documented, not renamed):**
+
+- **`x, y, z`** — universal Cartesian convention; the maintainer already reads them as coordinates,
+  and they are pervasive. Documented (y is up) rather than renamed.
+- **`w`** — kept (block type). Pervasive across `map`/`db`/`world`/`item`/`Block`; renaming everywhere
+  would be enormous and would diverge from the `w`-in-SQL-schema columns. Documented, including the
+  `light_fill` light-level exception.
+- **`db.c` params `p/q/x/y/z/w/face/key`** — kept, because they mirror the sqlite **column** names the
+  values bind to; a `chunk_x`-bound-to-column-`p` mismatch would be *less* clear. Documented via a
+  header comment instead.
+- **`main.c` `p/q` (Chunk/WorkerItem fields and the ~hundreds of locals)** — the bulk rename is still
+  deferred. It is the pervasive upstream convention, `main.c` has **no headless test** (compiler-only),
+  and `p/q` are struct fields touched at hundreds of sites — high blast radius, low verifiability.
+  Documented instead: struct-field comments on `Chunk.p/.q` and `WorkerItem.p/.q`, and a vocabulary
+  block above `chunked()`. If the maintainer wants the full rename, do it with the game runnable to
+  verify, as its own reviewed pass.
+
 ## Next steps (open)
 
-- [ ] `main.c` block/chunk-math rename pass — needs the running game (GPU/display) to verify, or at
-      least a maintainer review, because it is not covered by the sanitizer gate.
-- [ ] Confirm/bless the `map.c` `dx/dy/dz` → `origin_*` rename (maintainer decision).
+- [ ] (Optional, maintainer decision) Bulk-rename `main.c` `p/q` → `chunk_x/chunk_z` (Chunk/WorkerItem
+      fields + all locals). Deferred: pervasive upstream convention, no headless test, ~hundreds of
+      sites. Best done with the running game to verify, or as a reviewed pass. The vocabulary is now
+      fully documented in-file, so this is lower-risk than before if undertaken.
