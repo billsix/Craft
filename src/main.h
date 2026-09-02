@@ -63,8 +63,8 @@ typedef struct {
   Map map;
   Map lights;
   SignList signs;
-  int p;
-  int q;
+  int p;  // chunk column index along world X (world X / CHUNK_SIZE)
+  int q;  // chunk column index along world Z (world Z / CHUNK_SIZE)
   int faces;
   int sign_faces;
   int dirty;
@@ -75,9 +75,11 @@ typedef struct {
 } Chunk;
 
 typedef struct {
-  int p;
-  int q;
+  int p;  // chunk column index along world X (see Chunk.p)
+  int q;  // chunk column index along world Z (see Chunk.q)
   int load;
+  // This chunk plus its 8 neighbours (indexed [1+dp][1+dq], dp,dq in -1..1),
+  // so the mesher can see across chunk borders for face culling and lighting.
   Map *block_maps[3][3];
   Map *light_maps[3][3];
   int miny;
@@ -96,14 +98,17 @@ typedef struct {
 } Worker;
 
 /*
- * Block is a position of a block, in homogeneous coordinates
+ * A single block: its world position and its type. (Despite the x/y/z/w
+ * field names, this is NOT a homogeneous coordinate - w is the block type,
+ * the same "what" stored in the map and the db. The builder primitives
+ * (cube/sphere/cylinder/...) read w as the type to place and never divide
+ * x/y/z by it.)
  */
 typedef struct {
-  int x;
-  int y;
-  int z;
-  int w;  // cartesian x y z need to be divided by the w,
-  // because this is in homogeneous coordinates
+  int x;  // world X
+  int y;  // world Y (up)
+  int z;  // world Z
+  int w;  // block type (grass, sand, stone, ...)
 } Block;
 
 /* The position of a player, annd it's orientation (which

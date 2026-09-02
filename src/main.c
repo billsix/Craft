@@ -89,6 +89,28 @@ bool do_render_cube = true;
 bool do_render_crosshairs = true;
 bool enable_ambient_occlusion = true;
 
+/*
+ * Coordinate vocabulary used throughout main.c (an upstream Craft convention;
+ * mostly left as single letters here because it is pervasive and this file has
+ * no headless test, but decoded here so the names are readable):
+ *
+ *   p, q      - chunk column indices. p runs along world X, q along world Z;
+ *               each chunk is CHUNK_SIZE (32) blocks square. p = chunked(x),
+ *               q = chunked(z). A "chunk" is one 32-wide column of the world.
+ *   x, y, z   - block/world coordinates (y is up).
+ *   w         - block type ("what": grass, sand, ...); ABS(w) because world
+ *               gen marks neighbour-chunk edges with a negative type. NOTE the
+ *               meaning is context-dependent: in light_fill() below, w is the
+ *               light *level* being flooded (it decrements as it spreads).
+ *   dp, dq    - neighbour offset in chunk space (-1..1); a = p+dp, b = q+dq
+ *               name a neighbouring chunk's column.
+ *   ox,oy,oz  - a scratch array's world-space origin (world coord minus origin
+ *               gives an index into that array); compare Map.origin_* in map.h.
+ *   ex,ey,ez  - a stored entry's world coordinate, recovered as the entry's
+ *               map-local coordinate plus the map origin; ew is its type.
+ *
+ * Convert a world coordinate to the chunk column that contains it.
+ */
 int chunked(float x) { return floorf(roundf(x) / CHUNK_SIZE); }
 
 float time_of_day() {
@@ -509,6 +531,12 @@ void dirty_chunk(Chunk *const chunk) {
 #define XYZ(x, y, z) ((y) * XZ_SIZE * XZ_SIZE + (x) * XZ_SIZE + (z))
 #define XZ(x, z) ((x) * XZ_SIZE + (z))
 
+/*
+ * Recursive flood-fill of light through the chunk's scratch light array.
+ * Here w is the light *level* (not a block type): it is written into the cell
+ * and decremented (w--) before recursing into the 6 neighbours, so light fades
+ * with distance and the fill stops when it reaches 0 or hits an opaque cell.
+ */
 void light_fill(const char *const opaque, char *light, int x, int y, int z,
                 int w, int force) {
   if (x + w < XZ_LO || z + w < XZ_LO) {
