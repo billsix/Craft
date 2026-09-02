@@ -30,7 +30,7 @@ static void make_cube_faces(float *data, float ambient_occlusion[6][4],
                             float light[6][4], int left, int right, int top,
                             int bottom, int front, int back, int wleft,
                             int wright, int wtop, int wbottom, int wfront,
-                            int wback, float x, float y, float z, float n) {
+                            int wback, float x, float y, float z, float size) {
   static const float positions[6][4][3] =
       {{{-1, -1, -1}, {-1, -1, +1}, {-1, +1, -1}, {-1, +1, +1}},
        {{+1, -1, -1}, {+1, -1, +1}, {+1, +1, -1}, {+1, +1, +1}},
@@ -66,9 +66,9 @@ static void make_cube_faces(float *data, float ambient_occlusion[6][4],
                      ambient_occlusion[i][1] + ambient_occlusion[i][2];
     for (int v = 0; v < 6; v++) {
       int j = flip ? flipped[i][v] : indices[i][v];
-      *(d++) = x + n * positions[i][j][0];
-      *(d++) = y + n * positions[i][j][1];
-      *(d++) = z + n * positions[i][j][2];
+      *(d++) = x + size * positions[i][j][0];
+      *(d++) = y + size * positions[i][j][1];
+      *(d++) = z + size * positions[i][j][2];
       *(d++) = normals[i][0];
       *(d++) = normals[i][1];
       *(d++) = normals[i][2];
@@ -82,16 +82,16 @@ static void make_cube_faces(float *data, float ambient_occlusion[6][4],
 
 void make_cube(float *data, float ambient_occlusion[6][4], float light[6][4],
                int left, int right, int top, int bottom, int front, int back,
-               float x, float y, float z, float n, int w) {
+               float x, float y, float z, float size, int w) {
   int wleft = blocks[w][0], wright = blocks[w][1], wtop = blocks[w][2],
       wbottom = blocks[w][3], wfront = blocks[w][4], wback = blocks[w][5];
   make_cube_faces(data, ambient_occlusion, light, left, right, top, bottom,
                   front, back, wleft, wright, wtop, wbottom, wfront, wback, x,
-                  y, z, n);
+                  y, z, size);
 }
 
 void make_plant(float *data, float ambient_occlusion, float light, float px,
-                float py, float pz, float n, int w, float rotation) {
+                float py, float pz, float size, int w, float rotation) {
   static const float positions[4][4][3] =
       {{{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
        {{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
@@ -115,9 +115,9 @@ void make_plant(float *data, float ambient_occlusion, float light, float px,
   for (int i = 0; i < 4; i++) {
     for (int v = 0; v < 6; v++) {
       const int j = indices[i][v];
-      *(d++) = n * positions[i][j][0];
-      *(d++) = n * positions[i][j][1];
-      *(d++) = n * positions[i][j][2];
+      *(d++) = size * positions[i][j][0];
+      *(d++) = size * positions[i][j][1];
+      *(d++) = size * positions[i][j][2];
       *(d++) = normals[i][0];
       *(d++) = normals[i][1];
       *(d++) = normals[i][2];
@@ -156,7 +156,7 @@ void make_player(float *data, float x, float y, float z, float rx, float ry) {
   mat_apply(data, ma, 36, 0, 10);
 }
 
-void make_cube_wireframe(float *data, float x, float y, float z, float n) {
+void make_cube_wireframe(float *data, float x, float y, float z, float size) {
   static const float positions[8][3] = {
       {-1, -1, -1}, {-1, -1, +1}, {-1, +1, -1}, {-1, +1, +1},
       {+1, -1, -1}, {+1, -1, +1}, {+1, +1, -1}, {+1, +1, +1}};
@@ -165,44 +165,45 @@ void make_cube_wireframe(float *data, float x, float y, float z, float n) {
   float *d = data;
   for (int i = 0; i < 24; i++) {
     int j = indices[i];
-    *(d++) = x + n * positions[j][0];
-    *(d++) = y + n * positions[j][1];
-    *(d++) = z + n * positions[j][2];
+    *(d++) = x + size * positions[j][0];
+    *(d++) = y + size * positions[j][1];
+    *(d++) = z + size * positions[j][2];
   }
 }
 
-void make_character(float *data, float x, float y, float n, float m, char c) {
+void make_character(float *data, float x, float y, float half_width,
+                    float half_height, char c) {
   float *d = data;
   const float s = 0.0625, a = s, b = s * 2;
-  const int w = c - 32;
-  const float du = (w % 16) * a, dv = 1 - (w / 16) * b - b;
-  *(d++) = x - n;
-  *(d++) = y - m;
+  const int glyph = c - 32;
+  const float du = (glyph % 16) * a, dv = 1 - (glyph / 16) * b - b;
+  *(d++) = x - half_width;
+  *(d++) = y - half_height;
   *(d++) = du + 0;
   *(d++) = dv;
-  *(d++) = x + n;
-  *(d++) = y - m;
+  *(d++) = x + half_width;
+  *(d++) = y - half_height;
   *(d++) = du + a;
   *(d++) = dv;
-  *(d++) = x + n;
-  *(d++) = y + m;
+  *(d++) = x + half_width;
+  *(d++) = y + half_height;
   *(d++) = du + a;
   *(d++) = dv + b;
-  *(d++) = x - n;
-  *(d++) = y - m;
+  *(d++) = x - half_width;
+  *(d++) = y - half_height;
   *(d++) = du + 0;
   *(d++) = dv;
-  *(d++) = x + n;
-  *(d++) = y + m;
+  *(d++) = x + half_width;
+  *(d++) = y + half_height;
   *(d++) = du + a;
   *(d++) = dv + b;
-  *(d++) = x - n;
-  *(d++) = y + m;
+  *(d++) = x - half_width;
+  *(d++) = y + half_height;
   *(d++) = du + 0;
   *(d++) = dv + b;
 }
 
-void make_character_3d(float *data, float x, float y, float z, float n,
+void make_character_3d(float *data, float x, float y, float z, float size,
                        int face, char c) {
   static const float positions[8][6][3] = {{{0, -2, -1},
                                             {0, +2, +1},
@@ -269,15 +270,15 @@ void make_character_3d(float *data, float x, float y, float z, float n,
   float s = 0.0625;
   const float pu = s / 5, pv = s / 2.5, u1 = pu, v1 = pv, u2 = s - pu,
               v2 = s * 2 - pv, p = 0.5;
-  const int w = c - 32;
-  const float du = (w % 16) * s, dv = 1 - (w / 16 + 1) * s * 2;
+  const int glyph = c - 32;
+  const float du = (glyph % 16) * s, dv = 1 - (glyph / 16 + 1) * s * 2;
   x += p * offsets[face][0];
   y += p * offsets[face][1];
   z += p * offsets[face][2];
   for (int i = 0; i < 6; i++) {
-    *(d++) = x + n * positions[face][i][0];
-    *(d++) = y + n * positions[face][i][1];
-    *(d++) = z + n * positions[face][i][2];
+    *(d++) = x + size * positions[face][i][0];
+    *(d++) = y + size * positions[face][i][1];
+    *(d++) = z + size * positions[face][i][2];
     *(d++) = du + (uvs[face][i][0] ? u2 : u1);
     *(d++) = dv + (uvs[face][i][1] ? v2 : v1);
   }

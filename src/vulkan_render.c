@@ -48,8 +48,8 @@
 
 #include <vulkan/vulkan.h>
 
-void vulkan_viewport(uint32_t x_min, uint32_t x_max, uint32_t y_min,
-                     uint32_t y_max) {}
+void vulkan_viewport(uint32_t x_min, uint32_t y_min, uint32_t x_width,
+                     uint32_t y_width) {}
 
 void vulkan_clear_depth_buffer() {}
 

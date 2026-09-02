@@ -22,6 +22,10 @@ divergence (it's an upstream fork), not drift.
 - **`tasks/reference/architecture-overview.md`** — the deep, `file:line`-anchored companion to this
   file: every subsystem mapped, plus a **verified live-vs-dead table** and a known-bugs list. Read it
   before touching a subsystem. (This file stays the lean high-level map; detail lives there.)
+- **`tasks/reference/coordinate-and-chunk-vocabulary.md`** — what Craft's pervasive single-letter
+  names mean (`p`/`q` = chunk column indices X/Z, `x`/`y`/`z` = block/world coords with `y` up,
+  `w` = block type, `Map.origin_*`, `dp`/`dq`, `ex`/`ey`/`ez`, …), decoded with evidence. Read it
+  before reading the block/chunk math in `main.c`/`world.c`/`map.c`.
 - **`tasks/reference/threading.md`** — the threading deep-dive: the two subsystems (chunk worker pool +
   DB commit thread), the invariants that keep them safe, the sqlite-handle concurrency caveat, the
   `ENABLE_NO_THREADS` finding (it does not work as written), and the recorded C++-vs-C11 decision.

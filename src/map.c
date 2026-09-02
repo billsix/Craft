@@ -63,10 +63,10 @@ int hash(int x, int y, int z) {
  * Initialize the struct.
  *
  */
-void map_alloc(Map *map, int dx, int dy, int dz, int mask) {
-  map->dx = dx;
-  map->dy = dy;
-  map->dz = dz;
+void map_alloc(Map *map, int origin_x, int origin_y, int origin_z, int mask) {
+  map->origin_x = origin_x;
+  map->origin_y = origin_y;
+  map->origin_z = origin_z;
   map->mask = mask;
   map->size = 0;
   map->data = (MapEntry *)calloc(map->mask + 1, sizeof(MapEntry));
@@ -82,9 +82,9 @@ void map_free(Map *map) { free(map->data); }
  * The map data needs to be heap allocated.
  */
 void map_copy(Map *dst, Map *src) {
-  dst->dx = src->dx;
-  dst->dy = src->dy;
-  dst->dz = src->dz;
+  dst->origin_x = src->origin_x;
+  dst->origin_y = src->origin_y;
+  dst->origin_z = src->origin_z;
   dst->mask = src->mask;
   dst->size = src->size;
   dst->data = (MapEntry *)calloc(dst->mask + 1, sizeof(MapEntry));
@@ -92,14 +92,18 @@ void map_copy(Map *dst, Map *src) {
 }
 
 /*
+ * Store block type w at world coordinate (x, y, z). Returns 1 if the map
+ * changed, 0 if not.
  *
- *
+ * The world coordinate is converted to storage-local coordinates by
+ * subtracting the map's origin, then linear-probed into the table. Setting
+ * w == 0 on a key that is not present is a no-op (there is no real deletion).
  */
 int map_set(Map *map, int x, int y, int z, int w) {
   unsigned int index = hash(x, y, z) & map->mask;
-  x -= map->dx;
-  y -= map->dy;
-  z -= map->dz;
+  x -= map->origin_x;
+  y -= map->origin_y;
+  z -= map->origin_z;
   MapEntry *entry = map->data + index;
   int overwrite = 0;
   while (!EMPTY_ENTRY(entry)) {
@@ -131,9 +135,9 @@ int map_set(Map *map, int x, int y, int z, int w) {
 
 int map_get(const Map *const map, int x, int y, int z) {
   unsigned int index = hash(x, y, z) & map->mask;
-  x -= map->dx;
-  y -= map->dy;
-  z -= map->dz;
+  x -= map->origin_x;
+  y -= map->origin_y;
+  z -= map->origin_z;
   if (x < 0 || x > 255) return 0;
   if (y < 0 || y > 255) return 0;
   if (z < 0 || z > 255) return 0;
@@ -150,9 +154,9 @@ int map_get(const Map *const map, int x, int y, int z) {
 
 void map_grow(Map *map) {
   Map new_map;
-  new_map.dx = map->dx;
-  new_map.dy = map->dy;
-  new_map.dz = map->dz;
+  new_map.origin_x = map->origin_x;
+  new_map.origin_y = map->origin_y;
+  new_map.origin_z = map->origin_z;
   new_map.mask = (map->mask << 1) | 1;
   new_map.size = 0;
   new_map.data = (MapEntry *)calloc(new_map.mask + 1, sizeof(MapEntry));
@@ -161,9 +165,9 @@ void map_grow(Map *map) {
     if (EMPTY_ENTRY(entry)) {
       continue;
     }
-    int ex = entry->e.x + map->dx;
-    int ey = entry->e.y + map->dy;
-    int ez = entry->e.z + map->dz;
+    int ex = entry->e.x + map->origin_x;
+    int ey = entry->e.y + map->origin_y;
+    int ez = entry->e.z + map->origin_z;
     int ew = entry->e.w;
     map_set(&new_map, ex, ey, ez, ew);
   }
