@@ -24,18 +24,23 @@
 #include "config.h"
 #include "noise.h"
 
-void create_world(int p, int q, world_func func, void *arg) {
+void create_world(int chunk_x, int chunk_z, world_func func, void *arg) {
+  // chunk_x, chunk_z: this chunk's column indices along world X and Z.
+  // local_x, local_z: the block's offset within the chunk (0..CHUNK_SIZE-1),
+  //   plus a one-block pad on each side (hence -pad .. CHUNK_SIZE+pad).
+  // x, y, z below are the resulting world block coordinates (y is up).
   int pad = 1;
-  for (int dx = -pad; dx < CHUNK_SIZE + pad; dx++) {
-    for (int dz = -pad; dz < CHUNK_SIZE + pad; dz++) {
+  for (int local_x = -pad; local_x < CHUNK_SIZE + pad; local_x++) {
+    for (int local_z = -pad; local_z < CHUNK_SIZE + pad; local_z++) {
       // +1 for real interior blocks; -1 marks the 1-block pad that reports a
       // neighbouring chunk's edge (callers absorb the sign via ABS()).
       int boundary_sign = 1;
-      if (dx < 0 || dz < 0 || dx >= CHUNK_SIZE || dz >= CHUNK_SIZE) {
+      if (local_x < 0 || local_z < 0 || local_x >= CHUNK_SIZE ||
+          local_z >= CHUNK_SIZE) {
         boundary_sign = -1;
       }
-      int x = p * CHUNK_SIZE + dx;
-      int z = q * CHUNK_SIZE + dz;
+      int x = chunk_x * CHUNK_SIZE + local_x;
+      int z = chunk_z * CHUNK_SIZE + local_z;
       float base_noise = simplex2(x * 0.01, z * 0.01, 4, 0.5, 2);
       float amplitude_noise = simplex2(-x * 0.01, -z * 0.01, 2, 0.9, 2);
       int height_scale = amplitude_noise * 32 + 16;
@@ -64,8 +69,8 @@ void create_world(int p, int q, world_func func, void *arg) {
         }
         // trees
         int place_tree = SHOW_TREES;
-        if (dx - 4 < 0 || dz - 4 < 0 || dx + 4 >= CHUNK_SIZE ||
-            dz + 4 >= CHUNK_SIZE) {
+        if (local_x - 4 < 0 || local_z - 4 < 0 || local_x + 4 >= CHUNK_SIZE ||
+            local_z + 4 >= CHUNK_SIZE) {
           place_tree = 0;
         }
         if (place_tree && simplex2(x, z, 6, 0.5, 2) > 0.84) {
