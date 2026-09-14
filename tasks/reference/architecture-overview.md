@@ -236,6 +236,22 @@ clang-format pre-commit hook.
   `main.c:708`; several `TODO`s (`PositionAndOrientation.t`, `Block.w` semantics, VAO/magic-number
   cleanup).
 
+## Folded from CLAUDE.md high-level map (2026-09-13 trim)
+
+The repo `CLAUDE.md` `main.c`/render-backend/Python walkthroughs were trimmed into this doc.
+Facts they carried that were not already captured above:
+
+- **Capacities:** up to `MAX_CHUNKS`(=8192) `Chunk`s and up to `MAX_PLAYERS` `Player`s (with
+  `WORKERS`=4 chunk worker threads).
+- **`main.c` responsibilities not itemised above:** chunk lifecycle
+  (`create/init/delete/ensure_chunks`, `compute_chunk`, `gen_chunk_buffer`) runs partly on the
+  worker threads; block get/set/record; **hit-testing (ray-cast along the sight vector) and
+  collision**; then the input callbacks, movement/orientation, the `/command` parser, and the
+  render orchestration (`render_chunks/signs/sky/players/text/…`, each delegating to the `gl_*`
+  backend), with `main()` → `initialize_craft()` → event loop.
+- **Python install layout:** CMake builds the `world` target as `libworld.so` and installs the
+  Python files (`server.py`/`world.py`/`builder.py`) to `<prefix>/server`.
+
 ## Cross-links
 
 - Repo `CLAUDE.md` — the lean high-level map + honest known-issues list (this doc is its deep companion).

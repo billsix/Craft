@@ -92,47 +92,11 @@ It holds compile-time settings: window size, vsync, key bindings, chunk radii
 
 ### The render-backend abstraction (this fork's core idea)
 
-`main.c` is written against a backend-agnostic API. `gl_render.h` and
-`vulkan_render.h` declare **parallel** function sets (`gl_render_chunk` /
-`vulkan_render_chunk`, `gl_gen_buffer` / `vulkan_gen_buffer`, …). CMake compiles
-exactly one backend's `.c` into the binary based on the options below, and the
-ImGui glue (`gui-gl.cpp` vs `gui-vulkan.cpp`) is swapped to match. The OpenGL
-path is complete and the default; the Vulkan path is a scaffold (`TODO.md` tracks
-"open a black window → render sky → render blocks → the rest"). A Metal backend
-is a future TODO.
-
-### `main.c` at a glance
-
-Global game state is a single `Model *g` (defined in `main.h`): the GLFW window,
-the `WORKERS`(=4) chunk worker threads, up to `MAX_CHUNKS`(=8192) `Chunk`s, up to
-`MAX_PLAYERS` `Player`s, the local player's position/orientation, render radii,
-typing/chat buffers, and offline/online mode. Responsibilities, roughly in file
-order: chunk lifecycle (`create/init/delete/ensure_chunks`, `compute_chunk`,
-`gen_chunk_buffer`) run partly on the worker threads; block get/set/record;
-hit-testing (ray-cast along sight vector) and collision; the build primitives
-(`cube`, `sphere`, `cylinder`, `tree`) also exposed in `builder.py`; the GLFW
-input callbacks (`on_key`/`on_char`/`on_mouse_button`/`on_scroll`) and
-movement/orientation; the chat `/command` parser; the render orchestration
-(`render_chunks/signs/sky/players/text/...`, each delegating to the `gl_*`
-backend); and `main()` → `initialize_craft()` → event loop.
-
-Threading: chunk generation + meshing happens on the worker threads (tinycthread);
-sqlite writes are queued through `ring.c` and committed every `COMMIT_INTERVAL`
-(5 s) on a background thread. `-DENABLE_NO_THREADS=YES` makes it single-threaded
-(higher FPS on old hardware, worse latency).
-
-### Python multiplayer stack
-
-- `world.py` — a `World` class that `ctypes`-loads `./libworld.so` and calls into
-  the **same** `world.c`/`noise.c` the client uses, so the server generates
-  identical terrain.
-- `server.py` — a threaded TCP server speaking the line-based ASCII protocol
-  (`A`uth, `B`lock, `C`hunk, `K`ey, `P`osition, …; default port **4080**).
-- `builder.py` — scripting helpers (sphere/cylinder/cuboid/pyramid/…) for
-  programmatically placing blocks.
-
-CMake builds the `world` target as `libworld.so` and installs the Python files to
-`<prefix>/server`.
+`main.c` is written against a backend-agnostic API; CMake compiles exactly one backend
+(`gl_render.c` / `vulkan_render.c`, with matching `gui-gl.cpp` / `gui-vulkan.cpp`). OpenGL is
+complete and the default; Vulkan is a scaffold (see Status). Deep mechanics — the 30-function
+seam, draw paths, the `main.c` event-loop walkthrough, the chunk/threading pipeline, and the
+Python multiplayer stack — live in **`tasks/reference/architecture-overview.md`**.
 
 ## Build / run
 
@@ -215,11 +179,5 @@ work moves to `tasks/archive/<YYYY>/<MM>/<DD>/`. **Several in-flight tasks were 
 follow-ons, graphics backends, server revive/dockerfile, `fix-verified-bugs`, …) — see
 `tasks/` and the reference docs above. Most are `blocked`/`proposed — needs go-ahead`.
 
-Completed:
-
-- `tasks/archive/2026/08/03/add-sanitizer-gate.md` — ASan + UBSan(trap) build
-  gate, scoped to the GL-free `src/` core (`tests/smoke.c` + `make sanitize`,
-  both sanitizers green; fixed one signed-UB site in `map.c` `hash_int`). Bill's
-  call (2026-08-03): kept **on-demand**, not CI-wired. Mirrors the gate in the
-  sibling **spimulator** project; background primer on ASan/UBSan lives at
-  `/billopt/spimulator/tasks/archive/2026/06/16/ubsan-sweep.md`.
+Completed work is in `tasks/archive/`; e.g. the ASan + UBSan(trap) sanitizer gate
+(`tasks/archive/2026/08/03/add-sanitizer-gate.md` — also summarised under Status above).
