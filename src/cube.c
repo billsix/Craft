@@ -26,9 +26,9 @@
 #include "util.h"
 #include <math.h>
 
-static void make_cube_faces(float *data, float ambient_occlusion[6][4],
-                            float light[6][4], int left, int right, int top,
-                            int bottom, int front, int back, int wleft,
+static void make_cube_faces(float* data, const float ambient_occlusion[6][4],
+                            const float light[6][4], int left, int right,
+                            int top, int bottom, int front, int back, int wleft,
                             int wright, int wtop, int wbottom, int wfront,
                             int wback, float x, float y, float z, float size) {
   static const float positions[6][4][3] =
@@ -53,7 +53,7 @@ static void make_cube_faces(float *data, float ambient_occlusion[6][4],
                      flipped[6][6] = {{0, 1, 2, 1, 3, 2}, {0, 2, 1, 2, 3, 1},
                                       {0, 1, 2, 1, 3, 2}, {0, 2, 1, 2, 3, 1},
                                       {0, 1, 2, 1, 3, 2}, {0, 2, 1, 2, 3, 1}};
-  float *d = data;
+  float* d = data;
   const float s = 0.0625, a = 0 + 1 / 2048.0, b = s - 1 / 2048.0;
   const int faces[6] = {left, right, top, bottom, front, back},
             tiles[6] = {wleft, wright, wtop, wbottom, wfront, wback};
@@ -80,9 +80,10 @@ static void make_cube_faces(float *data, float ambient_occlusion[6][4],
   }
 }
 
-void make_cube(float *data, float ambient_occlusion[6][4], float light[6][4],
-               int left, int right, int top, int bottom, int front, int back,
-               float x, float y, float z, float size, int w) {
+void make_cube(float* data, const float ambient_occlusion[6][4],
+               const float light[6][4], int left, int right, int top,
+               int bottom, int front, int back, float x, float y, float z,
+               float size, int w) {
   int wleft = blocks[w][0], wright = blocks[w][1], wtop = blocks[w][2],
       wbottom = blocks[w][3], wfront = blocks[w][4], wback = blocks[w][5];
   make_cube_faces(data, ambient_occlusion, light, left, right, top, bottom,
@@ -90,7 +91,7 @@ void make_cube(float *data, float ambient_occlusion[6][4], float light[6][4],
                   y, z, size);
 }
 
-void make_plant(float *data, float ambient_occlusion, float light, float px,
+void make_plant(float* data, float ambient_occlusion, float light, float px,
                 float py, float pz, float size, int w, float rotation) {
   static const float positions[4][4][3] =
       {{{0, -1, -1}, {0, -1, +1}, {0, +1, -1}, {0, +1, +1}},
@@ -109,7 +110,7 @@ void make_plant(float *data, float ambient_occlusion, float light, float px,
                                       {0, 3, 1, 0, 2, 3},
                                       {0, 3, 2, 0, 1, 3},
                                       {0, 3, 1, 0, 2, 3}};
-  float *d = data;
+  float* d = data;
   const float s = 0.0625, a = 0, b = s, du = (plants[w] % 16) * s,
               dv = (plants[w] / 16) * s;
   for (int i = 0; i < 4; i++) {
@@ -137,7 +138,7 @@ void make_plant(float *data, float ambient_occlusion, float light, float px,
   mat_apply(data, ma, 24, 0, 10);
 }
 
-void make_player(float *data, float x, float y, float z, float rx, float ry) {
+void make_player(float* data, float x, float y, float z, float rx, float ry) {
   float ambient_occlusion[6][4] = {0},
         light[6][4] = {{0.8, 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8, 0.8},
                        {0.8, 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8, 0.8},
@@ -156,13 +157,13 @@ void make_player(float *data, float x, float y, float z, float rx, float ry) {
   mat_apply(data, ma, 36, 0, 10);
 }
 
-void make_cube_wireframe(float *data, float x, float y, float z, float size) {
+void make_cube_wireframe(float* data, float x, float y, float z, float size) {
   static const float positions[8][3] = {
       {-1, -1, -1}, {-1, -1, +1}, {-1, +1, -1}, {-1, +1, +1},
       {+1, -1, -1}, {+1, -1, +1}, {+1, +1, -1}, {+1, +1, +1}};
   static const int indices[24] = {0, 1, 0, 2, 0, 4, 1, 3, 1, 5, 2, 3,
                                   2, 6, 3, 7, 4, 5, 4, 6, 5, 7, 6, 7};
-  float *d = data;
+  float* d = data;
   for (int i = 0; i < 24; i++) {
     int j = indices[i];
     *(d++) = x + size * positions[j][0];
@@ -171,9 +172,9 @@ void make_cube_wireframe(float *data, float x, float y, float z, float size) {
   }
 }
 
-void make_character(float *data, float x, float y, float half_width,
+void make_character(float* data, float x, float y, float half_width,
                     float half_height, char c) {
-  float *d = data;
+  float* d = data;
   const float s = 0.0625, a = s, b = s * 2;
   const int glyph = c - 32;
   const float du = (glyph % 16) * a, dv = 1 - (glyph / 16) * b - b;
@@ -203,7 +204,7 @@ void make_character(float *data, float x, float y, float half_width,
   *(d++) = dv + b;
 }
 
-void make_character_3d(float *data, float x, float y, float z, float size,
+void make_character_3d(float* data, float x, float y, float z, float size,
                        int face, char c) {
   static const float positions[8][6][3] = {{{0, -2, -1},
                                             {0, +2, +1},
@@ -266,7 +267,7 @@ void make_character_3d(float *data, float x, float y, float z, float size,
       {-1, 0, 0}, {+1, 0, 0}, {0, 0, -1}, {0, 0, +1},
       {0, +1, 0}, {0, +1, 0}, {0, +1, 0}, {0, +1, 0},
   };
-  float *d = data;
+  float* d = data;
   float s = 0.0625;
   const float pu = s / 5, pv = s / 2.5, u1 = pu, v1 = pv, u2 = s - pu,
               v2 = s * 2 - pv, p = 0.5;
@@ -284,12 +285,12 @@ void make_character_3d(float *data, float x, float y, float z, float size,
   }
 }
 
-int _make_sphere(float *data, float r, int detail, const float *const a,
-                 const float *const b, const float *const c,
-                 const float *const ta, const float *const tb,
-                 const float *const tc) {
+int _make_sphere(float* data, float r, int detail, const float* const a,
+                 const float* const b, const float* const c,
+                 const float* const ta, const float* const tb,
+                 const float* const tc) {
   if (detail == 0) {
-    float *d = data;
+    float* d = data;
     *(d++) = a[0] * r;
     *(d++) = a[1] * r;
     *(d++) = a[2] * r;
@@ -349,7 +350,7 @@ int _make_sphere(float *data, float r, int detail, const float *const a,
   }
 }
 
-void make_sphere(float *data, float r, int detail) {
+void make_sphere(float* data, float r, int detail) {
   // detail, triangles, floats
   // 0, 8, 192
   // 1, 32, 768

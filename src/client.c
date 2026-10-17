@@ -42,7 +42,7 @@
 
 static int client_enabled = 0, running = 0, sd = 0, bytes_sent = 0,
            bytes_received = 0, qsize = 0;
-static char *queue = 0;
+static char* queue = 0;
 static thrd_t recv_thread;
 static mtx_t mutex;
 
@@ -52,7 +52,7 @@ void client_disable() { client_enabled = 0; }
 
 int get_client_enabled() { return client_enabled; }
 
-int client_sendall(int sd, char *data, int length) {
+int client_sendall(int sd, const char* data, int length) {
   if (!client_enabled) {
     return 0;
   }
@@ -68,7 +68,7 @@ int client_sendall(int sd, char *data, int length) {
   return 0;
 }
 
-void client_send(char *data) {
+void client_send(const char* data) {
   if (!client_enabled) {
     return;
   }
@@ -87,7 +87,7 @@ void client_version(int version) {
   client_send(buffer);
 }
 
-void client_login(const char *username, const char *identity_token) {
+void client_login(const char* username, const char* identity_token) {
   if (!client_enabled) {
     return;
   }
@@ -144,7 +144,7 @@ void client_light(int x, int y, int z, int w) {
   client_send(buffer);
 }
 
-void client_sign(int x, int y, int z, int face, const char *text) {
+void client_sign(int x, int y, int z, int face, const char* text) {
   if (!client_enabled) {
     return;
   }
@@ -153,7 +153,7 @@ void client_sign(int x, int y, int z, int face, const char *text) {
   client_send(buffer);
 }
 
-void client_talk(const char *text) {
+void client_talk(const char* text) {
   if (!client_enabled) {
     return;
   }
@@ -165,13 +165,13 @@ void client_talk(const char *text) {
   client_send(buffer);
 }
 
-char *client_recv() {
+char* client_recv() {
   if (!client_enabled) {
     return 0;
   }
-  char *result = 0;
+  char* result = 0;
   mtx_lock(&mutex);
-  char *p = queue + qsize - 1;
+  const char* p = queue + qsize - 1;
   while (p >= queue && *p != '\n') {
     p--;
   }
@@ -189,8 +189,8 @@ char *client_recv() {
   return result;
 }
 
-int recv_worker(void *arg) {
-  char *data = malloc(sizeof(char) * RECV_SIZE);
+int recv_worker(void* arg) {
+  char* const data = malloc(sizeof(char) * RECV_SIZE);
   while (1) {
     int length;
     if ((length = recv(sd, data, RECV_SIZE - 1, 0)) <= 0) {
@@ -221,11 +221,11 @@ int recv_worker(void *arg) {
   return 0;
 }
 
-void client_connect(char *hostname, int port) {
+void client_connect(const char* hostname, int port) {
   if (!client_enabled) {
     return;
   }
-  struct hostent *host;
+  const struct hostent* host;
   struct sockaddr_in address;
   if ((host = gethostbyname(hostname)) == 0) {
     perror("gethostbyname");
@@ -233,13 +233,13 @@ void client_connect(char *hostname, int port) {
   }
   memset(&address, 0, sizeof(address));
   address.sin_family = AF_INET;
-  address.sin_addr.s_addr = ((struct in_addr *)(host->h_addr_list[0]))->s_addr;
+  address.sin_addr.s_addr = ((struct in_addr*)(host->h_addr_list[0]))->s_addr;
   address.sin_port = htons(port);
   if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
     perror("socket");
     exit(1);
   }
-  if (connect(sd, (struct sockaddr *)&address, sizeof(address)) == -1) {
+  if (connect(sd, (struct sockaddr*)&address, sizeof(address)) == -1) {
     perror("connect");
     exit(1);
   }
@@ -250,7 +250,7 @@ void client_start() {
     return;
   }
   running = 1;
-  queue = (char *)calloc(QUEUE_SIZE, sizeof(char));
+  queue = (char*)calloc(QUEUE_SIZE, sizeof(char));
   qsize = 0;
   mtx_init(&mutex, mtx_plain);
   if (thrd_create(&recv_thread, recv_worker, NULL) != thrd_success) {

@@ -23,23 +23,24 @@
 #ifndef _cube_h_
 #define _cube_h_
 
-void make_cube(float *data, float ambient_occlusion[6][4], float light[6][4],
-               int left, int right, int top, int bottom, int front, int back,
-               float x, float y, float z, float size, int w);
+void make_cube(float* data, const float ambient_occlusion[6][4],
+               const float light[6][4], int left, int right, int top,
+               int bottom, int front, int back, float x, float y, float z,
+               float size, int w);
 
-void make_plant(float *data, float ambient_occlusion, float light, float px,
+void make_plant(float* data, float ambient_occlusion, float light, float px,
                 float py, float pz, float size, int w, float rotation);
 
-void make_player(float *data, float x, float y, float z, float rx, float ry);
+void make_player(float* data, float x, float y, float z, float rx, float ry);
 
-void make_cube_wireframe(float *data, float x, float y, float z, float size);
+void make_cube_wireframe(float* data, float x, float y, float z, float size);
 
-void make_character(float *data, float x, float y, float half_width,
+void make_character(float* data, float x, float y, float half_width,
                     float half_height, char c);
 
-void make_character_3d(float *data, float x, float y, float z, float size,
+void make_character_3d(float* data, float x, float y, float z, float size,
                        int face, char c);
 
-void make_sphere(float *data, float r, int detail);
+void make_sphere(float* data, float r, int detail);
 
 #endif

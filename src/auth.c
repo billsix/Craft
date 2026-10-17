@@ -29,10 +29,10 @@
 #define MAX_POST_LENGTH 1024
 #define MAX_RESPONSE_LENGTH 1024
 
-size_t write_function(char *data, size_t size, size_t count, void *arg) {
+size_t write_function(char* data, size_t size, size_t count, void* arg) {
   const size_t length = size * count;
-  char *const dst = (char *)arg;
-  char *const src = malloc(length + 1);
+  char* const dst = (char*)arg;
+  char* const src = malloc(length + 1);
   memcpy(src, data, length);
   src[length] = '\0';
   strncat(dst, src, MAX_RESPONSE_LENGTH - strlen(dst) - 1);
@@ -40,11 +40,11 @@ size_t write_function(char *data, size_t size, size_t count, void *arg) {
   return length;
 }
 
-int get_access_token(char *result, int length, char *username,
-                     char *identity_token) {
+int get_access_token(char* result, int length, const char* username,
+                     const char* identity_token) {
   static char url[] = "https://craft.michaelfogleman.com/api/1/identity";
   strncpy(result, "", length);
-  CURL *curl = curl_easy_init();
+  CURL* const curl = curl_easy_init();
   if (curl) {
     char post[MAX_POST_LENGTH] = {0};
     char response[MAX_RESPONSE_LENGTH] = {0};

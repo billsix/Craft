@@ -72,14 +72,14 @@ typedef struct {
   int origin_z;
   unsigned int mask;
   unsigned int size;
-  MapEntry *data;
+  MapEntry* data;
 } Map;
 
-void map_alloc(Map *map, int origin_x, int origin_y, int origin_z, int mask);
-void map_free(Map *map);
-void map_copy(Map *dst, Map *src);
-void map_grow(Map *map);
-int map_set(Map *map, int x, int y, int z, int w);
-int map_get(const Map *const map, int x, int y, int z);
+void map_alloc(Map* map, int origin_x, int origin_y, int origin_z, int mask);
+void map_free(Map* map);
+void map_copy(Map* dst, const Map* src);
+void map_grow(Map* map);
+int map_set(Map* map, int x, int y, int z, int w);
+int map_get(const Map* const map, int x, int y, int z);
 
 #endif

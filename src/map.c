@@ -63,31 +63,31 @@ int hash(int x, int y, int z) {
  * Initialize the struct.
  *
  */
-void map_alloc(Map *map, int origin_x, int origin_y, int origin_z, int mask) {
+void map_alloc(Map* map, int origin_x, int origin_y, int origin_z, int mask) {
   map->origin_x = origin_x;
   map->origin_y = origin_y;
   map->origin_z = origin_z;
   map->mask = mask;
   map->size = 0;
-  map->data = (MapEntry *)calloc(map->mask + 1, sizeof(MapEntry));
+  map->data = (MapEntry*)calloc(map->mask + 1, sizeof(MapEntry));
 }
 
 /*
  * Free the map's data from the heap.
  */
-void map_free(Map *map) { free(map->data); }
+void map_free(Map* map) { free(map->data); }
 
 /*
  * Copy the source map into a destination map.
  * The map data needs to be heap allocated.
  */
-void map_copy(Map *dst, Map *src) {
+void map_copy(Map* dst, const Map* src) {
   dst->origin_x = src->origin_x;
   dst->origin_y = src->origin_y;
   dst->origin_z = src->origin_z;
   dst->mask = src->mask;
   dst->size = src->size;
-  dst->data = (MapEntry *)calloc(dst->mask + 1, sizeof(MapEntry));
+  dst->data = (MapEntry*)calloc(dst->mask + 1, sizeof(MapEntry));
   memcpy(dst->data, src->data, (dst->mask + 1) * sizeof(MapEntry));
 }
 
@@ -99,12 +99,12 @@ void map_copy(Map *dst, Map *src) {
  * subtracting the map's origin, then linear-probed into the table. Setting
  * w == 0 on a key that is not present is a no-op (there is no real deletion).
  */
-int map_set(Map *map, int x, int y, int z, int w) {
+int map_set(Map* map, int x, int y, int z, int w) {
   unsigned int index = hash(x, y, z) & map->mask;
   x -= map->origin_x;
   y -= map->origin_y;
   z -= map->origin_z;
-  MapEntry *entry = map->data + index;
+  MapEntry* entry = map->data + index;
   int overwrite = 0;
   while (!EMPTY_ENTRY(entry)) {
     if (entry->e.x == x && entry->e.y == y && entry->e.z == z) {
@@ -133,7 +133,7 @@ int map_set(Map *map, int x, int y, int z, int w) {
   return 0;
 }
 
-int map_get(const Map *const map, int x, int y, int z) {
+int map_get(const Map* const map, int x, int y, int z) {
   unsigned int index = hash(x, y, z) & map->mask;
   x -= map->origin_x;
   y -= map->origin_y;
@@ -141,7 +141,7 @@ int map_get(const Map *const map, int x, int y, int z) {
   if (x < 0 || x > 255) return 0;
   if (y < 0 || y > 255) return 0;
   if (z < 0 || z > 255) return 0;
-  MapEntry *entry = map->data + index;
+  const MapEntry* entry = map->data + index;
   while (!EMPTY_ENTRY(entry)) {
     if (entry->e.x == x && entry->e.y == y && entry->e.z == z) {
       return entry->e.w;
@@ -152,16 +152,16 @@ int map_get(const Map *const map, int x, int y, int z) {
   return 0;
 }
 
-void map_grow(Map *map) {
+void map_grow(Map* map) {
   Map new_map;
   new_map.origin_x = map->origin_x;
   new_map.origin_y = map->origin_y;
   new_map.origin_z = map->origin_z;
   new_map.mask = (map->mask << 1) | 1;
   new_map.size = 0;
-  new_map.data = (MapEntry *)calloc(new_map.mask + 1, sizeof(MapEntry));
+  new_map.data = (MapEntry*)calloc(new_map.mask + 1, sizeof(MapEntry));
   for (unsigned int i = 0; i <= map->mask; i++) {
-    MapEntry *entry = map->data + i;
+    const MapEntry* const entry = map->data + i;
     if (EMPTY_ENTRY(entry)) {
       continue;
     }

@@ -76,7 +76,7 @@ void gl_scissor(GLint x_min, GLint y_min, GLsizei x_width, GLsizei y_height) {
   glScissor(x_min, y_min, x_width, y_height);
 }
 
-GLuint gl_gen_buffer(GLsizei size, const float *const data) {
+GLuint gl_gen_buffer(GLsizei size, const float* const data) {
   GLuint buffer;
   glGenBuffers(1, &buffer);
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -87,13 +87,13 @@ GLuint gl_gen_buffer(GLsizei size, const float *const data) {
 
 void gl_del_buffer(GLuint buffer) { glDeleteBuffers(1, &buffer); }
 
-GLuint gl_gen_faces(int components, int faces, float *data) {
+GLuint gl_gen_faces(int components, int faces, float* data) {
   GLuint buffer = gl_gen_buffer(sizeof(float) * 6 * components * faces, data);
   free(data);
   return buffer;
 }
 
-GLuint gl_make_shader(GLenum type, const char *const source) {
+GLuint gl_make_shader(GLenum type, const char* const source) {
   GLuint shader = glCreateShader(type);
   glShaderSource(shader, 1, &source, NULL);
   glCompileShader(shader);
@@ -103,7 +103,7 @@ GLuint gl_make_shader(GLenum type, const char *const source) {
   if (status == GL_FALSE) {
     int32_t length;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-    char *info = calloc(length, sizeof(char));
+    char* const info = calloc(length, sizeof(char));
     glGetShaderInfoLog(shader, length, NULL, info);
     fprintf(stderr, "glCompileShader failed:\n%s\n", info);
     free(info);
@@ -111,8 +111,8 @@ GLuint gl_make_shader(GLenum type, const char *const source) {
   return shader;
 }
 
-GLuint gl_load_shader(GLenum type, const char *const path) {
-  char *data = load_file(path);
+GLuint gl_load_shader(GLenum type, const char* const path) {
+  char* const data = load_file(path);
   GLuint result = gl_make_shader(type, data);
   free(data);
   return result;
@@ -128,7 +128,7 @@ GLuint gl_make_program(GLuint shader1, GLuint shader2) {
   if (status == GL_FALSE) {
     int32_t length;
     glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-    char *info = calloc(length, sizeof(char));
+    char* const info = calloc(length, sizeof(char));
     glGetProgramInfoLog(program, length, NULL, info);
     fprintf(stderr, "glLinkProgram failed: %s\n", info);
     free(info);
@@ -140,16 +140,16 @@ GLuint gl_make_program(GLuint shader1, GLuint shader2) {
   return program;
 }
 
-GLuint gl_load_program(const char *path1, const char *path2) {
+GLuint gl_load_program(const char* path1, const char* path2) {
   GLuint shader1 = gl_load_shader(GL_VERTEX_SHADER, path1),
          shader2 = gl_load_shader(GL_FRAGMENT_SHADER, path2),
          program = gl_make_program(shader1, shader2);
   return program;
 }
 
-void gl_load_png_texture(const char *const file_name) {
+void gl_load_png_texture(const char* const file_name) {
   unsigned int error;
-  unsigned char *data;
+  unsigned char* data;
   unsigned int width, height;
   error = lodepng_decode32_file(&data, &width, &height, file_name);
   if (error) {
@@ -165,8 +165,8 @@ void gl_load_png_texture(const char *const file_name) {
 
 void GLAPIENTRY GLMessageCallback(GLenum source, GLenum type, GLuint id,
                                   GLenum severity, GLsizei length,
-                                  const GLchar *message,
-                                  const void *userParam) {
+                                  const GLchar* message,
+                                  const void* userParam) {
   char severity_name[100];
   memset(&severity_name, 0, sizeof(char) * sizeof(severity_name));
   switch (severity) {
@@ -310,8 +310,8 @@ void gl_initiliaze_textures() {
 }
 
 void gl_setup_render_chunks(
-    const float *const matrix,
-    const PositionAndOrientation *const positionAndOrientation, float light) {
+    const float* const matrix,
+    const PositionAndOrientation* const positionAndOrientation, float light) {
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
   glUniform3f(block_attrib.camera, positionAndOrientation->x,
@@ -329,7 +329,7 @@ void gl_setup_render_chunks(
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
-void gl_render_chunk(const Chunk *const chunk) {
+void gl_render_chunk(const Chunk* const chunk) {
   // TODO -
   // make and initilize the VAO once at initilization time.
   // only thing that should happen here
@@ -349,9 +349,9 @@ void gl_render_chunk(const Chunk *const chunk) {
   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, 0);
   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 3));
+                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
+                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, chunk->faces * 6);
   glDisableVertexAttribArray(block_attrib.position);
   glDisableVertexAttribArray(block_attrib.normal);
@@ -371,7 +371,7 @@ void gl_draw_triangles_3d_text(GLuint buffer, int count) {
   glVertexAttribPointer(text_attrib.position, 3, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 5, 0);
   glVertexAttribPointer(text_attrib.uv, 2, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 5, (GLvoid *)(sizeof(float) * 3));
+                        sizeof(float) * 5, (GLvoid*)(sizeof(float) * 3));
   glDrawArrays(GL_TRIANGLES, 0, count);
   glDisableVertexAttribArray(text_attrib.position);
   glDisableVertexAttribArray(text_attrib.uv);
@@ -380,7 +380,7 @@ void gl_draw_triangles_3d_text(GLuint buffer, int count) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_setup_render_signs(const float *const matrix) {
+void gl_setup_render_signs(const float* const matrix) {
   glUseProgram(text_attrib.program);
   glUniformMatrix4fv(text_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -391,7 +391,7 @@ void gl_setup_render_signs(const float *const matrix) {
   glUniform1i(text_attrib.is_sign, 1);
 }
 
-void gl_render_signs(const Chunk *const chunk) {
+void gl_render_signs(const Chunk* const chunk) {
   // draw signs
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(-8, -1024);
@@ -404,7 +404,7 @@ void gl_render_signs(const Chunk *const chunk) {
   glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
-void gl_render_sign(const float *const matrix, int x, int y, int z, int face) {
+void gl_render_sign(const float* const matrix, int x, int y, int z, int face) {
   glUseProgram(text_attrib.program);
   glUniformMatrix4fv(text_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -416,7 +416,7 @@ void gl_render_sign(const float *const matrix, int x, int y, int z, int face) {
   char text[MAX_SIGN_LENGTH];
   strncpy(text, g->typing_buffer + 1, MAX_SIGN_LENGTH);
   text[MAX_SIGN_LENGTH - 1] = '\0';
-  float *data = malloc_faces(5, (int)strlen(text));
+  float* const data = malloc_faces(5, (int)strlen(text));
   int length = _gen_sign_buffer(data, (float)x, (float)y, (float)z, face, text);
   GLuint buffer = gl_gen_faces(5, length, data);
 
@@ -430,8 +430,8 @@ void gl_render_sign(const float *const matrix, int x, int y, int z, int face) {
 }
 
 void gl_setup_render_players(
-    const float *const matrix,
-    const PositionAndOrientation *const positionAndOrientation) {
+    const float* const matrix,
+    const PositionAndOrientation* const positionAndOrientation) {
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
   glUniform3f(block_attrib.camera, positionAndOrientation->x,
@@ -443,7 +443,7 @@ void gl_setup_render_players(
   glUniform1f(block_attrib.timer, time_of_day());
 }
 
-void gl_render_player(const Player *const other_player) {
+void gl_render_player(const Player* const other_player) {
   // TODO -
   // make and initilize the VAO once at initilization time.
   // only thing that should happen here
@@ -463,9 +463,9 @@ void gl_render_player(const Player *const other_player) {
   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, 0);
   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 3));
+                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
+                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, 36);
   glDisableVertexAttribArray(block_attrib.position);
   glDisableVertexAttribArray(block_attrib.normal);
@@ -474,7 +474,7 @@ void gl_render_player(const Player *const other_player) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_sky(GLuint buffer, const float *const matrix) {
+void gl_render_sky(GLuint buffer, const float* const matrix) {
   glUseProgram(sky_attrib.program);
   glUniformMatrix4fv(sky_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -510,10 +510,10 @@ void gl_render_sky(GLuint buffer, const float *const matrix) {
   // If I don't, I will get an OpenGL error
   if ((int)sky_attrib.normal >= 0) {
     glVertexAttribPointer(sky_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(float) * 8, (GLvoid *)(sizeof(float) * 3));
+                          sizeof(float) * 8, (GLvoid*)(sizeof(float) * 3));
   }
   glVertexAttribPointer(sky_attrib.uv, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8,
-                        (GLvoid *)(sizeof(float) * 6));
+                        (GLvoid*)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, 512 * 3);
   glDisableVertexAttribArray(sky_attrib.position);
   // TODO
@@ -544,7 +544,7 @@ void gl_draw_lines(GLuint buffer, int components, int count) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_wireframe(const float *const matrix, int hx, int hy, int hz) {
+void gl_render_wireframe(const float* const matrix, int hx, int hy, int hz) {
   glUseProgram(line_attrib.program);
   glLineWidth(1);
   glEnable(GL_COLOR_LOGIC_OP);
@@ -561,8 +561,8 @@ void gl_render_wireframe(const float *const matrix, int hx, int hy, int hz) {
   glDisable(GL_COLOR_LOGIC_OP);
 }
 
-void gl_render_text(const float *const matrix, int justify, float x, float y,
-                    float n, const char *const text) {
+void gl_render_text(const float* const matrix, int justify, float x, float y,
+                    float n, const char* const text) {
   glUseProgram(text_attrib.program);
   glUniformMatrix4fv(text_attrib.matrix, 1, GL_FALSE, matrix);
   glActiveTexture(GL_TEXTURE0);
@@ -576,7 +576,7 @@ void gl_render_text(const float *const matrix, int justify, float x, float y,
   {
     // initialize text_buffer
     const int length = (int)strlen(text);
-    float *data = malloc_faces(4, length);
+    float* const data = malloc_faces(4, length);
     for (int i = 0; i < length; i++) {
       make_character(data + i * 24, x, y, n / 2, n, text[i]);
       x += n;
@@ -597,7 +597,7 @@ void gl_render_text(const float *const matrix, int justify, float x, float y,
   glVertexAttribPointer(text_attrib.position, 2, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 4, 0);
   glVertexAttribPointer(text_attrib.uv, 2, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 4, (GLvoid *)(sizeof(float) * 2));
+                        sizeof(float) * 4, (GLvoid*)(sizeof(float) * 2));
   glDrawArrays(GL_TRIANGLES, 0, length * 6);
   glDisableVertexAttribArray(text_attrib.position);
   glDisableVertexAttribArray(text_attrib.uv);
@@ -610,7 +610,7 @@ void gl_render_text(const float *const matrix, int justify, float x, float y,
   gl_del_buffer(text_buffer);
 }
 
-void gl_render_item(const float *const matrix) {
+void gl_render_item(const float* const matrix) {
   glUseProgram(block_attrib.program);
   glUniformMatrix4fv(block_attrib.matrix, 1, GL_FALSE, matrix);
   glUniform3f(block_attrib.camera, 0, 0, 5);
@@ -632,9 +632,9 @@ void gl_render_plant(GLuint plant_buffer) {
   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, 0);
   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 3));
+                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
+                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, 24);
   glDisableVertexAttribArray(block_attrib.position);
   glDisableVertexAttribArray(block_attrib.normal);
@@ -662,9 +662,9 @@ void gl_render_cube(GLuint cube_buffer) {
   glVertexAttribPointer(block_attrib.position, 3, GL_FLOAT, GL_FALSE,
                         sizeof(float) * 10, 0);
   glVertexAttribPointer(block_attrib.normal, 3, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 3));
+                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 3));
   glVertexAttribPointer(block_attrib.uv, 4, GL_FLOAT, GL_FALSE,
-                        sizeof(float) * 10, (GLvoid *)(sizeof(float) * 6));
+                        sizeof(float) * 10, (GLvoid*)(sizeof(float) * 6));
   glDrawArrays(GL_TRIANGLES, 0, 36);
   glDisableVertexAttribArray(block_attrib.position);
   glDisableVertexAttribArray(block_attrib.normal);
@@ -673,7 +673,7 @@ void gl_render_cube(GLuint cube_buffer) {
   glDeleteVertexArrays(1, &vertexArrayID);
 }
 
-void gl_render_crosshairs(GLuint crosshair_buffer, const float *const matrix) {
+void gl_render_crosshairs(GLuint crosshair_buffer, const float* const matrix) {
   glUseProgram(line_attrib.program);
   // TODO -
   //  do something with this, remove it, etc
