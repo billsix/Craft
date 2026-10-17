@@ -28,13 +28,13 @@
  * block_type, arg). A negative block_type marks a block on the one-block pad
  * that belongs to a neighbouring chunk; callers absorb the sign with ABS().
  */
-typedef void (*world_func)(int, int, int, int, void *);
+typedef void (*world_func)(int, int, int, int, void*);
 
 /*
  * Generate the terrain for the chunk at column (chunk_x, chunk_z) - chunk
  * indices along world X and Z respectively, each chunk being CHUNK_SIZE
  * blocks square - emitting every block through func.
  */
-void create_world(int chunk_x, int chunk_z, world_func func, void *arg);
+void create_world(int chunk_x, int chunk_z, world_func func, void* arg);
 
 #endif

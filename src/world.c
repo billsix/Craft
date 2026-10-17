@@ -24,7 +24,7 @@
 #include "config.h"
 #include "noise.h"
 
-void create_world(int chunk_x, int chunk_z, world_func func, void *arg) {
+void create_world(int chunk_x, int chunk_z, world_func func, void* arg) {
   // chunk_x, chunk_z: this chunk's column indices along world X and Z.
   // local_x, local_z: the block's offset within the chunk (0..CHUNK_SIZE-1),
   //   plus a one-block pad on each side (hence -pad .. CHUNK_SIZE+pad).
@@ -77,9 +77,9 @@ void create_world(int chunk_x, int chunk_z, world_func func, void *arg) {
           for (int y = terrain_height + 3; y < terrain_height + 8; y++) {
             for (int ox = -3; ox <= 3; ox++) {
               for (int oz = -3; oz <= 3; oz++) {
-                int dist_sq = (ox * ox) + (oz * oz) +
-                              (y - (terrain_height + 4)) *
-                                  (y - (terrain_height + 4));
+                int dist_sq =
+                    (ox * ox) + (oz * oz) +
+                    (y - (terrain_height + 4)) * (y - (terrain_height + 4));
                 if (dist_sq < 11) {
                   func(x + ox, y, z + oz, 15, arg);
                 }

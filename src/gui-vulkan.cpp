@@ -72,9 +72,9 @@
 
 #include "main.h"
 
-const char *glsl_version = "#version 330";
+const char* glsl_version = "#version 330";
 
-static VkAllocationCallbacks *g_Allocator = NULL;
+static VkAllocationCallbacks* g_Allocator = NULL;
 static VkInstance g_Instance = VK_NULL_HANDLE;
 static VkPhysicalDevice g_PhysicalDevice = VK_NULL_HANDLE;
 static VkDevice g_Device = VK_NULL_HANDLE;
@@ -88,17 +88,15 @@ static ImGui_ImplVulkanH_Window g_MainWindowData;
 static int g_MinImageCount = 2;
 static bool g_SwapChainRebuild = false;
 
-static ImGui_ImplVulkanH_Window *wd;
+static ImGui_ImplVulkanH_Window* wd;
 
 static void check_vk_result(VkResult err) {
-  if (err == 0)
-    return;
+  if (err == 0) return;
   fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
-  if (err < 0)
-    abort();
+  if (err < 0) abort();
 }
 
-void SetupVulkan(const char **extensions, uint32_t extensions_count) {
+void SetupVulkan(const char** extensions, uint32_t extensions_count) {
   VkResult err;
 
   // Create Vulkan Instance
@@ -109,15 +107,15 @@ void SetupVulkan(const char **extensions, uint32_t extensions_count) {
     create_info.ppEnabledExtensionNames = extensions;
 #ifdef IMGUI_VULKAN_DEBUG_REPORT
     // Enabling validation layers
-    const char *layers[] = {"VK_LAYER_KHRONOS_validation"};
+    const char* layers[] = {"VK_LAYER_KHRONOS_validation"};
     create_info.enabledLayerCount = 1;
     create_info.ppEnabledLayerNames = layers;
 
     // Enable debug report extension (we need additional storage, so we
     // duplicate the user array to add our new extension to it)
-    const char **extensions_ext =
-        (const char **)malloc(sizeof(const char *) * (extensions_count + 1));
-    memcpy(extensions_ext, extensions, extensions_count * sizeof(const char *));
+    const char** extensions_ext =
+        (const char**)malloc(sizeof(const char*) * (extensions_count + 1));
+    memcpy(extensions_ext, extensions, extensions_count * sizeof(const char*));
     extensions_ext[extensions_count] = "VK_EXT_debug_report";
     create_info.enabledExtensionCount = extensions_count + 1;
     create_info.ppEnabledExtensionNames = extensions_ext;
@@ -160,8 +158,8 @@ void SetupVulkan(const char **extensions, uint32_t extensions_count) {
     check_vk_result(err);
     IM_ASSERT(gpu_count > 0);
 
-    VkPhysicalDevice *gpus =
-        (VkPhysicalDevice *)malloc(sizeof(VkPhysicalDevice) * gpu_count);
+    VkPhysicalDevice* gpus =
+        (VkPhysicalDevice*)malloc(sizeof(VkPhysicalDevice) * gpu_count);
     err = vkEnumeratePhysicalDevices(g_Instance, &gpu_count, gpus);
     check_vk_result(err);
 
@@ -177,7 +175,7 @@ void SetupVulkan(const char **extensions, uint32_t extensions_count) {
   {
     uint32_t count;
     vkGetPhysicalDeviceQueueFamilyProperties(g_PhysicalDevice, &count, NULL);
-    VkQueueFamilyProperties *queues = (VkQueueFamilyProperties *)malloc(
+    VkQueueFamilyProperties* queues = (VkQueueFamilyProperties*)malloc(
         sizeof(VkQueueFamilyProperties) * count);
     vkGetPhysicalDeviceQueueFamilyProperties(g_PhysicalDevice, &count, queues);
     for (uint32_t i = 0; i < count; i++)
@@ -192,7 +190,7 @@ void SetupVulkan(const char **extensions, uint32_t extensions_count) {
   // Create Logical Device (with 1 queue)
   {
     int device_extension_count = 1;
-    const char *device_extensions[] = {"VK_KHR_swapchain"};
+    const char* device_extensions[] = {"VK_KHR_swapchain"};
     const float queue_priority[] = {1.0f};
     VkDeviceQueueCreateInfo queue_info[1] = {};
     queue_info[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -240,7 +238,7 @@ void SetupVulkan(const char **extensions, uint32_t extensions_count) {
 
 // All the ImGui_ImplVulkanH_XXX structures/functions are optional helpers used
 // by the demo. Your real engine/app may not use them.
-void SetupVulkanWindow(ImGui_ImplVulkanH_Window *wd, VkSurfaceKHR surface,
+void SetupVulkanWindow(ImGui_ImplVulkanH_Window* wd, VkSurfaceKHR surface,
                        int width, int height) {
   wd->Surface = surface;
 
@@ -293,7 +291,7 @@ static void CleanupVulkan() {
       (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(
           g_Instance, "vkDestroyDebugReportCallbackEXT");
   vkDestroyDebugReportCallbackEXT(g_Instance, g_DebugReport, g_Allocator);
-#endif // IMGUI_VULKAN_DEBUG_REPORT
+#endif  // IMGUI_VULKAN_DEBUG_REPORT
 
   vkDestroyDevice(g_Device, g_Allocator);
   vkDestroyInstance(g_Instance, g_Allocator);
@@ -304,7 +302,7 @@ static void CleanupVulkanWindow() {
                                   g_Allocator);
 }
 
-static void FrameRender(ImGui_ImplVulkanH_Window *wd, ImDrawData *draw_data) {
+static void FrameRender(ImGui_ImplVulkanH_Window* wd, ImDrawData* draw_data) {
   VkResult err;
 
   VkSemaphore image_acquired_semaphore =
@@ -320,11 +318,11 @@ static void FrameRender(ImGui_ImplVulkanH_Window *wd, ImDrawData *draw_data) {
   }
   check_vk_result(err);
 
-  ImGui_ImplVulkanH_Frame *fd = &wd->Frames[wd->FrameIndex];
+  ImGui_ImplVulkanH_Frame* fd = &wd->Frames[wd->FrameIndex];
   {
     err = vkWaitForFences(
         g_Device, 1, &fd->Fence, VK_TRUE,
-        UINT64_MAX); // wait indefinitely instead of periodically checking
+        UINT64_MAX);  // wait indefinitely instead of periodically checking
     check_vk_result(err);
 
     err = vkResetFences(g_Device, 1, &fd->Fence);
@@ -376,9 +374,8 @@ static void FrameRender(ImGui_ImplVulkanH_Window *wd, ImDrawData *draw_data) {
   }
 }
 
-static void FramePresent(ImGui_ImplVulkanH_Window *wd) {
-  if (g_SwapChainRebuild)
-    return;
+static void FramePresent(ImGui_ImplVulkanH_Window* wd) {
+  if (g_SwapChainRebuild) return;
   VkSemaphore render_complete_semaphore =
       wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
   VkPresentInfoKHR info = {};
@@ -396,13 +393,12 @@ static void FramePresent(ImGui_ImplVulkanH_Window *wd) {
   check_vk_result(err);
   wd->SemaphoreIndex =
       (wd->SemaphoreIndex + 1) %
-      wd->ImageCount; // Now we can use the next set of semaphores
+      wd->ImageCount;  // Now we can use the next set of semaphores
 }
 
 void gui_init() {
-
   uint32_t extensions_count = 0;
-  const char **extensions =
+  const char** extensions =
       glfwGetRequiredInstanceExtensions(&extensions_count);
   SetupVulkan(extensions, extensions_count);
 
@@ -421,7 +417,7 @@ void gui_init() {
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
+  ImGuiIO& io = ImGui::GetIO();
   (void)io;
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable
   // Keyboard Controls io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; //
@@ -526,7 +522,7 @@ void gui_create_frame() {
 void gui_render_frame() {
   // Rendering
   ImGui::Render();
-  ImDrawData *draw_data = ImGui::GetDrawData();
+  ImDrawData* draw_data = ImGui::GetDrawData();
   const bool is_minimized =
       (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f);
   if (!is_minimized) {
