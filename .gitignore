@@ -1,5 +1,4 @@
 .DS_Store
-Makefile
 CMakeCache.txt
 CMakeFiles
 cmake_install.cmake
@@ -22,4 +21,11 @@ log.txt
 *.exe
 *.dll
 *.pyc
+
+# Emacs compiled artifacts. The vendored .emacs.d/elpa/*.el SOURCES are committed
+# (via `make update-emacs-packages`, which strips these first and force-adds the rest);
+# the machine-specific compiled files are not.
+*.elc
+*.eln
+eln-cache/
 
