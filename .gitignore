@@ -10,6 +10,11 @@ world
 env
 sanitizeBuild-address/
 sanitizeBuild-undefined/
+
+# meson build directories
+/build/
+/builddir/
+/build-meson/
 log.txt
 .idea/
 *.o

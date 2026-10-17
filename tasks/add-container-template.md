@@ -1,7 +1,12 @@
 # Port Craft to Meson + a Fedora-44/Podman container (Dockerfile + Makefile + entrypoint/) with Emacs C support
 
-**Status:** proposed — needs go-ahead. Created 2026-08-16; **expanded 2026-10-17** to add the
-**Meson build port** and **Emacs/clangd support** (William Emerison Six <billsix@gmail.com>).
+**Status:** in progress — Created 2026-08-16; expanded 2026-10-17 (Meson port + Emacs/clangd).
+**Meson build core DONE 2026-10-17** (coexisting with CMake; not yet torn down): `meson.build` +
+`meson_options.txt` + `src/config.h.meson.in` build the Linux client, the `world` shared lib, and the
+`craft_smoke` sanitizer gate; verified in-sandbox (clang) — `craft`/`libworld.so`/`craft_smoke` all
+compile+link and `craft_smoke` runs clean under ASan. **Remaining:** the container contract
+(Dockerfile + Makefile on the fleet template + `entrypoint/`) and Emacs/clangd support; then retire
+CMakeLists.txt + the `.bat` files + `src/config.h.in` (Windows/macOS deps still described there).
 **Priority:** 5
 **Difficulty:** 7 (was 5; the CMake→Meson port raises it)
 
