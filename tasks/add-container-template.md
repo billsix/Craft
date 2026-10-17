@@ -1,14 +1,31 @@
 # Port Craft to Meson + a Fedora-44/Podman container (Dockerfile + Makefile + entrypoint/) with Emacs C support
 
-**Status:** in progress — Created 2026-08-16; expanded 2026-10-17 (Meson port + Emacs/clangd).
-**Meson build core DONE 2026-10-17** (coexisting with CMake; not yet torn down): `meson.build` +
-`meson_options.txt` + `src/config.h.meson.in` build the Linux client, the `world` shared lib, and the
-`craft_smoke` sanitizer gate; verified in-sandbox (clang) — `craft`/`libworld.so`/`craft_smoke` all
-compile+link and `craft_smoke` runs clean under ASan. **Remaining:** the container contract
-(Dockerfile + Makefile on the fleet template + `entrypoint/`) and Emacs/clangd support; then retire
-CMakeLists.txt + the `.bat` files + `src/config.h.in` (Windows/macOS deps still described there).
+**Status:** DONE 2026-10-17 — archived. Meson Linux build + Fedora/Podman container + Emacs/clangd
+all shipped. The one listed sub-step NOT done — retiring CMake — was split into `tasks/retire-cmake.md`
+because it turns on dropping Windows/macOS (the Meson build is Linux-only); CMake stays for now.
 **Priority:** 5
-**Difficulty:** 7 (was 5; the CMake→Meson port raises it)
+**Difficulty:** 7 (was 5; the CMake→Meson port raised it)
+
+## Outcome (2026-10-17)
+
+- **Meson Linux build** (committed earlier, `aaaec0d7`): `meson.build` + `meson_options.txt` +
+  `src/config.h.meson.in` build `craft` + the `world` shared lib + the `craft_smoke` ASan/UBSan
+  gate. `gnu11`/`gnu++17`; system glfw3/libcurl/sqlite3/gl on Linux, vendored `deps/` compiled in.
+- **Container contract** (`a113e093`): `Dockerfile` (Fedora 44, per-group `entrypoint/0N-install-*.sh`,
+  dnf cache mounts, `USE_GRAPHICS`/`USE_EMACS` ARGs, Meson build+install at image time) + `Makefile`
+  (fleet contract: image/build/shell/run/shell-exec/format/lint/image-export/image-import/
+  update-emacs-packages/help, X11+Wayland passthrough, PODMAN_RUN_FLAGS; **preserves** the host CMake
+  targets debug/release/sanitize/clean for Win/Mac) + `entrypoint/` scripts. Verified: `make image
+  USE_EMACS=0` builds the Meson client in-image; `make format` runs clean in-container.
+- **clang-format pass** (`7095c821`): ran the new `make format` over `src/` (whitespace/pointer
+  alignment the const sweep + Meson port had left dirty).
+- **Emacs/clangd** (config in `a113e093`; vendored `elpa/` in a follow-up commit): `.emacs.d` with
+  lsp-mode + clangd (`--compile-commands-dir=/craft/builddir`); `make update-emacs-packages`.
+- **CMake retirement (sub-step #3): NOT done — see `tasks/retire-cmake.md`.** Retiring CMake drops
+  Windows/macOS (Meson here is Linux-only). Surfaced as a decision; CMake + `.bat` + `config.h.in`
+  stay. Q1/Q2 below were answered by the maintainer's "do all three with your recommendations"
+  (build at image-time; OpenGL default, Vulkan off). Q3 headless smoke → added `make run`
+  (interactive) not a headless screenshot. Q4 → this dev container IS the client container.
 
 ## Goal
 
