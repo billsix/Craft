@@ -1,11 +1,12 @@
 # Retire CMake in favor of Meson (decision: do we drop Windows/macOS?)
 
-**Status:** parked — **DECIDED 2026-10-17: keep both builds in parallel (option 1).** The maintainer
-(William Emerison Six <billsix@gmail.com>) chose to keep CMake as the cross-platform build for
-Windows/macOS alongside the Linux-only Meson dev build. **No teardown.** Kept parked (not archived) as
-the decision record + the ready analysis, to revisit only if Craft goes Linux-only or someone needs
-Win/Mac off CMake.
-**Priority:** 9 (parked)
+**Status:** archived decision record — **DECIDED 2026-10-17: keep both builds in parallel (option 1).**
+The maintainer (William Emerison Six <billsix@gmail.com>) chose to keep CMake as the cross-platform
+build for Windows/macOS alongside the Linux-only Meson dev build. **No teardown.** Archived as the
+decision record + the ready analysis; **revive this doc** (move it back to `tasks/`) only if Craft goes
+Linux-only or someone needs Win/Mac off CMake — the option 2/3 analysis and teardown checklist below
+are ready to use then.
+**Priority:** 9 (parked/decided)
 **Difficulty:** 6 (the teardown is easy; a cross-platform Meson build is the hard part)
 **Revisit when:** Craft decides to drop Windows/macOS support, OR a cross-platform Meson build is
 wanted (option 2 below) — then this becomes actionable.

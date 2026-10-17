@@ -76,7 +76,7 @@ gcc, the existing ASan+UBSan gate (`make sanitize`) still passes, and no gamepla
 - [ ] Pin `-std=c23` for `src/` (Meson and/or CMake); `nullptr` in the `.cpp` (and `.c` under the pin);
       `[[maybe_unused]]`/`[[fallthrough]]` where apt; `static_assert` for real invariants.
 - **MSVC / cross-platform caveat (carried from the archived `port-to-c23.md` Q3):** CMake stays the
-  Windows/macOS build (decided 2026-10-17, `retire-cmake.md`), and the MSVC path has weaker C23
+  Windows/macOS build (decided 2026-10-17, `tasks/archive/2026/10/17/retire-cmake.md`), and the MSVC path has weaker C23
   support. So either confirm MSVC builds clean under `-std=c23`, or pin C23 only on the Meson
   (Linux, clang+gcc) build and keep the CMake path at C11/C17 — don't silently break the Win/Mac build.
   Open questions from the precursor (scope = `src/` only; adopt features vs compile-clean) are answered

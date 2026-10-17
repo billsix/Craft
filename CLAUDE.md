@@ -20,8 +20,8 @@ This project **is** on the maintainer's Fedora-44 + Podman container template as
 built in-image and re-runnable from the mounted tree via `make build`. **CMake stays**
 as the cross-platform build (Meson here is Linux-only): `CMakeLists.txt` +
 `src/config.h.in` + the `.bat` files carry Windows/macOS. See
-`tasks/archive/2026/10/17/add-container-template.md` (done) and `tasks/retire-cmake.md`
-(the open decision about dropping CMake).
+`tasks/archive/2026/10/17/add-container-template.md` (done) and
+`tasks/archive/2026/10/17/retire-cmake.md` (the decision: keep both — do not retire CMake).
 
 ## Reference docs
 
@@ -207,8 +207,8 @@ follow-ons, graphics backends, server revive/dockerfile, `fix-verified-bugs`, �
 **Done 2026-10-17:** the **CMake→Meson port + Fedora/Podman container + Emacs/clangd** shipped
 (`tasks/archive/2026/10/17/add-container-template.md`) — Meson is the Linux dev build (in-container),
 CMake stays cross-platform. **Decided 2026-10-17:** keep both builds in parallel — CMake stays as the cross-platform
-(Windows/macOS) build, Meson is the Linux dev build (`tasks/retire-cmake.md`, parked as the decision
-record). `modernize-c-like-gltron.md` is a unified behavior-preserving C sweep (warning `-Werror` gate
+(Windows/macOS) build, Meson is the Linux dev build (`tasks/archive/2026/10/17/retire-cmake.md`, the
+archived decision record). `modernize-c-like-gltron.md` is a unified behavior-preserving C sweep (warning `-Werror` gate
 — Craft has none today — + allocation safety + `const`/double-`const` + C23) that **supersedes** the
 now-archived `port-to-c23` + `const-correctness-sweep`; its `const`/double-`const` pass already shipped
 (commit `e3c9a394`), the warning gate + C23 phases remain. The server half stays `server-dockerfile.md`

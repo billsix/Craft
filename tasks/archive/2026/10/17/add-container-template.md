@@ -1,7 +1,7 @@
 # Port Craft to Meson + a Fedora-44/Podman container (Dockerfile + Makefile + entrypoint/) with Emacs C support
 
 **Status:** DONE 2026-10-17 — archived. Meson Linux build + Fedora/Podman container + Emacs/clangd
-all shipped. The one listed sub-step NOT done — retiring CMake — was split into `tasks/retire-cmake.md`
+all shipped. The one listed sub-step NOT done — retiring CMake — was split into `tasks/archive/2026/10/17/retire-cmake.md`
 because it turns on dropping Windows/macOS (the Meson build is Linux-only); CMake stays for now.
 **Priority:** 5
 **Difficulty:** 7 (was 5; the CMake→Meson port raised it)
@@ -21,7 +21,7 @@ because it turns on dropping Windows/macOS (the Meson build is Linux-only); CMak
   alignment the const sweep + Meson port had left dirty).
 - **Emacs/clangd** (config in `a113e093`; vendored `elpa/` in a follow-up commit): `.emacs.d` with
   lsp-mode + clangd (`--compile-commands-dir=/craft/builddir`); `make update-emacs-packages`.
-- **CMake retirement (sub-step #3): NOT done — see `tasks/retire-cmake.md`.** Retiring CMake drops
+- **CMake retirement (sub-step #3): NOT done — see `tasks/archive/2026/10/17/retire-cmake.md`.** Retiring CMake drops
   Windows/macOS (Meson here is Linux-only). Surfaced as a decision; CMake + `.bat` + `config.h.in`
   stay. Q1/Q2 below were answered by the maintainer's "do all three with your recommendations"
   (build at image-time; OpenGL default, Vulkan off). Q3 headless smoke → added `make run`
