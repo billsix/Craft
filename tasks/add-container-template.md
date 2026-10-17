@@ -1,8 +1,9 @@
-# Add a Fedora-44 + Podman dev container (Dockerfile + Makefile + entrypoint/) per my project template
+# Port Craft to Meson + a Fedora-44/Podman container (Dockerfile + Makefile + entrypoint/) with Emacs C support
 
-**Status:** proposed — needs go-ahead. Created 2026-08-16 (William Emerison Six <billsix@gmail.com>).
+**Status:** proposed — needs go-ahead. Created 2026-08-16; **expanded 2026-10-17** to add the
+**Meson build port** and **Emacs/clangd support** (William Emerison Six <billsix@gmail.com>).
 **Priority:** 5
-**Difficulty:** 5
+**Difficulty:** 7 (was 5; the CMake→Meson port raises it)
 
 ## Goal
 
@@ -10,7 +11,13 @@ Bring Craft onto my standard **container-per-project template** — the Fedora-4
 ephemeral-container dev environment (`Dockerfile`, a `Makefile` of `podman run --rm` targets, and
 `entrypoint/` scripts) that gltron (`github.com/billsix/gltron-mirror`) and spimulator
 (`github.com/billsix/spimulator`) use — so Craft builds and runs in the same reproducible sandbox as my
-other C/C++ graphics projects.
+other C/C++ graphics projects. **Two additions decided 2026-10-17:** (1) **port the build from CMake
+to Meson + Ninja** (the fleet C build system — apue and texExpToPng use it), and (2) wire **Emacs C
+support (clangd + eglot) with a `make update-emacs-packages` target**. The direct exemplar for the
+whole contract is **`/foo/opt/billsEmacsConfigs/c`** (its `meson.build` + `Dockerfile` + `Makefile` +
+`entrypoint/dotfiles/.emacs.d/`). This is the **client**; the server is its own tasks
+(`server-dockerfile.md` + `revive-python-server.md`), and the C-source modernization is
+`modernize-c-like-gltron.md`.
 
 **This reverses a current stance.** Craft's `CLAUDE.md` presently says: *"This project is not on Bill's
 Fedora-44 + Podman container template — it's a plain CMake project … a legitimate divergence (it's an
@@ -40,6 +47,47 @@ note** as part of this task (Bill decided 2026-08-16 to bring it onto the templa
   `##`-documented targets. X11 + Wayland passthrough blocks (this is a GUI app).
 - **`entrypoint/`:** `shell.sh` (cd + `exec bash`), `format.sh` (clang-format over `*.{c,cpp,h,hpp}`),
   `01-install-base.sh`; a C/C++ `exit()`-trap in `~/.bashrc` running `format.sh` on shell exit.
+  Model the exact scripts on `/foo/opt/billsEmacsConfigs/c/entrypoint/` (`shell.sh`/`shell-exec`
+  pair, `format.sh`, `lint.sh`, `buildDebug.sh`, `entrypoint.sh`).
+
+## Meson build port (CMake → Meson + Ninja) — decided 2026-10-17
+
+Replace `CMakeLists.txt` with `meson.build`, keeping behavior. Surveyed structure (2026-10-17):
+
+- **Targets to reproduce:** `craft` (executable from `src/*.c` + the C++ `gui.cpp` + the selected
+  renderer's `gui-gl.cpp`/`gui-vulkan.cpp`, with the vendored `gl3w`/`imgui`/`lodepng`/`noise`/
+  `tinycthread` sources compiled in); **`world`** (a `shared_library` from `deps/noise/noise.c` +
+  `src/world.c`, installed to `server/` — the Python server loads it); and **`craft_smoke`** (the
+  Linux/clang ASan+UBSan gate over `tests/smoke.c` + the GL-free units — preserve it, it is the only
+  automated check).
+- **Options** (Meson `meson_options.txt`): `opengl` (default true) vs `vulkan` (default false) —
+  mutually-exclusive renderer source sets + the `IMGUI_IMPL_OPENGL_LOADER_GL3W` define; plus the
+  `only_render_one_chunk` / `no_threads` toggles.
+- **Dependencies (Linux path):** `dependency('glfw3')`, `dependency('libcurl')`,
+  `dependency('sqlite3')`, GL via `dependency('gl')`/`dependency('dl')`, `m`, `threads`. Vendored
+  `deps/` compiled from in-tree source (no fetch). On Linux, `sqlite`/`curl`/`glfw` come from the
+  system (the vendored copies are Win/Mac-only — defer those platforms; note them).
+- **Generated `config.h`:** `src/config.h.in` uses CMake `#cmakedefine` + `@VAR@`. Meson's
+  `configure_file` uses **`#mesondefine`** — rewrite the `.in` (or generate via `configuration_data`).
+  Watch `RESOURCE_PATH` (Debug = source dir, Release = install `share/craft/`).
+- **Tricky bits (from the survey):** the mutually-exclusive renderer sets; the `#cmakedefine`→
+  `#mesondefine` rewrite; `deps/glfw` + `deps/curl` are full CMake subprojects (Win/Mac only — rely
+  on system libs on Linux, defer subproject wraps); `gl3w` ships a generator; heavy `WIN32`/`APPLE`/
+  `else` branching → Meson `host_machine` logic; the `.bat`/MSVC multi-config story is replaced by
+  Ninja. Scope **Linux client first**; Windows/macOS deferred and noted.
+
+## Emacs C support (clangd + eglot) + update-emacs-packages — decided 2026-10-17
+
+Mirror `/foo/opt/billsEmacsConfigs/c`:
+- `Dockerfile` `ARG USE_EMACS=0` (Makefile passes `1`): install `emacs` + run
+  `emacs --batch --load .emacs.d/install-melpa-packages.el`; ensure `clang-tools-extra` (clangd) is
+  in the dnf list. The build must emit/symlink `compile_commands.json` (Meson does this natively in
+  the build dir) for clangd.
+- Vendor `entrypoint/dotfiles/.emacs.d/` (`init.el`, `preferences.el`, `helm.el`,
+  `install-melpa-packages.el`) with clangd/eglot for C/C++.
+- Add the `ELPA_MOUNT` + **`make update-emacs-packages`** target (copy the exemplar's: force
+  `USE_EMACS=1`, rebuild image, wipe+reinstall `elpa/`, strip `*.elc`/`*.eln`, `git add -f`). This is
+  the target the billsEmacsConfigs top-level refresh script invokes.
 
 ## Convention adherence (self-contained images + live source)
 

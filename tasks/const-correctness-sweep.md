@@ -7,6 +7,10 @@
 **Blocked on:** maintainer answers the Open question below (clang-tidy-driven sweep acceptable? scope).
 **Recheck:** the Open question below is answered (maintainer-gated; `/recheck-blocked` surfaces it).
 
+> **Superseded 2026-10-17 by `modernize-c-like-gltron.md`** — the `const` pass (including the new
+> double-`const` `const T* const` idiom) is **Phase 3** of that unified sweep. Do it there; this doc is
+> kept for the context/open-question below.
+
 ## Goal
 
 Merges two maintainer bullets, verbatim: *"Study source ... add consts ..."* and *"add consts wherever

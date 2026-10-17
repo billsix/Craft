@@ -179,5 +179,12 @@ work moves to `tasks/archive/<YYYY>/<MM>/<DD>/`. **Several in-flight tasks were 
 follow-ons, graphics backends, server revive/dockerfile, `fix-verified-bugs`, …) — see
 `tasks/` and the reference docs above. Most are `blocked`/`proposed — needs go-ahead`.
 
+**Added/retargeted 2026-10-17** (modeled on gltron's C sweep and the `/foo/opt/billsEmacsConfigs/c`
+container exemplar): `add-container-template.md` now covers a **CMake→Meson port + Emacs/clangd
+support** (not just a CMake container); `modernize-c-like-gltron.md` is a unified behavior-preserving
+C sweep (warning `-Werror` gate — Craft has none today — + allocation safety + `const`/double-`const`
++ C23) that **supersedes** `port-to-c23.md` and `const-correctness-sweep.md`. The server half stays
+`server-dockerfile.md` + `revive-python-server.md`.
+
 Completed work is in `tasks/archive/`; e.g. the ASan + UBSan(trap) sanitizer gate
 (`tasks/archive/2026/08/03/add-sanitizer-gate.md` — also summarised under Status above).

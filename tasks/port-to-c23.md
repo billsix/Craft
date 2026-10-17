@@ -7,6 +7,10 @@
 **Blocked on:** maintainer answers the Open questions below (scope + intent + compiler support).
 **Recheck:** the Open questions below are answered (maintainer-gated; `/recheck-blocked` surfaces it).
 
+> **Superseded 2026-10-17 by `modernize-c-like-gltron.md`** — the C23 pin is now **Phase 4** of that
+> unified, behavior-preserving sweep (which also wires the warning `-Werror` gate, the allocation
+> safety pass, and double-`const`). Do it there; this doc is kept for the context/open-questions below.
+
 ## Goal
 
 Maintainer's idea, verbatim: *"port to C23"*.
