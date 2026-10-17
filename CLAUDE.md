@@ -20,8 +20,8 @@ This project **is** on the maintainer's Fedora-44 + Podman container template as
 built in-image and re-runnable from the mounted tree via `make build`. **CMake stays**
 as the cross-platform build (Meson here is Linux-only): `CMakeLists.txt` +
 `src/config.h.in` + the `.bat` files carry Windows/macOS. See
-`tasks/add-container-template.md` (done) and `tasks/retire-cmake.md` (the open
-decision about dropping CMake).
+`tasks/archive/2026/10/17/add-container-template.md` (done) and `tasks/retire-cmake.md`
+(the open decision about dropping CMake).
 
 ## Reference docs
 
@@ -205,7 +205,7 @@ follow-ons, graphics backends, server revive/dockerfile, `fix-verified-bugs`, �
 `tasks/` and the reference docs above. Most are `blocked`/`proposed — needs go-ahead`.
 
 **Done 2026-10-17:** the **CMake→Meson port + Fedora/Podman container + Emacs/clangd** shipped
-(`tasks/add-container-template.md`, archived) — Meson is the Linux dev build (in-container),
+(`tasks/archive/2026/10/17/add-container-template.md`) — Meson is the Linux dev build (in-container),
 CMake stays cross-platform. **Open decision:** whether to retire CMake at all turns on dropping
 Windows/macOS (Meson here is Linux-only) — `tasks/retire-cmake.md` (needs a decision, not started).
 `modernize-c-like-gltron.md` is a unified behavior-preserving C sweep (warning `-Werror` gate — Craft
