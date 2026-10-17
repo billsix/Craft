@@ -4,11 +4,13 @@
 **Priority:** 6
 **Difficulty:** 6
 **Created:** 2026-10-17 (William Emerison Six <billsix@gmail.com>)
-**Supersedes / consolidates:** `port-to-c23.md` and `const-correctness-sweep.md` (both the piecemeal
-precursors of this — do those *as part of this* unified sweep, not separately). Complements
-`fix-verified-bugs.md` (its remaining B4–B7 defects) and the existing archived sanitizer gate.
-**Depends on:** `add-container-template.md` (the Meson port + container contract) landing first, so
-there is a warning gate + in-container build to run against.
+**Supersedes / consolidates:** the now-archived `port-to-c23.md` and `const-correctness-sweep.md`
+(both the piecemeal precursors of this — folded in here as Phases 4 and 3, archived 2026-10-17 to
+`tasks/archive/2026/10/17/`). Complements `fix-verified-bugs.md` (its remaining B4–B7 defects) and the
+existing archived sanitizer gate.
+**Depends on:** `add-container-template.md` — **SATISFIED 2026-10-17** (archived); the Meson build +
+Fedora/Podman container now exist, so Phase 1 can wire the warning gate into `meson.build` and build
+in-container.
 
 ## BLUF
 
@@ -63,14 +65,22 @@ gcc, the existing ASan+UBSan gate (`make sanitize`) still passes, and no gamepla
       on allocators. Keep any by-design exit-time leaks. (sprintf is already clean; audit `strcpy`.)
 
 ### Phase 3 — safe idioms, class-by-class
-- [ ] `const` the rest; **double-`const` (`const T* const`)** for never-reassigned pointer
-      locals/params over const data (the maintainer's cross-fleet idiom, now in the shared C standard).
+- [x] `const` + **double-`const` (`const T* const`)** pointer-correctness pass — **SHIPPED 2026-10-17,
+      commit `e3c9a394`** (part of the cross-fleet const sweep, ahead of this umbrella). It was done
+      **un-gated** (Craft has no `-Werror` yet), validated only by a clang discards-qualifiers check, so
+      **Phase 1 re-verifies it** once the raised warning gate is wired.
 - [ ] `size_t` / boundary casts for the signed-length→size-API sites (cast at the boundary; don't
-      retype domain ints that do arithmetic).
+      retype domain ints that do arithmetic). (Not part of `e3c9a394`.)
 
 ### Phase 4 — C23 idioms (if the C standard is pinned to C23 — this absorbs `port-to-c23.md`)
-- [ ] Pin `-std=c23` for `src/` (CMake/Meson); `nullptr` in the `.cpp` (and `.c` under the pin);
+- [ ] Pin `-std=c23` for `src/` (Meson and/or CMake); `nullptr` in the `.cpp` (and `.c` under the pin);
       `[[maybe_unused]]`/`[[fallthrough]]` where apt; `static_assert` for real invariants.
+- **MSVC / cross-platform caveat (carried from the archived `port-to-c23.md` Q3):** CMake stays the
+  Windows/macOS build (decided 2026-10-17, `retire-cmake.md`), and the MSVC path has weaker C23
+  support. So either confirm MSVC builds clean under `-std=c23`, or pin C23 only on the Meson
+  (Linux, clang+gcc) build and keep the CMake path at C11/C17 — don't silently break the Win/Mac build.
+  Open questions from the precursor (scope = `src/` only; adopt features vs compile-clean) are answered
+  in the BLUF/Context above: `src/`-only, adopt the niceties, green under clang + gcc.
 
 ## Verification
 Raised-warning build green under clang + gcc; `make sanitize` (ASan+UBSan) green; built in the

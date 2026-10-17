@@ -1,12 +1,18 @@
 # Retire CMake in favor of Meson (decision: do we drop Windows/macOS?)
 
-**Status:** proposed — needs a decision (NOT go-ahead to implement yet)
-**Priority:** 7 (parked on the decision below; low value until Win/Mac is settled)
+**Status:** parked — **DECIDED 2026-10-17: keep both builds in parallel (option 1).** The maintainer
+(William Emerison Six <billsix@gmail.com>) chose to keep CMake as the cross-platform build for
+Windows/macOS alongside the Linux-only Meson dev build. **No teardown.** Kept parked (not archived) as
+the decision record + the ready analysis, to revisit only if Craft goes Linux-only or someone needs
+Win/Mac off CMake.
+**Priority:** 9 (parked)
 **Difficulty:** 6 (the teardown is easy; a cross-platform Meson build is the hard part)
+**Revisit when:** Craft decides to drop Windows/macOS support, OR a cross-platform Meson build is
+wanted (option 2 below) — then this becomes actionable.
 
 ## BLUF
 
-The Meson build added 2026-10-17 (`tasks/add-container-template.md`, archived) is
+The Meson build added 2026-10-17 (`tasks/archive/2026/10/17/add-container-template.md`) is
 **Linux-only** — it uses system `glfw3`/`libcurl`/`sqlite3` via pkg-config and compiles the
 vendored `deps/` from in-tree source, with no Windows/macOS path. `CMakeLists.txt` +
 `src/config.h.in` + `buildDebug.bat`/`buildRelease.bat` are what currently build Craft on
@@ -31,9 +37,9 @@ Win/Mac either ported or explicitly dropped).
 
 ## The decision
 
-1. **Keep both (status quo).** CMake = cross-platform, Meson = Linux dev. Cost: two build
-   files to keep in sync (two config-header templates, two option lists). Recommended until
-   someone actually needs Win/Mac off CMake. **This is the current state.**
+1. **Keep both (status quo). ← CHOSEN 2026-10-17.** CMake = cross-platform, Meson = Linux dev.
+   Cost: two build files to keep in sync (two config-header templates, two option lists).
+   **This is the current state and the decided path.**
 2. **Make Meson cross-platform, then retire CMake.** Add Meson subproject wraps (or system
    deps) for glfw/curl/sqlite on Win/Mac, port the `WIN32`/`APPLE` branching to Meson
    `host_machine` logic, replace the `.bat`/MSVC multi-config story with a documented Meson
@@ -59,6 +65,6 @@ Win/Mac first, or (3) drop Win/Mac and delete CMake now?
 
 ## Related
 
-- `tasks/add-container-template.md` (archived 2026-10-17) — added the Meson build + container.
+- `tasks/archive/2026/10/17/add-container-template.md` — added the Meson build + container.
 - `tasks/modernize-c-like-gltron.md` — the C-source modernization + warning/lint gate; keep the
   gate build-system-agnostic so this decision doesn't block it.

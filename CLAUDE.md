@@ -206,12 +206,13 @@ follow-ons, graphics backends, server revive/dockerfile, `fix-verified-bugs`, �
 
 **Done 2026-10-17:** the **CMake→Meson port + Fedora/Podman container + Emacs/clangd** shipped
 (`tasks/archive/2026/10/17/add-container-template.md`) — Meson is the Linux dev build (in-container),
-CMake stays cross-platform. **Open decision:** whether to retire CMake at all turns on dropping
-Windows/macOS (Meson here is Linux-only) — `tasks/retire-cmake.md` (needs a decision, not started).
-`modernize-c-like-gltron.md` is a unified behavior-preserving C sweep (warning `-Werror` gate — Craft
-has none today — + allocation safety + `const`/double-`const` + C23) that **supersedes**
-`port-to-c23.md` and `const-correctness-sweep.md`. The server half stays `server-dockerfile.md` +
-`revive-python-server.md`.
+CMake stays cross-platform. **Decided 2026-10-17:** keep both builds in parallel — CMake stays as the cross-platform
+(Windows/macOS) build, Meson is the Linux dev build (`tasks/retire-cmake.md`, parked as the decision
+record). `modernize-c-like-gltron.md` is a unified behavior-preserving C sweep (warning `-Werror` gate
+— Craft has none today — + allocation safety + `const`/double-`const` + C23) that **supersedes** the
+now-archived `port-to-c23` + `const-correctness-sweep`; its `const`/double-`const` pass already shipped
+(commit `e3c9a394`), the warning gate + C23 phases remain. The server half stays `server-dockerfile.md`
++ `revive-python-server.md`.
 
 Completed work is in `tasks/archive/`; e.g. the ASan + UBSan(trap) sanitizer gate
 (`tasks/archive/2026/08/03/add-sanitizer-gate.md` — also summarised under Status above).
