@@ -45,15 +45,15 @@ typedef struct {
 
 int rand_int(int n);
 double rand_double();
-void update_fps(FPS *fps);
-char *load_file(const char *path);
-void flip_image_vertical(unsigned char *data, unsigned int width,
+void update_fps(FPS* fps);
+char* load_file(const char* path);
+void flip_image_vertical(unsigned char* data, unsigned int width,
                          unsigned int height);
-char *tokenize(char *str, const char *delim, char **key);
+char* tokenize(char* str, const char* delim, char** key);
 int char_width(char input);
-int string_width(const char *input);
-int wrap(const char *input, int max_width, char *output, int max_length);
-float *malloc_faces(int components, int faces);
+int string_width(const char* input);
+int wrap(const char* input, int max_width, char* output, int max_length);
+float* malloc_faces(int components, int faces);
 
 #ifdef __cplusplus
 #define BEGIN_C_DECL extern "C" {

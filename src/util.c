@@ -30,14 +30,13 @@
 
 int rand_int(int n) {
   int result;
-  while (n <= (result = rand() / (RAND_MAX / n)))
-    ;
+  while (n <= (result = rand() / (RAND_MAX / n)));
   return result;
 }
 
 double rand_double() { return (double)rand() / (double)RAND_MAX; }
 
-void update_fps(FPS *fps) {
+void update_fps(FPS* fps) {
   fps->frames++;
   const double now = glfwGetTime();
   const double elapsed = now - fps->since;
@@ -48,8 +47,8 @@ void update_fps(FPS *fps) {
   }
 }
 
-char *load_file(const char *path) {
-  FILE *const file = fopen(path, "rb");
+char* load_file(const char* path) {
+  FILE* const file = fopen(path, "rb");
   if (!file) {
     fprintf(stderr, "fopen %s failed: %d %s\n", path, errno, strerror(errno));
     exit(1);
@@ -57,17 +56,17 @@ char *load_file(const char *path) {
   fseek(file, 0, SEEK_END);
   int length = ftell(file);
   rewind(file);
-  char *const data = calloc(length + 1, sizeof(char));
+  char* const data = calloc(length + 1, sizeof(char));
   fread(data, 1, length, file);
   fclose(file);
   return data;
 }
 
-void flip_image_vertical(unsigned char *data, unsigned int width,
+void flip_image_vertical(unsigned char* data, unsigned int width,
                          unsigned int height) {
   const unsigned int size = width * height * 4,
                      stride = sizeof(char) * width * 4;
-  unsigned char *const new_data = malloc(sizeof(unsigned char) * size);
+  unsigned char* const new_data = malloc(sizeof(unsigned char) * size);
   for (unsigned int i = 0; i < height; i++) {
     unsigned int j = height - i - 1;
     memcpy(new_data + j * stride, data + i * stride, stride);
@@ -76,8 +75,8 @@ void flip_image_vertical(unsigned char *data, unsigned int width,
   free(new_data);
 }
 
-char *tokenize(char *str, const char *delim, char **key) {
-  char *result;
+char* tokenize(char* str, const char* delim, char** key) {
+  char* result;
   if (str == NULL) {
     str = *key;
   }
@@ -105,7 +104,7 @@ int char_width(char input) {
   return lookup[input];
 }
 
-int string_width(const char *input) {
+int string_width(const char* input) {
   int result = 0;
   const int length = strlen(input);
   for (int i = 0; i < length; i++) {
@@ -114,17 +113,17 @@ int string_width(const char *input) {
   return result;
 }
 
-int wrap(const char *input, int max_width, char *output, int max_length) {
+int wrap(const char* input, int max_width, char* output, int max_length) {
   *output = '\0';
-  char *const text = malloc(sizeof(char) * (strlen(input) + 1));
+  char* const text = malloc(sizeof(char) * (strlen(input) + 1));
   strcpy(text, input);
   const int space_width = char_width(' ');
   int line_number = 0;
   char *key1, *key2;
-  char *line = tokenize(text, "\r\n", &key1);
+  char* line = tokenize(text, "\r\n", &key1);
   while (line) {
     int line_width = 0;
-    char *token = tokenize(line, " ", &key2);
+    const char* token = tokenize(line, " ", &key2);
     while (token) {
       int token_width = string_width(token);
       if (line_width) {
@@ -148,6 +147,6 @@ int wrap(const char *input, int max_width, char *output, int max_length) {
   return line_number;
 }
 
-float *malloc_faces(int components, int faces) {
-  return (float *)malloc(sizeof(float) * 6 * components * faces);
+float* malloc_faces(int components, int faces) {
+  return (float*)malloc(sizeof(float) * 6 * components * faces);
 }

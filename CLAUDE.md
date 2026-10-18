@@ -10,12 +10,18 @@ OpenGL one), **Dear ImGui** integration, refactors that pull rendering out of
 
 It is a real-time, interactive, GPU application: it opens a GLFW window, needs an
 OpenGL (or Vulkan) context, and runs an input-driven event loop. There is **no
-headless mode and no automated test suite** — keep that in mind for anything that
-wants to "just run it" (CI, sanitizers, screenshots).
+headless mode and no general test suite** — keep that in mind for anything that
+wants to "just run it" (CI, screenshots). The GL-free core *is* covered by a
+sanitizer smoke harness (`tests/smoke.c`).
 
-This project is **not** on Bill's Fedora-44 + Podman container template — it's a
-plain CMake project (no `Dockerfile`, no `entrypoint/`). That's a legitimate
-divergence (it's an upstream fork), not drift.
+This project **is** on the maintainer's Fedora-44 + Podman container template as of
+2026-10-17 (`Dockerfile`, `Makefile`, `entrypoint/`), same shape as gltron and
+`/foo/opt/billsEmacsConfigs/c`. The Linux dev build is **Meson** (`meson.build`),
+built in-image and re-runnable from the mounted tree via `make build`. **CMake stays**
+as the cross-platform build (Meson here is Linux-only): `CMakeLists.txt` +
+`src/config.h.in` + the `.bat` files carry Windows/macOS. See
+`tasks/archive/2026/10/17/add-container-template.md` (done) and
+`tasks/archive/2026/10/17/retire-cmake.md` (the decision: keep both — do not retire CMake).
 
 ## Reference docs
 
@@ -43,11 +49,16 @@ divergence (it's an upstream fork), not drift.
 
 ```
 Craft/
-├── CMakeLists.txt        # the real build (CMake ≥ 4.0, C11 + C++17)
-├── Makefile              # thin convenience wrapper: `make debug` / `make release`
+├── meson.build           # Linux dev build (Meson + Ninja, C11 + C++17); built in-container
+├── meson_options.txt     # opengl/vulkan/only_render_one_chunk/no_threads/sanitizer_gate
+├── CMakeLists.txt        # cross-platform build (CMake ≥ 4.0); carries Windows/macOS
+├── Makefile              # container contract (make image/build/shell/run/format/lint/…)
+│                         #   + host CMake targets (make debug/release/sanitize/clean)
+├── Dockerfile            # Fedora 44; builds the Meson client in-image
+├── entrypoint/           # install/shell/format/lint/build scripts + vendored .emacs.d
 ├── buildDebug.bat        # Windows (VS) equivalents
 ├── buildRelease.bat
-├── src/                  # FIRST-PARTY code
+├── src/                  # FIRST-PARTY code (config.h.in for CMake, config.h.meson.in for Meson)
 ├── deps/                 # VENDORED third-party libs (see Dependencies)
 ├── shaders/              # GLSL: block/line/sky/text × vertex/fragment
 ├── textures/             # PNG atlases: texture, font, sign, sky
@@ -100,13 +111,28 @@ Python multiplayer stack — live in **`tasks/reference/architecture-overview.md
 
 ## Build / run
 
-The real build is CMake; the `Makefile` is a thin wrapper (and the default goal
-is `help`):
+Two builds coexist. The default `make` goal is `help`; `make help` lists every target.
 
-- `make debug` → configures `debugBuild/`, builds, installs to
-  `debugBuildInstall/`; run `./debugBuildInstall/bin/craft`.
+**Linux dev — container + Meson (primary):**
+
+- `make image` → builds the Fedora image and compiles+installs the Meson client
+  in-image (ready-to-run `craft`). `USE_EMACS=1` (the Makefile default) also pulls
+  Emacs + the vendored MELPA packages; `USE_GRAPHICS=1` pulls the X11/Mesa/Vulkan libs.
+- `make shell` → shell in an ephemeral container with X11 + Wayland passthrough (run
+  `craft` there); `make run` → run the installed `craft` directly.
+- `make build` → re-run the Meson build against the mounted tree (writes `./builddir`,
+  which is also clangd's `compile_commands.json` dir).
+- `make format` → clang-format `src/` in-container; `make lint` → advisory
+  clang-tidy + cppcheck; `make update-emacs-packages` → refresh the vendored `elpa/`.
+- Direct Meson for options: `meson setup builddir -Dvulkan=true && meson compile -C builddir`.
+
+**Cross-platform — host CMake (Windows/macOS, or Linux without the container):**
+
+- `make debug` → configures `debugBuild/`, builds, installs to `debugBuildInstall/`;
+  run `./debugBuildInstall/bin/craft`.
 - `make release` → same via `releaseBuild/` → `releaseBuildInstall/`.
   Both force the **OpenGL** backend (`-DENABLE_VULKAN_RENDERER=NO`).
+- `make sanitize` → the src/-scoped ASan + UBSan(trap) smoke gate via CMake.
 - Direct CMake for non-default backends/options, e.g.
   `cmake -S. -Bbuild -DENABLE_VULKAN_RENDERER=YES && cmake --build build`.
 
@@ -140,7 +166,8 @@ upstream — don't reformat or "fix" it; changes belong upstream.
 
 - **C11** for `src/*.c`, **C++17** for the ImGui/gui glue.
 - `clang-format` **google** style with `SortIncludes: Never` (`.clang-format`) —
-  include order is intentional.
+  include order is intentional. Run it with `make format` (in-container, over `src/`
+  only; `deps/` is never formatted).
 - C/C++ interop: C++ files that expose C entry points wrap them in
   `BEGIN_C_DECL`/`END_C_DECL` (the `extern "C"` macros from `util.h`).
 - `.githooks/pre-commit` exists but is the git **sample** hook and is not active
@@ -161,8 +188,6 @@ Keep this list honest — remove items when fixed (don't annotate them "done").
   covered: `tests/smoke.c` drives it and `make sanitize` runs it under ASan and
   UBSan-trap (scoped to `src/`, deps un-instrumented). See
   `tasks/archive/2026/08/03/add-sanitizer-gate.md`. There is still no general unit-test suite.
-- **`Makefile` `all` target is broken** — `all: clean image html` depends on
-  `image` and `html`, which don't exist. Use `debug`/`release` directly.
 - **README is partly stale** — it predates the Vulkan/ImGui work, its Linux
   instructions clone `fogleman/Craft` (not this fork) and reference a `make`
   flow that differs from the current `Makefile`, and the hosted multiplayer
@@ -178,6 +203,16 @@ work moves to `tasks/archive/<YYYY>/<MM>/<DD>/`. **Several in-flight tasks were 
 2026-08-27** (C23 port, const sweep, rename, threading/scriptability/mipmapping/AZDO
 follow-ons, graphics backends, server revive/dockerfile, `fix-verified-bugs`, …) — see
 `tasks/` and the reference docs above. Most are `blocked`/`proposed — needs go-ahead`.
+
+**Done 2026-10-17:** the **CMake→Meson port + Fedora/Podman container + Emacs/clangd** shipped
+(`tasks/archive/2026/10/17/add-container-template.md`) — Meson is the Linux dev build (in-container),
+CMake stays cross-platform. **Decided 2026-10-17:** keep both builds in parallel — CMake stays as the cross-platform
+(Windows/macOS) build, Meson is the Linux dev build (`tasks/archive/2026/10/17/retire-cmake.md`, the
+archived decision record). `modernize-c-like-gltron.md` is a unified behavior-preserving C sweep (warning `-Werror` gate
+— Craft has none today — + allocation safety + `const`/double-`const` + C23) that **supersedes** the
+now-archived `port-to-c23` + `const-correctness-sweep`; its `const`/double-`const` pass already shipped
+(commit `e3c9a394`), the warning gate + C23 phases remain. The server half stays `server-dockerfile.md`
++ `revive-python-server.md`.
 
 Completed work is in `tasks/archive/`; e.g. the ASan + UBSan(trap) sanitizer gate
 (`tasks/archive/2026/08/03/add-sanitizer-gate.md` — also summarised under Status above).

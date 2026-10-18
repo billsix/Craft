@@ -44,17 +44,17 @@
  */
 static int db_enabled = 0;
 
-static sqlite3 *db;
-static sqlite3_stmt *insert_block_stmt;
-static sqlite3_stmt *insert_light_stmt;
-static sqlite3_stmt *insert_sign_stmt;
-static sqlite3_stmt *delete_sign_stmt;
-static sqlite3_stmt *delete_signs_stmt;
-static sqlite3_stmt *load_blocks_stmt;
-static sqlite3_stmt *load_lights_stmt;
-static sqlite3_stmt *load_signs_stmt;
-static sqlite3_stmt *get_key_stmt;
-static sqlite3_stmt *set_key_stmt;
+static sqlite3* db;
+static sqlite3_stmt* insert_block_stmt;
+static sqlite3_stmt* insert_light_stmt;
+static sqlite3_stmt* insert_sign_stmt;
+static sqlite3_stmt* delete_sign_stmt;
+static sqlite3_stmt* delete_signs_stmt;
+static sqlite3_stmt* load_blocks_stmt;
+static sqlite3_stmt* load_lights_stmt;
+static sqlite3_stmt* load_signs_stmt;
+static sqlite3_stmt* get_key_stmt;
+static sqlite3_stmt* set_key_stmt;
 
 static Ring ring;
 static thrd_t thrd;
@@ -68,11 +68,11 @@ void db_disable() { db_enabled = 0; }
 
 int get_db_enabled() { return db_enabled; }
 
-int db_init(char *path) {
+int db_init(const char* path) {
   if (!db_enabled) {
     return 0;
   }
-  static const char *const create_query =
+  static const char* const create_query =
       "attach database 'auth.db' as auth;"
       "create table if not exists auth.identity_token ("
       "   username text not null,"
@@ -126,28 +126,28 @@ int db_init(char *path) {
       "create unique index if not exists sign_xyzface_idx on sign (x, y, z, "
       "face);"
       "create index if not exists sign_pq_idx on sign (p, q);";
-  static const char *const insert_block_query =
+  static const char* const insert_block_query =
       "insert or replace into block (p, q, x, y, z, w) "
       "values (?, ?, ?, ?, ?, ?);";
-  static const char *const insert_light_query =
+  static const char* const insert_light_query =
       "insert or replace into light (p, q, x, y, z, w) "
       "values (?, ?, ?, ?, ?, ?);";
-  static const char *const insert_sign_query =
+  static const char* const insert_sign_query =
       "insert or replace into sign (p, q, x, y, z, face, text) "
       "values (?, ?, ?, ?, ?, ?, ?);";
-  static const char *const delete_sign_query =
+  static const char* const delete_sign_query =
       "delete from sign where x = ? and y = ? and z = ? and face = ?;";
-  static const char *const delete_signs_query =
+  static const char* const delete_signs_query =
       "delete from sign where x = ? and y = ? and z = ?;";
-  static const char *const load_blocks_query =
+  static const char* const load_blocks_query =
       "select x, y, z, w from block where p = ? and q = ?;";
-  static const char *const load_lights_query =
+  static const char* const load_lights_query =
       "select x, y, z, w from light where p = ? and q = ?;";
-  static const char *const load_signs_query =
+  static const char* const load_signs_query =
       "select x, y, z, face, text from sign where p = ? and q = ?;";
-  static const char *const get_key_query =
+  static const char* const get_key_query =
       "select key from key where p = ? and q = ?;";
-  static const char *const set_key_query =
+  static const char* const set_key_query =
       "insert or replace into key (p, q, key) "
       "values (?, ?, ?);";
   int rc;
@@ -211,14 +211,14 @@ void db_commit() {
 
 void _db_commit() { sqlite3_exec(db, "commit; begin;", NULL, NULL, NULL); }
 
-void db_auth_set(char *username, char *identity_token) {
+void db_auth_set(const char* username, const char* identity_token) {
   if (!db_enabled) {
     return;
   }
-  static const char *const query =
+  static const char* const query =
       "insert or replace into auth.identity_token "
       "(username, token, selected) values (?, ?, ?);";
-  sqlite3_stmt *stmt;
+  sqlite3_stmt* stmt;
   sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
   sqlite3_bind_text(stmt, 2, identity_token, -1, NULL);
@@ -228,14 +228,14 @@ void db_auth_set(char *username, char *identity_token) {
   db_auth_select(username);
 }
 
-int db_auth_select(char *username) {
+int db_auth_select(const char* username) {
   if (!db_enabled) {
     return 0;
   }
   db_auth_select_none();
-  static const char *const query =
+  static const char* const query =
       "update auth.identity_token set selected = 1 where username = ?;";
-  sqlite3_stmt *stmt;
+  sqlite3_stmt* stmt;
   sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
   sqlite3_step(stmt);
@@ -251,20 +251,20 @@ void db_auth_select_none() {
                NULL);
 }
 
-int db_auth_get(char *username, char *identity_token,
+int db_auth_get(const char* username, char* identity_token,
                 int identity_token_length) {
   if (!db_enabled) {
     return 0;
   }
-  static const char *const query =
+  static const char* const query =
       "select token from auth.identity_token "
       "where username = ?;";
   int result = 0;
-  sqlite3_stmt *stmt;
+  sqlite3_stmt* stmt;
   sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
   sqlite3_bind_text(stmt, 1, username, -1, NULL);
   if (sqlite3_step(stmt) == SQLITE_ROW) {
-    const char *a = (const char *)sqlite3_column_text(stmt, 0);
+    const char* const a = (const char*)sqlite3_column_text(stmt, 0);
     strncpy(identity_token, a, identity_token_length - 1);
     identity_token[identity_token_length - 1] = '\0';
     result = 1;
@@ -273,20 +273,20 @@ int db_auth_get(char *username, char *identity_token,
   return result;
 }
 
-int db_auth_get_selected(char *username, int username_length,
-                         char *identity_token, int identity_token_length) {
+int db_auth_get_selected(char* username, int username_length,
+                         char* identity_token, int identity_token_length) {
   if (!db_enabled) {
     return 0;
   }
-  static const char *const query =
+  static const char* const query =
       "select username, token from auth.identity_token "
       "where selected = 1;";
   int result = 0;
-  sqlite3_stmt *stmt;
+  sqlite3_stmt* stmt;
   sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
   if (sqlite3_step(stmt) == SQLITE_ROW) {
-    const char *a = (const char *)sqlite3_column_text(stmt, 0);
-    const char *b = (const char *)sqlite3_column_text(stmt, 1);
+    const char* const a = (const char*)sqlite3_column_text(stmt, 0);
+    const char* const b = (const char*)sqlite3_column_text(stmt, 1);
     strncpy(username, a, username_length - 1);
     username[username_length - 1] = '\0';
     strncpy(identity_token, b, identity_token_length - 1);
@@ -301,10 +301,10 @@ void db_save_state(float x, float y, float z, float rx, float ry) {
   if (!db_enabled) {
     return;
   }
-  static const char *const query =
+  static const char* const query =
       "insert into positionAndOrientation (x, y, z, rx, "
       "ry) values (?, ?, ?, ?, ?);";
-  sqlite3_stmt *stmt;
+  sqlite3_stmt* stmt;
   sqlite3_exec(db, "delete from positionAndOrientation;", NULL, NULL, NULL);
   sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
   sqlite3_bind_double(stmt, 1, x);
@@ -316,14 +316,14 @@ void db_save_state(float x, float y, float z, float rx, float ry) {
   sqlite3_finalize(stmt);
 }
 
-int db_load_state(float *x, float *y, float *z, float *rx, float *ry) {
+int db_load_state(float* x, float* y, float* z, float* rx, float* ry) {
   if (!db_enabled) {
     return 0;
   }
-  static const char *const query =
+  static const char* const query =
       "select x, y, z, rx, ry from positionAndOrientation;";
   int result = 0;
-  sqlite3_stmt *stmt;
+  sqlite3_stmt* stmt;
   sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
   if (sqlite3_step(stmt) == SQLITE_ROW) {
     *x = sqlite3_column_double(stmt, 0);
@@ -380,7 +380,7 @@ void _db_insert_light(int p, int q, int x, int y, int z, int w) {
 }
 
 void db_insert_sign(int p, int q, int x, int y, int z, int face,
-                    const char *text) {
+                    const char* text) {
   if (!db_enabled) {
     return;
   }
@@ -425,7 +425,7 @@ void db_delete_all_signs() {
   sqlite3_exec(db, "delete from sign;", NULL, NULL, NULL);
 }
 
-void db_load_blocks(Map *map, int p, int q) {
+void db_load_blocks(Map* map, int p, int q) {
   if (!db_enabled) {
     return;
   }
@@ -443,7 +443,7 @@ void db_load_blocks(Map *map, int p, int q) {
   mtx_unlock(&load_mtx);
 }
 
-void db_load_lights(Map *map, int p, int q) {
+void db_load_lights(Map* map, int p, int q) {
   if (!db_enabled) {
     return;
   }
@@ -461,7 +461,7 @@ void db_load_lights(Map *map, int p, int q) {
   mtx_unlock(&load_mtx);
 }
 
-void db_load_signs(SignList *list, int p, int q) {
+void db_load_signs(SignList* list, int p, int q) {
   if (!db_enabled) {
     return;
   }
@@ -473,7 +473,8 @@ void db_load_signs(SignList *list, int p, int q) {
     int y = sqlite3_column_int(load_signs_stmt, 1);
     int z = sqlite3_column_int(load_signs_stmt, 2);
     int face = sqlite3_column_int(load_signs_stmt, 3);
-    const char *text = (const char *)sqlite3_column_text(load_signs_stmt, 4);
+    const char* const text =
+        (const char*)sqlite3_column_text(load_signs_stmt, 4);
     sign_list_add(list, x, y, z, face, text);
   }
 }
@@ -536,7 +537,7 @@ void db_worker_stop() {
   ring_free(&ring);
 }
 
-int db_worker_run(void *arg) {
+int db_worker_run(void* arg) {
   int running = 1;
   while (running) {
     RingEntry e;

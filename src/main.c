@@ -75,7 +75,7 @@
 #endif
 
 Model model;
-Model *g = &model;
+Model* g = &model;
 
 bool escape_pressed = false;
 bool do_render_chunks = true;
@@ -124,7 +124,7 @@ float time_of_day() {
   return t;
 }
 
-void get_sight_vector(float rx, float ry, float *vx, float *vy, float *vz) {
+void get_sight_vector(float rx, float ry, float* vx, float* vy, float* vz) {
   const float m = cosf(ry);
   *vx = cosf(rx - RADIANS(90)) * m;
   *vy = sinf(ry);
@@ -140,16 +140,16 @@ GLuint gen_sky_buffer() {
 }
 
 GLuint gen_player_buffer(float x, float y, float z, float rx, float ry) {
-  float *const data = malloc_faces(10, 6);
+  float* const data = malloc_faces(10, 6);
   make_player(data, x, y, z, rx, ry);
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
   return gl_gen_faces(10, 6, data);
 #endif
 }
 
-Player *find_player(int id) {
+Player* find_player(int id) {
   for (int i = 0; i < g->player_count; i++) {
-    Player *player = g->players + i;
+    Player* const player = g->players + i;
     if (player->id == id) {
       return player;
     }
@@ -157,12 +157,12 @@ Player *find_player(int id) {
   return 0;
 }
 
-void update_player(Player *player, float x, float y, float z, float rx,
+void update_player(Player* player, float x, float y, float z, float rx,
                    float ry, int interpolate) {
   if (interpolate) {
-    PositionAndOrientation *positionAndOrientation1 =
+    PositionAndOrientation* const positionAndOrientation1 =
         &player->positionAndOrientation1;
-    PositionAndOrientation *positionAndOrientation2 =
+    PositionAndOrientation* const positionAndOrientation2 =
         &player->positionAndOrientation2;
     memcpy(positionAndOrientation1, positionAndOrientation2,
            sizeof(PositionAndOrientation));
@@ -179,7 +179,7 @@ void update_player(Player *player, float x, float y, float z, float rx,
       positionAndOrientation1->rx -= 2 * PI;
     }
   } else {
-    PositionAndOrientation *positionAndOrientation =
+    PositionAndOrientation* const positionAndOrientation =
         &player->positionAndOrientation;
     positionAndOrientation->x = x;
     positionAndOrientation->y = y;
@@ -196,11 +196,11 @@ void update_player(Player *player, float x, float y, float z, float rx,
   }
 }
 
-Player *player_crosshair(Player *player) {
-  Player *result = 0;
+Player* player_crosshair(const Player* player) {
+  Player* result = 0;
   float threshold = RADIANS(5), best = 0;
   for (int i = 0; i < g->player_count; i++) {
-    Player *other_player = g->players + i;
+    Player* const other_player = g->players + i;
     if (other_player == player) {
       continue;
     }
@@ -222,10 +222,11 @@ Player *player_crosshair(Player *player) {
 
     float player_crosshair_distance;
     {  // initialize player crosshair distance
-      PositionAndOrientation *positionAndOrientation1 =
-                                 &player->positionAndOrientation,
-                             *positionAndOrientation2 =
-                                 &other_player->positionAndOrientation;
+      const PositionAndOrientation *const positionAndOrientation1 =
+                                              &player->positionAndOrientation,
+                                          *const positionAndOrientation2 =
+                                              &other_player
+                                                   ->positionAndOrientation;
       float vx, vy, vz;
       get_sight_vector(positionAndOrientation1->rx, positionAndOrientation1->ry,
                        &vx, &vy, &vz);
@@ -252,9 +253,9 @@ Player *player_crosshair(Player *player) {
   return result;
 }
 
-Chunk *find_chunk(int p, int q) {
+Chunk* find_chunk(int p, int q) {
   for (int i = 0; i < g->chunk_count; i++) {
-    Chunk *chunk = g->chunks + i;
+    Chunk* const chunk = g->chunks + i;
     if (chunk->p == p && chunk->q == q) {
       return chunk;
     }
@@ -262,12 +263,12 @@ Chunk *find_chunk(int p, int q) {
   return 0;
 }
 
-int chunk_distance(const Chunk *const chunk, int p, int q) {
+int chunk_distance(const Chunk* const chunk, int p, int q) {
   const int dp = ABS(chunk->p - p), dq = ABS(chunk->q - q);
   return MAX_NUMBER(dp, dq);
 }
 
-int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy) {
+int chunk_visible(const float planes[6][4], int p, int q, int miny, int maxy) {
   const int x = p * CHUNK_SIZE - 1, z = q * CHUNK_SIZE - 1, d = CHUNK_SIZE + 1,
             n = g->ortho ? 4 : 6;
   float points[8][3] = {{x + 0, miny, z + 0}, {x + d, miny, z + 0},
@@ -298,15 +299,16 @@ int chunk_visible(float planes[6][4], int p, int q, int miny, int maxy) {
 int highest_block(float x, float z) {
   int result = -1;
   const int nx = roundf(x), nz = roundf(z), p = chunked(x), q = chunked(z);
-  const Chunk *const chunk = find_chunk(p, q);
+  const Chunk* const chunk = find_chunk(p, q);
   if (chunk) {
-    const Map *const map = &chunk->map;
+    const Map* const map = &chunk->map;
     for (unsigned int i = 0; i <= map->mask; i++) {
-      const MapEntry *const entry = map->data + i;
+      const MapEntry* const entry = map->data + i;
       if (EMPTY_ENTRY(entry)) {
         continue;
       }
-      const int ex = entry->e.x + map->origin_x, ey = entry->e.y + map->origin_y,
+      const int ex = entry->e.x + map->origin_x,
+                ey = entry->e.y + map->origin_y,
                 ez = entry->e.z + map->origin_z, ew = entry->e.w;
       if (is_obstacle(ew) && ex == nx && ez == nz) {
         result = MAX_NUMBER(result, ey);
@@ -316,9 +318,9 @@ int highest_block(float x, float z) {
   return result;
 }
 
-int _hit_test(const Map *const map, float max_distance, int previous, float x,
-              float y, float z, float vx, float vy, float vz, int *hx, int *hy,
-              int *hz) {
+int _hit_test(const Map* const map, float max_distance, int previous, float x,
+              float y, float z, float vx, float vy, float vz, int* hx, int* hy,
+              int* hz) {
   const int m = 32;
   int px = 0, py = 0, pz = 0;
   for (int i = 0; i < max_distance * m; i++) {
@@ -349,14 +351,16 @@ int _hit_test(const Map *const map, float max_distance, int previous, float x,
 }
 
 int hit_test(int previous, float x, float y, float z, float rx, float ry,
-             int *bx, int *by, int *bz) {
+             int* bx, int* by, int* bz) {
   int result = 0;
   const int p = chunked(x), q = chunked(z);
   float vx, vy, vz, best = 0;
   ;
-  { get_sight_vector(rx, ry, &vx, &vy, &vz); }
+  {
+    get_sight_vector(rx, ry, &vx, &vy, &vz);
+  }
   for (int i = 0; i < g->chunk_count; i++) {
-    const Chunk *const chunk = g->chunks + i;
+    const Chunk* const chunk = g->chunks + i;
     if (chunk_distance(chunk, p, q) > 1) {
       continue;
     }
@@ -378,9 +382,9 @@ int hit_test(int previous, float x, float y, float z, float rx, float ry,
   return result;
 }
 
-int hit_test_face(const Player *const player, int *x, int *y, int *z,
-                  int *face) {
-  const PositionAndOrientation *const positionAndOrientation =
+int hit_test_face(const Player* const player, int* x, int* y, int* z,
+                  int* face) {
+  const PositionAndOrientation* const positionAndOrientation =
       &player->positionAndOrientation;
   int w = hit_test(0, positionAndOrientation->x, positionAndOrientation->y,
                    positionAndOrientation->z, positionAndOrientation->rx,
@@ -434,8 +438,8 @@ int player_intersects_block(int height, float x, float y, float z, int hx,
   return 0;
 }
 
-int _gen_sign_buffer(float *data, float x, float y, float z, int face,
-                     const char *text) {
+int _gen_sign_buffer(float* data, float x, float y, float z, int face,
+                     const char* text) {
   static const int glyph_dx[8] = {0, 0, -1, 1, 1, 0, -1, 0},
                    glyph_dz[8] = {1, -1, 0, 0, 0, -1, 0, 1},
                    line_dx[8] = {0, 0, 0, 0, 0, 1, 0, -1},
@@ -448,19 +452,23 @@ int _gen_sign_buffer(float *data, float x, float y, float z, int face,
   const float max_width = 64, line_height = 1.25;
   char lines[1024];
   int rows = wrap(text, max_width, lines, 1024);
-  { rows = MIN_NUMBER(rows, 5); }
+  {
+    rows = MIN_NUMBER(rows, 5);
+  }
   const int dx = glyph_dx[face], dz = glyph_dz[face], ldx = line_dx[face],
             ldy = line_dy[face], ldz = line_dz[face];
   const float n = 1.0 / (max_width / 10);
   float sx = x - n * (rows - 1) * (line_height / 2) * ldx,
         sy = y - n * (rows - 1) * (line_height / 2) * ldy,
         sz = z - n * (rows - 1) * (line_height / 2) * ldz;
-  char *key;
-  char *line = tokenize(lines, "\n", &key);
+  char* key;
+  char* line = tokenize(lines, "\n", &key);
   while (line) {
     const int length = strlen(line);
     int line_width = string_width(line);
-    { line_width = MIN_NUMBER(line_width, max_width); }
+    {
+      line_width = MIN_NUMBER(line_width, max_width);
+    }
     float rx = sx - dx * line_width / max_width / 2, ry = sy,
           rz = sz - dz * line_width / max_width / 2;
     for (int i = 0; i < length; i++) {
@@ -490,18 +498,18 @@ int _gen_sign_buffer(float *data, float x, float y, float z, int face,
   return count;
 }
 
-int has_lights(const Chunk *const chunk) {
+int has_lights(const Chunk* const chunk) {
   if (!SHOW_LIGHTS) {
     return 0;
   }
   for (int dp = -1; dp <= 1; dp++) {
     for (int dq = -1; dq <= 1; dq++) {
-      const Chunk *const other_chunk =
+      const Chunk* const other_chunk =
           (dp || dq) ? find_chunk(chunk->p + dp, chunk->q + dq) : chunk;
       if (!other_chunk) {
         continue;
       }
-      const Map *const map = &other_chunk->lights;
+      const Map* const map = &other_chunk->lights;
       if (map->size) {
         return 1;
       }
@@ -510,12 +518,12 @@ int has_lights(const Chunk *const chunk) {
   return 0;
 }
 
-void dirty_chunk(Chunk *const chunk) {
+void dirty_chunk(Chunk* const chunk) {
   chunk->dirty = 1;
   if (has_lights(chunk)) {
     for (int dp = -1; dp <= 1; dp++) {
       for (int dq = -1; dq <= 1; dq++) {
-        Chunk *const other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
+        Chunk* const other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
         if (other_chunk) {
           other_chunk->dirty = 1;
         }
@@ -537,7 +545,7 @@ void dirty_chunk(Chunk *const chunk) {
  * and decremented (w--) before recursing into the 6 neighbours, so light fades
  * with distance and the fill stops when it reaches 0 or hits an opaque cell.
  */
-void light_fill(const char *const opaque, char *light, int x, int y, int z,
+void light_fill(const char* const opaque, char* light, int x, int y, int z,
                 int w, int force) {
   if (x + w < XZ_LO || z + w < XZ_LO) {
     return;
@@ -563,10 +571,10 @@ void light_fill(const char *const opaque, char *light, int x, int y, int z,
   light_fill(opaque, light, x, y, z + 1, w, 0);
 }
 
-void compute_chunk(WorkerItem *item) {
-  char *const opaque = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
-  char *const light = (char *)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
-  char *const highest = (char *)calloc(XZ_SIZE * XZ_SIZE, sizeof(char));
+void compute_chunk(WorkerItem* item) {
+  char* const opaque = (char*)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
+  char* const light = (char*)calloc(XZ_SIZE * XZ_SIZE * Y_SIZE, sizeof(char));
+  char* const highest = (char*)calloc(XZ_SIZE * XZ_SIZE, sizeof(char));
 
   const int ox = item->p * CHUNK_SIZE - CHUNK_SIZE - 1;
   const int oy = -1;
@@ -577,7 +585,7 @@ void compute_chunk(WorkerItem *item) {
   if (SHOW_LIGHTS) {
     for (int a = 0; a < 3; a++) {
       for (int b = 0; b < 3; b++) {
-        Map *map = item->light_maps[a][b];
+        const Map* const map = item->light_maps[a][b];
         if (map && map->size) {
           has_light = 1;
         }
@@ -588,12 +596,12 @@ void compute_chunk(WorkerItem *item) {
   // populate opaque array
   for (int a = 0; a < 3; a++) {
     for (int b = 0; b < 3; b++) {
-      const Map *const map = item->block_maps[a][b];
+      const Map* const map = item->block_maps[a][b];
       if (!map) {
         continue;
       }
       for (unsigned int i = 0; i <= map->mask; i++) {
-        const MapEntry *const entry = map->data + i;
+        const MapEntry* const entry = map->data + i;
         if (EMPTY_ENTRY(entry)) {
           continue;
         }
@@ -625,12 +633,12 @@ void compute_chunk(WorkerItem *item) {
   if (has_light) {
     for (int a = 0; a < 3; a++) {
       for (int b = 0; b < 3; b++) {
-        const Map *const map = item->light_maps[a][b];
+        const Map* const map = item->light_maps[a][b];
         if (!map) {
           continue;
         }
         for (unsigned int i = 0; i <= map->mask; i++) {
-          const MapEntry *const entry = map->data + i;
+          const MapEntry* const entry = map->data + i;
           if (EMPTY_ENTRY(entry)) {
             continue;
           }
@@ -647,14 +655,14 @@ void compute_chunk(WorkerItem *item) {
     }
   }
 
-  const Map *const map = item->block_maps[1][1];
+  const Map* const map = item->block_maps[1][1];
 
   // count exposed faces
   int miny = 256;
   int maxy = 0;
   int faces = 0;
   for (unsigned int i = 0; i <= map->mask; i++) {
-    const MapEntry *const entry = map->data + i;
+    const MapEntry* const entry = map->data + i;
     if (EMPTY_ENTRY(entry)) {
       continue;
     }
@@ -684,10 +692,10 @@ void compute_chunk(WorkerItem *item) {
   }
 
   // generate geometry
-  float *const data = malloc_faces(10, faces);
+  float* const data = malloc_faces(10, faces);
   int offset = 0;
   for (unsigned int i = 0; i <= map->mask; i++) {
-    const MapEntry *const entry = map->data + i;
+    const MapEntry* const entry = map->data + i;
     if (EMPTY_ENTRY(entry)) {
       continue;
     }
@@ -806,7 +814,7 @@ void compute_chunk(WorkerItem *item) {
   item->data = data;
 }
 
-void generate_chunk(Chunk *const chunk, WorkerItem *const item) {
+void generate_chunk(Chunk* const chunk, const WorkerItem* const item) {
   chunk->miny = item->miny;
   chunk->maxy = item->maxy;
   chunk->faces = item->faces;
@@ -816,20 +824,20 @@ void generate_chunk(Chunk *const chunk, WorkerItem *const item) {
 #endif
 
   // generate sign buffer
-  const SignList *const signs = &chunk->signs;
+  const SignList* const signs = &chunk->signs;
 
   // first pass - count characters
   int maxFaces = 0;
   for (int i = 0; i < signs->size; i++) {
-    const Sign *const e = signs->data + i;
+    const Sign* const e = signs->data + i;
     maxFaces += strlen(e->text);
   }
 
   // second pass - generate geometry
-  float *const data = malloc_faces(5, maxFaces);
+  float* const data = malloc_faces(5, maxFaces);
   int faces = 0;
   for (int i = 0; i < signs->size; i++) {
-    const Sign *const e = signs->data + i;
+    const Sign* const e = signs->data + i;
     faces +=
         _gen_sign_buffer(data + faces * 30, e->x, e->y, e->z, e->face, e->text);
   }
@@ -841,16 +849,16 @@ void generate_chunk(Chunk *const chunk, WorkerItem *const item) {
   chunk->sign_faces = faces;
 }
 
-void gen_chunk_buffer(Chunk *const chunk) {
+void gen_chunk_buffer(Chunk* const chunk) {
   WorkerItem _item;
-  WorkerItem *const item = &_item;
+  WorkerItem* const item = &_item;
   {
     item->p = chunk->p;
     item->q = chunk->q;
   }
   for (int dp = -1; dp <= 1; dp++) {
     for (int dq = -1; dq <= 1; dq++) {
-      Chunk *const other_chunk =
+      Chunk* const other_chunk =
           (dp || dq) ? find_chunk(chunk->p + dp, chunk->q + dq) : chunk;
       if (other_chunk) {
         item->block_maps[dp + 1][dq + 1] = &other_chunk->map;
@@ -866,16 +874,16 @@ void gen_chunk_buffer(Chunk *const chunk) {
   chunk->dirty = 0;
 }
 
-void map_set_func(int x, int y, int z, int w, void *arg) {
-  Map *map = (Map *)arg;
+void map_set_func(int x, int y, int z, int w, void* arg) {
+  Map* const map = (Map*)arg;
   map_set(map, x, y, z, w);
 }
 
-void load_chunk(WorkerItem *item) {
+void load_chunk(const WorkerItem* item) {
   const int p = item->p;
   const int q = item->q;
-  Map *const block_map = item->block_maps[1][1];
-  Map *const light_map = item->light_maps[1][1];
+  Map* const block_map = item->block_maps[1][1];
+  Map* const light_map = item->light_maps[1][1];
   create_world(p, q, map_set_func, block_map);
   db_load_blocks(block_map, p, q);
   db_load_lights(light_map, p, q);
@@ -886,7 +894,7 @@ void request_chunk(int p, int q) {
   client_chunk(p, q, key);
 }
 
-void init_chunk(Chunk *chunk, int p, int q) {
+void init_chunk(Chunk* chunk, int p, int q) {
   // initilize the chunk's values
   {
     chunk->p = p;
@@ -897,11 +905,11 @@ void init_chunk(Chunk *chunk, int p, int q) {
     chunk->sign_buffer = 0;
   }
   dirty_chunk(chunk);
-  SignList *const signs = &chunk->signs;
+  SignList* const signs = &chunk->signs;
   sign_list_alloc(signs, 16);
   db_load_signs(signs, p, q);
-  Map *const block_map = &chunk->map;
-  Map *const light_map = &chunk->lights;
+  Map* const block_map = &chunk->map;
+  Map* const light_map = &chunk->lights;
   /* World-space origin of this chunk's maps (see Map in map.h). The -1 is a
    * one-block pad so the map can also hold the neighbouring chunks' edges. */
   const int origin_x = p * CHUNK_SIZE - 1;
@@ -911,11 +919,11 @@ void init_chunk(Chunk *chunk, int p, int q) {
   map_alloc(light_map, origin_x, origin_y, origin_z, 0xf);
 }
 
-void create_chunk(Chunk *chunk, int p, int q) {
+void create_chunk(Chunk* chunk, int p, int q) {
   init_chunk(chunk, p, q);
 
   WorkerItem _item;
-  WorkerItem *item = &_item;
+  WorkerItem* const item = &_item;
   {
     item->p = chunk->p;
     item->q = chunk->q;
@@ -929,20 +937,20 @@ void create_chunk(Chunk *chunk, int p, int q) {
 
 void delete_chunks() {
   int count = g->chunk_count;
-  PositionAndOrientation *const positionAndOrientation1 =
+  const PositionAndOrientation* const positionAndOrientation1 =
       &g->players->positionAndOrientation;
-  PositionAndOrientation *const positionAndOrientation2 =
+  const PositionAndOrientation* const positionAndOrientation2 =
       &(g->players + g->observe1)->positionAndOrientation;
-  PositionAndOrientation *const positionAndOrientation3 =
+  const PositionAndOrientation* const positionAndOrientation3 =
       &(g->players + g->observe2)->positionAndOrientation;
-  PositionAndOrientation *const positionsAndOrientations[3] = {
+  const PositionAndOrientation* const positionsAndOrientations[3] = {
       positionAndOrientation1, positionAndOrientation2,
       positionAndOrientation3};
   for (int i = 0; i < count; i++) {
-    Chunk *const chunk = g->chunks + i;
+    Chunk* const chunk = g->chunks + i;
     int delete = 1;
     for (int j = 0; j < 3; j++) {
-      PositionAndOrientation *positionAndOrientation =
+      const PositionAndOrientation* const positionAndOrientation =
           positionsAndOrientations[j];
       const int p = chunked(positionAndOrientation->x);
       const int q = chunked(positionAndOrientation->z);
@@ -959,7 +967,7 @@ void delete_chunks() {
       gl_del_buffer(chunk->buffer);
       gl_del_buffer(chunk->sign_buffer);
 #endif
-      Chunk *other_chunk = g->chunks + (--count);
+      const Chunk* const other_chunk = g->chunks + (--count);
       memcpy(chunk, other_chunk, sizeof(Chunk));
     }
   }
@@ -968,7 +976,7 @@ void delete_chunks() {
 
 void delete_all_chunks() {
   for (int i = 0; i < g->chunk_count; i++) {
-    Chunk *const chunk = g->chunks + i;
+    Chunk* const chunk = g->chunks + i;
     map_free(&chunk->map);
     map_free(&chunk->lights);
     sign_list_free(&chunk->signs);
@@ -982,15 +990,15 @@ void delete_all_chunks() {
 
 void check_workers() {
   for (int i = 0; i < WORKERS; i++) {
-    Worker *const worker = g->workers + i;
+    Worker* const worker = g->workers + i;
     mtx_lock(&worker->mtx);
     if (worker->state == WORKER_DONE) {
-      WorkerItem *const item = &worker->item;
-      Chunk *const chunk = find_chunk(item->p, item->q);
+      const WorkerItem* const item = &worker->item;
+      Chunk* const chunk = find_chunk(item->p, item->q);
       if (chunk) {
         if (item->load) {
-          Map *block_map = item->block_maps[1][1];
-          Map *light_map = item->light_maps[1][1];
+          Map* const block_map = item->block_maps[1][1];
+          Map* const light_map = item->light_maps[1][1];
           map_free(&chunk->map);
           map_free(&chunk->lights);
           map_copy(&chunk->map, block_map);
@@ -1001,8 +1009,8 @@ void check_workers() {
       }
       for (int a = 0; a < 3; a++) {
         for (int b = 0; b < 3; b++) {
-          Map *const block_map = item->block_maps[a][b];
-          Map *const light_map = item->light_maps[a][b];
+          Map* const block_map = item->block_maps[a][b];
+          Map* const light_map = item->light_maps[a][b];
           if (block_map) {
             map_free(block_map);
             free(block_map);
@@ -1019,8 +1027,8 @@ void check_workers() {
   }
 }
 
-void force_chunks(Player *player) {
-  const PositionAndOrientation *const positionAndOrientation =
+void force_chunks(const Player* player) {
+  const PositionAndOrientation* const positionAndOrientation =
       &player->positionAndOrientation;
   const int p = chunked(positionAndOrientation->x);
   const int q = chunked(positionAndOrientation->z);
@@ -1029,7 +1037,7 @@ void force_chunks(Player *player) {
     for (int dq = -r; dq <= r; dq++) {
       const int a = p + dp;
       const int b = q + dq;
-      Chunk *chunk = find_chunk(a, b);
+      Chunk* chunk = find_chunk(a, b);
       if (chunk) {
         if (chunk->dirty) {
           gen_chunk_buffer(chunk);
@@ -1043,8 +1051,8 @@ void force_chunks(Player *player) {
   }
 }
 
-void ensure_chunks_worker(Player *player, Worker *worker) {
-  const PositionAndOrientation *const positionAndOrientation =
+void ensure_chunks_worker(const Player* player, Worker* worker) {
+  const PositionAndOrientation* const positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(matrix, g->width, g->height, positionAndOrientation->x,
@@ -1068,7 +1076,7 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
       if (index != worker->index) {
         continue;
       }
-      Chunk *chunk = find_chunk(a, b);
+      const Chunk* const chunk = find_chunk(a, b);
       if (chunk && !chunk->dirty) {
         continue;
       }
@@ -1092,7 +1100,7 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
   const int a = best_a;
   const int b = best_b;
   int load = 0;
-  Chunk *chunk = find_chunk(a, b);
+  Chunk* chunk = find_chunk(a, b);
   if (!chunk) {
     load = 1;
     if (g->chunk_count < MAX_CHUNKS) {
@@ -1102,7 +1110,7 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
       return;
     }
   }
-  WorkerItem *const item = &worker->item;
+  WorkerItem* const item = &worker->item;
   {
     item->p = chunk->p;
     item->q = chunk->q;
@@ -1110,17 +1118,17 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
   }
   for (int dp = -1; dp <= 1; dp++) {
     for (int dq = -1; dq <= 1; dq++) {
-      Chunk *other_chunk = chunk;
+      Chunk* other_chunk = chunk;
       if (dp || dq) {
         other_chunk = find_chunk(chunk->p + dp, chunk->q + dq);
       }
       if (other_chunk) {
-        Map *const block_map = malloc(sizeof(Map));
+        Map* const block_map = malloc(sizeof(Map));
         {
           // initialize the map
           map_copy(block_map, &other_chunk->map);
         }
-        Map *const light_map = malloc(sizeof(Map));
+        Map* const light_map = malloc(sizeof(Map));
         {
           // initialize the map
           map_copy(light_map, &other_chunk->lights);
@@ -1138,11 +1146,11 @@ void ensure_chunks_worker(Player *player, Worker *worker) {
   cnd_signal(&worker->cnd);
 }
 
-void ensure_chunks(Player *player) {
+void ensure_chunks(const Player* player) {
   check_workers();
   force_chunks(player);
   for (int i = 0; i < WORKERS; i++) {
-    Worker *const worker = g->workers + i;
+    Worker* const worker = g->workers + i;
     mtx_lock(&worker->mtx);
     if (worker->state == WORKER_IDLE) {
       ensure_chunks_worker(player, worker);
@@ -1151,8 +1159,8 @@ void ensure_chunks(Player *player) {
   }
 }
 
-int worker_run(void *arg) {
-  Worker *const worker = (Worker *)arg;
+int worker_run(void* arg) {
+  Worker* const worker = (Worker*)arg;
   int running = 1;
   while (running) {
     mtx_lock(&worker->mtx);
@@ -1160,7 +1168,7 @@ int worker_run(void *arg) {
       cnd_wait(&worker->cnd, &worker->mtx);
     }
     mtx_unlock(&worker->mtx);
-    WorkerItem *item = &worker->item;
+    WorkerItem* const item = &worker->item;
     if (item->load) {
       load_chunk(item);
     }
@@ -1175,9 +1183,9 @@ int worker_run(void *arg) {
 void unset_sign(int x, int y, int z) {
   const int p = chunked(x);
   const int q = chunked(z);
-  Chunk *const chunk = find_chunk(p, q);
+  Chunk* const chunk = find_chunk(p, q);
   if (chunk) {
-    SignList *const signs = &chunk->signs;
+    SignList* const signs = &chunk->signs;
     if (sign_list_remove_all(signs, x, y, z)) {
       chunk->dirty = 1;
       db_delete_signs(x, y, z);
@@ -1190,9 +1198,9 @@ void unset_sign(int x, int y, int z) {
 void unset_sign_face(int x, int y, int z, int face) {
   const int p = chunked(x);
   const int q = chunked(z);
-  Chunk *const chunk = find_chunk(p, q);
+  Chunk* const chunk = find_chunk(p, q);
   if (chunk) {
-    SignList *const signs = &chunk->signs;
+    SignList* const signs = &chunk->signs;
     if (sign_list_remove(signs, x, y, z, face)) {
       chunk->dirty = 1;
       db_delete_sign(x, y, z, face);
@@ -1202,15 +1210,15 @@ void unset_sign_face(int x, int y, int z, int face) {
   }
 }
 
-void _set_sign(int p, int q, int x, int y, int z, int face, const char *text,
+void _set_sign(int p, int q, int x, int y, int z, int face, const char* text,
                int dirty) {
   if (strlen(text) == 0) {
     unset_sign_face(x, y, z, face);
     return;
   }
-  Chunk *const chunk = find_chunk(p, q);
+  Chunk* const chunk = find_chunk(p, q);
   if (chunk) {
-    SignList *const signs = &chunk->signs;
+    SignList* const signs = &chunk->signs;
     sign_list_add(signs, x, y, z, face, text);
     if (dirty) {
       chunk->dirty = 1;
@@ -1219,7 +1227,7 @@ void _set_sign(int p, int q, int x, int y, int z, int face, const char *text,
   db_insert_sign(p, q, x, y, z, face, text);
 }
 
-void set_sign(int x, int y, int z, int face, const char *text) {
+void set_sign(int x, int y, int z, int face, const char* text) {
   const int p = chunked(x);
   const int q = chunked(z);
   _set_sign(p, q, x, y, z, face, text, 1);
@@ -1229,9 +1237,9 @@ void set_sign(int x, int y, int z, int face, const char *text) {
 void toggle_light(int x, int y, int z) {
   const int p = chunked(x);
   const int q = chunked(z);
-  Chunk *const chunk = find_chunk(p, q);
+  Chunk* const chunk = find_chunk(p, q);
   if (chunk) {
-    Map *map = &chunk->lights;
+    Map* const map = &chunk->lights;
     const int w = map_get(map, x, y, z) ? 0 : 15;
     map_set(map, x, y, z, w);
     db_insert_light(p, q, x, y, z, w);
@@ -1241,9 +1249,9 @@ void toggle_light(int x, int y, int z) {
 }
 
 void set_light(int p, int q, int x, int y, int z, int w) {
-  Chunk *const chunk = find_chunk(p, q);
+  Chunk* const chunk = find_chunk(p, q);
   if (chunk) {
-    Map *const map = &chunk->lights;
+    Map* const map = &chunk->lights;
     if (map_set(map, x, y, z, w)) {
       dirty_chunk(chunk);
       db_insert_light(p, q, x, y, z, w);
@@ -1254,9 +1262,9 @@ void set_light(int p, int q, int x, int y, int z, int w) {
 }
 
 void _set_block(int p, int q, int x, int y, int z, int w, int dirty) {
-  Chunk *const chunk = find_chunk(p, q);
+  Chunk* const chunk = find_chunk(p, q);
   if (chunk) {
-    Map *map = &chunk->map;
+    Map* const map = &chunk->map;
     if (map_set(map, x, y, z, w)) {
       if (dirty) {
         dirty_chunk(chunk);
@@ -1311,9 +1319,9 @@ void record_block(int x, int y, int z, int w) {
 int get_block(int x, int y, int z) {
   const int p = chunked(x);
   const int q = chunked(z);
-  const Chunk *const chunk = find_chunk(p, q);
+  const Chunk* const chunk = find_chunk(p, q);
   if (chunk) {
-    const Map *const map = &chunk->map;
+    const Map* const map = &chunk->map;
     return map_get(map, x, y, z);
   }
   return 0;
@@ -1331,9 +1339,9 @@ void builder_block(int x, int y, int z, int w) {
   }
 }
 
-int render_chunks(Player *player) {
+int render_chunks(const Player* player) {
   int result = 0;
-  const PositionAndOrientation *const positionAndOrientation =
+  const PositionAndOrientation* const positionAndOrientation =
       &player->positionAndOrientation;
   ensure_chunks(player);
   const int p = chunked(positionAndOrientation->x);
@@ -1372,7 +1380,7 @@ int render_chunks(Player *player) {
 #else
   for (int i = 0; i < g->chunk_count; i++) {
 #endif
-    const Chunk *const chunk = g->chunks + i;
+    const Chunk* const chunk = g->chunks + i;
     if (chunk_distance(chunk, p, q) > g->render_radius) {
       continue;
     }
@@ -1398,8 +1406,8 @@ void draw_triangles_3d_text(GLuint buffer, int count) {
 #endif
 }
 
-void render_signs(Player *player) {
-  PositionAndOrientation *positionAndOrientation =
+void render_signs(const Player* player) {
+  const PositionAndOrientation* const positionAndOrientation =
       &player->positionAndOrientation;
   int p = chunked(positionAndOrientation->x);
   int q = chunked(positionAndOrientation->z);
@@ -1416,7 +1424,7 @@ void render_signs(Player *player) {
 #endif
 
   for (int i = 0; i < g->chunk_count; i++) {
-    Chunk *chunk = g->chunks + i;
+    const Chunk* const chunk = g->chunks + i;
     if (chunk_distance(chunk, p, q) > g->sign_radius) {
       continue;
     }
@@ -1429,7 +1437,7 @@ void render_signs(Player *player) {
   }
 }
 
-void render_sign(Player *player) {
+void render_sign(const Player* player) {
   if (!g->typing || g->typing_buffer[0] != CRAFT_KEY_SIGN) {
     return;
   }
@@ -1437,7 +1445,7 @@ void render_sign(Player *player) {
   if (!hit_test_face(player, &x, &y, &z, &face)) {
     return;
   }
-  PositionAndOrientation *positionAndOrientation =
+  const PositionAndOrientation* const positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(matrix, g->width, g->height, positionAndOrientation->x,
@@ -1450,8 +1458,8 @@ void render_sign(Player *player) {
 #endif
 }
 
-void render_players(Player *player) {
-  PositionAndOrientation *positionAndOrientation =
+void render_players(const Player* player) {
+  const PositionAndOrientation* const positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(matrix, g->width, g->height, positionAndOrientation->x,
@@ -1464,7 +1472,7 @@ void render_players(Player *player) {
 #endif
 
   for (int i = 0; i < g->player_count; i++) {
-    Player *other_player = g->players + i;
+    const Player* const other_player = g->players + i;
     if (other_player != player) {
       // draw player
       if (other_player->buffer == 0) {
@@ -1477,8 +1485,8 @@ void render_players(Player *player) {
   }
 }
 
-void render_sky(Player *player, GLuint buffer) {
-  PositionAndOrientation *positionAndOrientation =
+void render_sky(const Player* player, GLuint buffer) {
+  const PositionAndOrientation* const positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(matrix, g->width, g->height, 0, 0, 0,
@@ -1496,8 +1504,8 @@ void draw_lines(GLuint buffer, int components, int count) {
 #endif
 }
 
-void render_wireframe(Player *player) {
-  PositionAndOrientation *positionAndOrientation =
+void render_wireframe(const Player* player) {
+  const PositionAndOrientation* const positionAndOrientation =
       &player->positionAndOrientation;
   float matrix[16];
   set_matrix_3d(matrix, g->width, g->height, positionAndOrientation->x,
@@ -1515,7 +1523,7 @@ void render_wireframe(Player *player) {
   }
 }
 
-void render_text(int justify, float x, float y, float n, char *text) {
+void render_text(int justify, float x, float y, float n, const char* text) {
   if (!do_render_text) {
     return;
   }
@@ -1527,7 +1535,7 @@ void render_text(int justify, float x, float y, float n, char *text) {
 #endif
 }
 
-void add_message(const char *text) {
+void add_message(const char* text) {
   printf("%s\n", text);
   snprintf(g->messages[g->message_index], MAX_TEXT_LENGTH, "%s", text);
   g->message_index = (g->message_index + 1) % MAX_MESSAGES;
@@ -1558,10 +1566,10 @@ void copy() {
 }
 
 void paste() {
-  Block *c1 = &g->copy1;
-  Block *c2 = &g->copy0;
-  Block *p1 = &g->block1;
-  Block *p2 = &g->block0;
+  const Block* const c1 = &g->copy1;
+  const Block* const c2 = &g->copy0;
+  const Block* const p1 = &g->block1;
+  const Block* const p2 = &g->block0;
   int scx = SIGN(c2->x - c1->x);
   int scz = SIGN(c2->z - c1->z);
   int spx = SIGN(p2->x - p1->x);
@@ -1579,7 +1587,7 @@ void paste() {
   }
 }
 
-void array(Block *b1, Block *b2, int xc, int yc, int zc) {
+void array(const Block* b1, const Block* b2, int xc, int yc, int zc) {
   if (b1->w != b2->w) {
     return;
   }
@@ -1602,7 +1610,7 @@ void array(Block *b1, Block *b2, int xc, int yc, int zc) {
   }
 }
 
-void cube(Block *b1, Block *b2, int fill) {
+void cube(const Block* b1, const Block* b2, int fill) {
   if (b1->w != b2->w) {
     return;
   }
@@ -1632,7 +1640,7 @@ void cube(Block *b1, Block *b2, int fill) {
   }
 }
 
-void sphere(Block *center, int radius, int fill, int fx, int fy, int fz) {
+void sphere(const Block* center, int radius, int fill, int fx, int fy, int fz) {
   static const float offsets[8][3] = {{-0.5, -0.5, -0.5}, {-0.5, -0.5, 0.5},
                                       {-0.5, 0.5, -0.5},  {-0.5, 0.5, 0.5},
                                       {0.5, -0.5, -0.5},  {0.5, -0.5, 0.5},
@@ -1669,7 +1677,7 @@ void sphere(Block *center, int radius, int fill, int fx, int fy, int fz) {
   }
 }
 
-void cylinder(Block *b1, Block *b2, int radius, int fill) {
+void cylinder(const Block* b1, const Block* b2, int radius, int fill) {
   if (b1->w != b2->w) {
     return;
   }
@@ -1707,7 +1715,7 @@ void cylinder(Block *b1, Block *b2, int radius, int fill) {
   }
 }
 
-void tree(Block *block) {
+void tree(const Block* block) {
   int bx = block->x;
   int by = block->y;
   int bz = block->z;
@@ -1727,7 +1735,7 @@ void tree(Block *block) {
   }
 }
 
-void parse_command(const char *buffer, int forward) {
+void parse_command(const char* buffer, int forward) {
   char username[128] = {0};
   char token[128] = {0};
   char server_addr[MAX_ADDR_LENGTH];
@@ -1811,7 +1819,7 @@ void parse_command(const char *buffer, int forward) {
 }
 
 void on_light() {
-  PositionAndOrientation *positionAndOrientation =
+  const PositionAndOrientation* const positionAndOrientation =
       &g->players->positionAndOrientation;
   int hx, hy, hz;
   int hw = hit_test(0, positionAndOrientation->x, positionAndOrientation->y,
@@ -1823,7 +1831,7 @@ void on_light() {
 }
 
 void on_left_click() {
-  PositionAndOrientation *positionAndOrientation =
+  const PositionAndOrientation* const positionAndOrientation =
       &g->players->positionAndOrientation;
   int hx, hy, hz;
   int hw = hit_test(0, positionAndOrientation->x, positionAndOrientation->y,
@@ -1839,7 +1847,7 @@ void on_left_click() {
 }
 
 void on_right_click() {
-  PositionAndOrientation *positionAndOrientation =
+  const PositionAndOrientation* const positionAndOrientation =
       &g->players->positionAndOrientation;
   int hx, hy, hz;
   int hw = hit_test(1, positionAndOrientation->x, positionAndOrientation->y,
@@ -1856,7 +1864,7 @@ void on_right_click() {
 }
 
 void on_middle_click() {
-  PositionAndOrientation *positionAndOrientation =
+  const PositionAndOrientation* const positionAndOrientation =
       &g->players->positionAndOrientation;
   int hx, hy, hz;
   const int hw =
@@ -1871,7 +1879,7 @@ void on_middle_click() {
   }
 }
 
-void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
+void on_key(GLFWwindow* window, int key, int scancode, int action, int mods) {
   const int control = mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER);
   if (action == GLFW_RELEASE) {
     return;
@@ -1909,7 +1917,7 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
       } else {
         g->typing = 0;
         if (g->typing_buffer[0] == CRAFT_KEY_SIGN) {
-          Player *player = g->players;
+          const Player* const player = g->players;
           int x, y, z, face;
           if (hit_test_face(player, &x, &y, &z, &face)) {
             set_sign(x, y, z, face, g->typing_buffer + 1);
@@ -1929,7 +1937,7 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
     }
   }
   if (control && key == 'V') {
-    const char *buffer = glfwGetClipboardString(window);
+    const char* buffer = glfwGetClipboardString(window);
     if (g->typing) {
       g->suppress_char = 1;
       strncat(g->typing_buffer, buffer,
@@ -1966,7 +1974,7 @@ void on_key(GLFWwindow *window, int key, int scancode, int action, int mods) {
   }
 }
 
-void on_char(GLFWwindow *window, unsigned int u) {
+void on_char(GLFWwindow* window, unsigned int u) {
   if (g->suppress_char) {
     g->suppress_char = 0;
     return;
@@ -1998,7 +2006,7 @@ void on_char(GLFWwindow *window, unsigned int u) {
   }
 }
 
-void on_scroll(GLFWwindow *window, double xdelta, double ydelta) {
+void on_scroll(GLFWwindow* window, double xdelta, double ydelta) {
   static double ypos = 0;
   ypos += ydelta;
   if (ypos < -SCROLL_THRESHOLD) {
@@ -2014,7 +2022,7 @@ void on_scroll(GLFWwindow *window, double xdelta, double ydelta) {
   }
 }
 
-void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
+void on_mouse_button(GLFWwindow* window, int button, int action, int mods) {
   const int control = mods & (GLFW_MOD_CONTROL | GLFW_MOD_SUPER);
   const int exclusive =
       glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
@@ -2055,7 +2063,7 @@ void handle_orientation_input() {
       glfwGetInputMode(g->window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
   static double px = 0;
   static double py = 0;
-  PositionAndOrientation *positionAndOrientation =
+  PositionAndOrientation* const positionAndOrientation =
       &g->players->positionAndOrientation;
   if (exclusive && (px || py)) {
     double mx, my;
@@ -2072,7 +2080,7 @@ void handle_orientation_input() {
     {
       // get input from controller 1
       int count;
-      const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+      const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
 
       // 2 is left trigger
       if (count >= 5) {
@@ -2104,7 +2112,7 @@ void handle_orientation_input() {
 
 void handle_movement(double dt) {
   static float dy = 0;
-  PositionAndOrientation *positionAndOrientation =
+  PositionAndOrientation* const positionAndOrientation =
       &g->players->positionAndOrientation;
   int sz = 0;
   int sx = 0;
@@ -2124,7 +2132,7 @@ void handle_movement(double dt) {
     {
       // get input from controller 1
       int count;
-      const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+      const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
 
       if (count >= 1 && fabsf(axes[0]) > 0.19) {
         // vertical
@@ -2199,9 +2207,9 @@ void handle_movement(double dt) {
       // why it would be set to true
       int p = chunked(positionAndOrientation->x);
       int q = chunked(positionAndOrientation->z);
-      Chunk *chunk = find_chunk(p, q);
+      const Chunk* const chunk = find_chunk(p, q);
       if (chunk) {
-        Map *map = &chunk->map;
+        const Map* const map = &chunk->map;
         int nx = roundf(positionAndOrientation->x),
             ny = roundf(positionAndOrientation->y),
             nz = roundf(positionAndOrientation->z);
@@ -2245,12 +2253,12 @@ void handle_movement(double dt) {
   }
 }
 
-void parse_buffer(char *buffer) {
-  Player *me = g->players;
-  PositionAndOrientation *positionAndOrientation =
+void parse_buffer(char* buffer) {
+  Player* const me = g->players;
+  PositionAndOrientation* const positionAndOrientation =
       &g->players->positionAndOrientation;
-  char *key;
-  char *line = tokenize(buffer, "\n", &key);
+  char* key;
+  char* line = tokenize(buffer, "\n", &key);
   while (line) {
     int pid;
     float ux, uy, uz, urx, ury;
@@ -2288,7 +2296,7 @@ void parse_buffer(char *buffer) {
     float px, py, pz, prx, pry;
     if (sscanf(line, "P,%d,%f,%f,%f,%f,%f", &pid, &px, &py, &pz, &prx, &pry) ==
         6) {
-      Player *player = find_player(pid);
+      Player* player = find_player(pid);
       if (!player && g->player_count < MAX_PLAYERS) {
         player = g->players + g->player_count;
         g->player_count++;
@@ -2303,13 +2311,13 @@ void parse_buffer(char *buffer) {
     }
     if (sscanf(line, "D,%d", &pid) == 1) {
       // delete player
-      Player *player = find_player(pid);
+      Player* const player = find_player(pid);
       if (player) {
         int count = g->player_count;
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
         gl_del_buffer(player->buffer);
 #endif
-        Player *other_player = g->players + (--count);
+        const Player* const other_player = g->players + (--count);
         memcpy(player, other_player, sizeof(Player));
         g->player_count = count;
       }
@@ -2319,7 +2327,7 @@ void parse_buffer(char *buffer) {
       db_set_key(kp, kq, kk);
     }
     if (sscanf(line, "R,%d,%d", &kp, &kq) == 2) {
-      Chunk *chunk = find_chunk(kp, kq);
+      Chunk* const chunk = find_chunk(kp, kq);
       if (chunk) {
         dirty_chunk(chunk);
       }
@@ -2332,14 +2340,14 @@ void parse_buffer(char *buffer) {
       g->time_changed = 1;
     }
     if (line[0] == 'T' && line[1] == ',') {
-      char *text = line + 2;
+      const char* const text = line + 2;
       add_message(text);
     }
     char format[64];
     snprintf(format, sizeof(format), "N,%%d,%%%ds", MAX_NAME_LENGTH - 1);
     char name[MAX_NAME_LENGTH];
     if (sscanf(line, format, &pid, name) == 2) {
-      Player *player = find_player(pid);
+      Player* const player = find_player(pid);
       if (player) {
         strncpy(player->name, name, MAX_NAME_LENGTH);
       }
@@ -2374,7 +2382,7 @@ void reset_model() {
 }
 
 // returns -1 on failure
-int initialize_craft(int argc, char **argv) {
+int initialize_craft(int argc, char** argv) {
   // INITIALIZATION //
   curl_global_init(CURL_GLOBAL_DEFAULT);
   srand(time(NULL));
@@ -2399,11 +2407,11 @@ int initialize_craft(int argc, char **argv) {
     // initialize g->window
     int window_width = WINDOW_WIDTH;
     int window_height = WINDOW_HEIGHT;
-    GLFWmonitor *monitor = NULL;
+    GLFWmonitor* monitor = NULL;
     if (FULLSCREEN) {
       int mode_count;
       monitor = glfwGetPrimaryMonitor();
-      const GLFWvidmode *modes = glfwGetVideoModes(monitor, &mode_count);
+      const GLFWvidmode* modes = glfwGetVideoModes(monitor, &mode_count);
       window_width = modes[mode_count - 1].width;
       window_height = modes[mode_count - 1].height;
     }
@@ -2465,7 +2473,7 @@ int initialize_craft(int argc, char **argv) {
 #else
     // INITIALIZE WORKER THREADS
     for (int i = 0; i < WORKERS; i++) {
-      Worker *worker = g->workers + i;
+      Worker* const worker = g->workers + i;
       worker->index = i;
       worker->state = WORKER_IDLE;
       mtx_init(&worker->mtx, mtx_plain);
@@ -2477,7 +2485,7 @@ int initialize_craft(int argc, char **argv) {
   }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   if (-1 == initialize_craft(argc, argv)) {
     return -1;
   }
@@ -2517,8 +2525,8 @@ int main(int argc, char **argv) {
 
     GLuint sky_buffer = gen_sky_buffer();
 
-    Player *me = g->players;
-    PositionAndOrientation *positionAndOrientation =
+    Player* const me = g->players;
+    PositionAndOrientation* const positionAndOrientation =
         &g->players->positionAndOrientation;
     me->id = 0;
     me->name[0] = '\0';
@@ -2592,7 +2600,7 @@ int main(int argc, char **argv) {
       handle_movement(dt);
 
       // HANDLE DATA FROM SERVER //
-      char *buffer = client_recv();
+      char* const buffer = client_recv();
       if (buffer) {
         parse_buffer(buffer);
         free(buffer);
@@ -2626,10 +2634,10 @@ int main(int argc, char **argv) {
       for (int i = 1; i < g->player_count; i++) {
         // interpolate playen
         {
-          Player *player = g->players + i;
-          PositionAndOrientation *positionAndOrientation1 =
+          Player* const player = g->players + i;
+          const PositionAndOrientation* const positionAndOrientation1 =
               &player->positionAndOrientation1;
-          PositionAndOrientation *positionAndOrientation2 =
+          const PositionAndOrientation* const positionAndOrientation2 =
               &player->positionAndOrientation2;
           float t1 = positionAndOrientation2->t - positionAndOrientation1->t,
                 t2 = glfwGetTime() - positionAndOrientation2->t;
@@ -2653,7 +2661,7 @@ int main(int argc, char **argv) {
               0);
         }
       }
-      Player *player = g->players + g->observe1;
+      const Player* player = g->players + g->observe1;
 
       // RENDER 3-D SCENE //
 
@@ -2724,7 +2732,7 @@ int main(int argc, char **argv) {
           {
             // initialize plant buffer
             const float x = 0, y = 0, z = 0, n = 0.5;
-            float *data = malloc_faces(10, 4);
+            float* const data = malloc_faces(10, 4);
             float ambient_occlusion = 0, light = 1;
             make_plant(data, ambient_occlusion, light, x, y, z, n, w, 45);
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
@@ -2755,7 +2763,7 @@ int main(int argc, char **argv) {
           {
             // initilize cube_buffer
             const float x = 0, y = 0, z = 0, n = 0.5;
-            float *data = malloc_faces(10, 6);
+            float* const data = malloc_faces(10, 6);
             float ambient_occlusion[6][4] = {0};
             float light[6][4] = {{0.5, 0.5, 0.5, 0.5}, {0.5, 0.5, 0.5, 0.5},
                                  {0.5, 0.5, 0.5, 0.5}, {0.5, 0.5, 0.5, 0.5},
@@ -2816,7 +2824,7 @@ int main(int argc, char **argv) {
         if (player != me) {
           render_text(ALIGN_CENTER, g->width / 2, ts, ts, player->name);
         }
-        Player *other_player = player_crosshair(player);
+        const Player* const other_player = player_crosshair(player);
         if (other_player) {
           render_text(ALIGN_CENTER, g->width / 2, g->height / 2 - ts - 24, ts,
                       other_player->name);
@@ -2896,7 +2904,7 @@ int main(int argc, char **argv) {
     // delete all players
     {
       for (int i = 0; i < g->player_count; i++) {
-        Player *player = g->players + i;
+        const Player* const player = g->players + i;
 #ifdef ENABLE_OPENGL_CORE_PROFILE_RENDERER
         gl_del_buffer(player->buffer);
 #endif

@@ -1,0 +1,11 @@
+# Build options for the Meson port (mirrors the CMake ENABLE_* options).
+option('opengl', type: 'boolean', value: true,
+       description: 'Build the OpenGL 3.3+ core-profile renderer (gl_render.c/gui-gl.cpp)')
+option('vulkan', type: 'boolean', value: false,
+       description: 'Build the Vulkan renderer (vulkan_render.c/gui-vulkan.cpp; WIP). Mutually exclusive with opengl.')
+option('only_render_one_chunk', type: 'boolean', value: false,
+       description: 'Debug viz: render a single chunk')
+option('no_threads', type: 'boolean', value: false,
+       description: 'Single-threaded chunk generation (old-hardware FPS)')
+option('sanitizer_gate', type: 'combo', choices: ['off', 'address', 'undefined'], value: 'off',
+       description: 'Build the craft_smoke ASan/UBSan-trap harness over the GL-free src/ core (Linux/clang)')

@@ -66,13 +66,13 @@
 
 #include "main.h"
 
-const char *glsl_version = "#version 330";
+const char* glsl_version = "#version 330";
 
 void gui_init() {
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
+  ImGuiIO& io = ImGui::GetIO();
   (void)io;
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable
   // Keyboard Controls io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; //
@@ -117,7 +117,6 @@ void gui_create_frame() {
 }
 
 void gui_render_frame() {
-
   // Rendering
   ImGui::Render();
   int display_w, display_h;

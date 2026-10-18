@@ -80,12 +80,12 @@ typedef struct {
   int load;
   // This chunk plus its 8 neighbours (indexed [1+dp][1+dq], dp,dq in -1..1),
   // so the mesher can see across chunk borders for face culling and lighting.
-  Map *block_maps[3][3];
-  Map *light_maps[3][3];
+  Map* block_maps[3][3];
+  Map* light_maps[3][3];
   int miny;
   int maxy;
   int faces;
-  float *data;
+  float* data;
 } WorkerItem;
 
 typedef struct {
@@ -162,7 +162,7 @@ typedef struct {
 } Player;
 
 typedef struct {
-  GLFWwindow *window;
+  GLFWwindow* window;
   Worker workers[WORKERS];
   Chunk chunks[MAX_CHUNKS];
   int chunk_count;
@@ -242,7 +242,7 @@ typedef struct {
   uint32_t timer;
 } Sky_Attributes;
 
-extern Model *g;
+extern Model* g;
 
 // TODO - put this into the Model struct
 extern bool escape_pressed;
@@ -258,8 +258,8 @@ extern bool do_render_crosshairs;
 extern bool enable_ambient_occlusion;
 
 float time_of_day();
-int _gen_sign_buffer(float *data, float x, float y, float z, int face,
-                     const char *text);
+int _gen_sign_buffer(float* data, float x, float y, float z, int face,
+                     const char* text);
 
 END_C_DECL
 

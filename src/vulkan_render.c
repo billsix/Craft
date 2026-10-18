@@ -62,21 +62,21 @@ void vulkan_disable_scissor_test() {}
 void vulkan_scissor(uint32_t x_min, uint32_t y_min, uint32_t x_width,
                     uint32_t y_height) {}
 
-uint32_t vulkan_gen_buffer(size_t size, const float *const data) { return 0; }
+uint32_t vulkan_gen_buffer(size_t size, const float* const data) { return 0; }
 
 void vulkan_del_buffer(uint32_t buffer) {}
 
-uint32_t vulkan_gen_faces(int components, int faces, float *data) { return 0; }
+uint32_t vulkan_gen_faces(int components, int faces, float* data) { return 0; }
 
-uint32_t vulkan_make_shader(uint32_t type, const char *source) { return 0; }
+uint32_t vulkan_make_shader(uint32_t type, const char* source) { return 0; }
 
-uint32_t vulkan_load_shader(uint32_t type, const char *path) { return 0; }
+uint32_t vulkan_load_shader(uint32_t type, const char* path) { return 0; }
 
 uint32_t vulkan_make_program(uint32_t shader1, uint32_t shader2) { return 0; }
 
-uint32_t vulkan_load_program(const char *path1, const char *path2) { return 0; }
+uint32_t vulkan_load_program(const char* path1, const char* path2) { return 0; }
 
-void vulkan_load_png_texture(const char *file_name) {}
+void vulkan_load_png_texture(const char* file_name) {}
 
 int vulkan_graphics_loader_init() { return 0; }
 
@@ -85,43 +85,43 @@ void vulkan_initiliaze_global_state() {}
 void vulkan_initiliaze_textures() {}
 
 void vulkan_setup_render_chunks(
-    const float *const matrix,
-    const PositionAndOrientation *const positionAndOrientation, float light) {}
+    const float* const matrix,
+    const PositionAndOrientation* const positionAndOrientation, float light) {}
 
-void vulkan_render_chunk(const Chunk *const chunk) {}
+void vulkan_render_chunk(const Chunk* const chunk) {}
 
 void vulkan_draw_triangles_3d_text(uint32_t buffer, int count) {}
 
-void vulkan_setup_render_signs(const float *const matrix) {}
+void vulkan_setup_render_signs(const float* const matrix) {}
 
-void vulkan_render_signs(const Chunk *const chunk) {}
+void vulkan_render_signs(const Chunk* const chunk) {}
 
-void vulkan_render_sign(const float *const matrix, int x, int y, int z,
+void vulkan_render_sign(const float* const matrix, int x, int y, int z,
                         int face) {}
 
 void vulkan_setup_render_players(
-    const float *const matrix,
-    const PositionAndOrientation *const positionAndOrientation) {}
+    const float* const matrix,
+    const PositionAndOrientation* const positionAndOrientation) {}
 
-void vulkan_render_player(const Player *const other_player) {}
+void vulkan_render_player(const Player* const other_player) {}
 
-void vulkan_render_sky(uint32_t buffer, const float *const matrix) {}
+void vulkan_render_sky(uint32_t buffer, const float* const matrix) {}
 
 void vulkan_draw_lines(uint32_t buffer, int components, int count) {}
 
-void vulkan_render_wireframe(const float *const matrix, int hx, int hy,
+void vulkan_render_wireframe(const float* const matrix, int hx, int hy,
                              int hz) {}
 
-void vulkan_render_text(const float *const matrix, int justify, float x,
-                        float y, float n, const char *const text) {}
+void vulkan_render_text(const float* const matrix, int justify, float x,
+                        float y, float n, const char* const text) {}
 
-void vulkan_render_item(const float *const matrix) {}
+void vulkan_render_item(const float* const matrix) {}
 
 void vulkan_render_plant(uint32_t plant_buffer) {}
 
 void vulkan_render_cube(uint32_t cube_buffer) {}
 
 void vulkan_render_crosshairs(uint32_t crosshair_buffer,
-                              const float *const matrix) {}
+                              const float* const matrix) {}
 
 #endif
