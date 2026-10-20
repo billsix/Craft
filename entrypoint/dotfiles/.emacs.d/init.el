@@ -49,5 +49,6 @@
         company-idle-delay 0.0))
 
 (use-package clang-format
+  :after cc-mode               ; c-mode-base-map is defined by cc-mode; wait for it
   :bind (:map c-mode-base-map
               ("C-c f" . clang-format-buffer)))
