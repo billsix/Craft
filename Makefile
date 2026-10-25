@@ -135,6 +135,49 @@ update-emacs-packages: ## USE_EMACS=1: rebuild image, wipe+reinstall elpa, strip
 		git add -A -f .
 	@echo "Done: reinstalled packages, stripped *.elc/*.eln, staged elpa -- review and commit."
 
+# --- Re-vendor a third-party source dep from upstream at a ref (branch/tag/SHA or version).
+# Each overwrites deps/<dep> and prints the vendored version; run on the HOST (git/curl/
+# unzip/python3 + cp, no container). Convention: the personal overlay Makefile contract
+# ("update-<dep> targets for deps vendored BY SOURCE"); plan + recipes:
+# tasks/add-dep-update-targets.md. After a bump, commit as '<dep> <ref>' (git-history pin).
+.PHONY: update-imgui
+update-imgui: ## Re-vendor Dear ImGui: make update-imgui IMGUI_REF=v1.92.5 (tag|branch|SHA)
+	@[ -n "$(IMGUI_REF)" ] || { echo 'usage: make update-imgui IMGUI_REF=<tag|branch|SHA>'; exit 2; }
+	bash tools/update-imgui.sh "$(IMGUI_REF)"
+
+.PHONY: update-glfw
+update-glfw: ## Re-vendor GLFW: make update-glfw GLFW_REF=3.4 (tag|branch|SHA)
+	@[ -n "$(GLFW_REF)" ] || { echo 'usage: make update-glfw GLFW_REF=<tag|branch|SHA>'; exit 2; }
+	bash tools/update-glfw.sh "$(GLFW_REF)"
+
+.PHONY: update-curl
+update-curl: ## Re-vendor curl: make update-curl CURL_REF=curl-8_18_0 (git tag|SHA)
+	@[ -n "$(CURL_REF)" ] || { echo 'usage: make update-curl CURL_REF=<git tag|SHA>'; exit 2; }
+	bash tools/update-curl.sh "$(CURL_REF)"
+
+.PHONY: update-lodepng
+update-lodepng: ## Re-vendor LodePNG: make update-lodepng LODEPNG_REF=<commit|branch|tag>
+	@[ -n "$(LODEPNG_REF)" ] || { echo 'usage: make update-lodepng LODEPNG_REF=<commit|branch|tag>'; exit 2; }
+	bash tools/update-lodepng.sh "$(LODEPNG_REF)"
+
+.PHONY: update-gl3w
+update-gl3w: ## Re-vendor + regenerate gl3w: make update-gl3w GL3W_REF=<commit|branch|tag>
+	@[ -n "$(GL3W_REF)" ] || { echo 'usage: make update-gl3w GL3W_REF=<commit|branch|tag>'; exit 2; }
+	bash tools/update-gl3w.sh "$(GL3W_REF)"
+
+.PHONY: update-sqlite
+update-sqlite: ## Re-vendor SQLite: make update-sqlite SQLITE_REF=3.47.2 [SQLITE_YEAR=2024] (year needed for old versions)
+	@[ -n "$(SQLITE_REF)" ] || { echo 'usage: make update-sqlite SQLITE_REF=<version, e.g. 3.47.2> [SQLITE_YEAR=<year>]'; exit 2; }
+	bash tools/update-sqlite.sh "$(SQLITE_REF)" "$(SQLITE_YEAR)"
+
+.PHONY: update-tinycthread
+update-tinycthread: ## Re-vendor tinycthread (default master): make update-tinycthread TINYCTHREAD_REF=<commit>
+	bash tools/update-tinycthread.sh $(TINYCTHREAD_REF)
+
+.PHONY: update-noise
+update-noise: ## Re-vendor noise from fogleman/Craft (default master): make update-noise NOISE_REF=<commit>
+	bash tools/update-noise.sh $(NOISE_REF)
+
 # ----------------------------------------------------------------------------
 # Host CMake build (Windows / macOS, or Linux without the container).
 #
