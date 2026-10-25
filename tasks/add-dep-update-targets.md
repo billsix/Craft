@@ -1,6 +1,8 @@
 # Add `make update-<dep>` targets to re-vendor each third-party source dep from upstream
 
-**Status:** proposed — needs go-ahead
+**Status:** in progress — all 8 `update-<dep>` targets + scripts implemented; sqlite + lodepng verified
+byte-idempotent; imgui/glfw/curl re-vendor via `git archive` (content-correct); gl3w regenerates;
+tinycthread/noise copy-files. See Implementation below.
 **Priority:** 6 **Difficulty:** 5
 **Created:** 2026-10-24 (William Emerison Six <billsix@gmail.com>). Requested: automate getting/updating
 the vendored third-party deps (imgui, sqlite, and the rest of `deps/`), using the env-var-driven
@@ -64,19 +66,46 @@ Two vendoring shapes: **whole tree** (clone ref, copy minus `.git`) vs **curated
    amalgamation are the ones to watch.
 4. Commit each bump as `<dep> <ref>` (matching the git-history provenance convention).
 
-## Open questions
+## Decisions (my discretion, 2026-10-25, maintainer said "use your discretion")
 
-1. **One script per dep vs. one data-driven script + a dep table?** Recommend one `tools/update-<dep>.sh`
-   per dep (each recipe genuinely differs — git-clone vs amalgamation-download vs generator); a shared
-   `tools/_vendor_lib.sh` for the common clone-and-copy helper if it stays simple. Your call.
-2. **gl3w: regenerate vs. copy committed output?** The vendored gl3w includes generated `gl3w.h`/`.c` +
-   Khronos headers. Recommend the generator path (`gl3w_gen.py` against the live registry) so a bump
-   also refreshes GL coverage — but it needs network to the Khronos registry. OK, or copy upstream's
-   committed output instead?
-3. **Whole-tree vs. minimal file set for imgui/glfw/curl/lodepng?** Current practice vendors the whole
-   upstream tree (large: curl ~27M, imgui w/ all backends + fonts). Keep replacing the whole tree
-   (faithful to current state), or trim to only what Craft compiles? Recommend: keep whole-tree (matches
-   today, lowest surprise); trimming is a separate decision.
+1. **One `tools/update-<dep>.sh` per dep + a shared `tools/update_dep_common.sh` helper** (each recipe
+   genuinely differs). The helper has `clone_ref`, `vendor_archive` (git-archive whole-tree),
+   `replace_tree` (tar whole-tree), `copy_files`, `show_version`. **(2026-10-25) The helper was
+   generalized into a SHARED, VENDORED tool** — canonical at `runClaudeInContainer
+   tasks/reference/update_dep_common.sh` (mirror in runCrush), re-vendored into this `tools/` and kept
+   byte-identical like `check_local_annotations.py`; Craft uses the default `VENDOR_ROOT=deps`. Pattern:
+   `runClaudeInContainer tasks/reference/vendoring-third-party-source-deps.md`. sqlite re-verified
+   byte-idempotent after the swap.
+2. **gl3w regenerates** via `gl3w_gen.py` against the Khronos registry (so a bump refreshes GL coverage).
+   Consequence: re-vendoring the *current* pin is NOT byte-idempotent (the registry moved on) — expected,
+   not a bug.
+3. **Whole-tree vendoring kept** (faithful to current practice), via `git archive` for imgui/glfw/curl
+   (the export-ignore "release" view — drops CI/.github, keeps .gitignore — which matches how the trees
+   were vendored). Trimming to only-what-Craft-compiles is a separate decision, not taken.
+
+## Implementation (2026-10-25)
+
+Added `tools/update_dep_common.sh` + `tools/update-{imgui,glfw,curl,lodepng,gl3w,sqlite,tinycthread,noise}.sh`
+and a `make update-<dep> <DEP>_REF=<ref>` target for each (host-run; git/curl/unzip/python3 + cp).
+
+- **sqlite** — `make update-sqlite SQLITE_REF=3.47.2 [SQLITE_YEAR=2024]`. **Verified byte-idempotent.**
+  The amalgamation URL needs the release *year*; `download.html` only lists the current release, so
+  **bumping to the latest auto-detects the year, but pinning an older version needs `SQLITE_YEAR`.**
+- **lodepng** — whole-tree, **then rename `lodepng.cpp`→`lodepng.c`** (upstream ships `.cpp`; Craft
+  vendors it as `.c`) **and remove upstream's `Makefile`** (Craft doesn't vendor it). **Verified
+  byte-idempotent** at the current pin.
+- **imgui / glfw / curl** — `git archive` whole-tree. imgui re-vendors the correct content; the only
+  residual vs the current pin is **cosmetic CRLF/LF on example `.vcxproj` files Craft never compiles**
+  (review + commit on a bump; not worth chasing). glfw/curl use the same mechanism (not separately run —
+  large clones; verify on first real bump).
+- **gl3w** — clone + `gl3w_gen.py --root` (regenerates from the Khronos registry) + whole-tree. A bump
+  intentionally refreshes GL coverage, so expect a diff vs the old pin.
+- **tinycthread / noise** — copy the 2 files (tinycthread from `source/`; noise from fogleman/Craft
+  `deps/noise/`). No ref is recorded in Craft's git history for these (static), so the targets default to
+  `master`; pin by commit when bumping.
+
+**Remaining:** run the big-clone deps (imgui/glfw/curl/gl3w) on a real bump + review their diffs; decide
+whether the example-file CRLF residue is worth a `.gitattributes`/normalization pass (probably not).
 
 ## Related
 
