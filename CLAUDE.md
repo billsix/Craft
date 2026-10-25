@@ -162,7 +162,7 @@ Win/Mac), `imgui` (Dear ImGui), `lodepng` (PNG), `noise` (simplex noise),
 with **`make update-<dep> <DEP>_REF=<ref>`** (one target per dep, host-run; e.g.
 `make update-imgui IMGUI_REF=v1.92.5`), then commit the result as `<dep> <ref>`
 — the pin lives only in that commit subject (`git log --oneline -- deps/`). See
-`tasks/add-dep-update-targets.md` for the per-dep recipes and gotchas. Treat
+`tasks/archive/2026/10/25/add-dep-update-targets.md` for the per-dep recipes and gotchas. Treat
 `deps/` as upstream — don't reformat or "fix" it; changes belong upstream.
 
 ## Conventions
