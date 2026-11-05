@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:44
+FROM registry.fedoraproject.org/fedora:45
 
 # A GLFW + OpenGL GUI game; USE_GRAPHICS pulls in the X11/Mesa (and Vulkan) libs so the
 # window can open via `make shell` display passthrough. USE_EMACS adds Emacs + the
