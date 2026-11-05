@@ -1,22 +1,12 @@
-# Upgrade the container base from Fedora 44 to Fedora 45
+# Upgrade the container base from Fedora 44 to Fedora 45 (done)
 
-**Status:** in progress
-**Priority:** 3
-**Difficulty:** 4
+Done 2026-11-05 (William Emerison Six <billsix@gmail.com>). Part of a fleet-wide
+Fedora 44 -> 45 bump.
 
-## BLUF
-Bump `Dockerfile` to `fedora:45`; `make image` green nested. Craft is C (a
-Minecraft-like, OpenGL) with several vendored source deps; the C compile under
-GCC 16 is the risk. "Done" = image builds on 45.
+## What changed
 
-## Context
-Fleet-wide Fedora 44 → 45 bump (William Emerison Six <billsix@gmail.com>,
-2026-11-05). Fedora 45: GCC 16.2 / clang LLVM 23, glibc 2.44. Watch for new
-GCC-16 warnings-as-errors in Craft's C and its vendored deps (sqlite/glfw/etc.).
+- `Dockerfile`: `registry.fedoraproject.org/fedora:44` -> `fedora:45`.
 
-## Plan
-1. `fedora:44` → `fedora:45`. 2. `make image` nested. 3. Fix toolchain breakage
-minimally (discretion; log here). 4. Stage by path; archive.
-
-## Notes / findings
-(appended as the build runs)
+No source changes. `make image` green nested on the 45 base -- Craft C and its
+vendored source deps compiled clean under GCC 16 / clang LLVM 23; base packages
+present on Fedora 45. Image `localhost/craft:latest`.
