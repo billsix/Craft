@@ -116,8 +116,11 @@ Two builds coexist. The default `make` goal is `help`; `make help` lists every t
 **Linux dev — container + Meson (primary):**
 
 - `make image` → builds the Fedora image and compiles+installs the Meson client
-  in-image (ready-to-run `craft`). `USE_EMACS=1` (the Makefile default) also pulls
-  Emacs + the vendored MELPA packages; `USE_GRAPHICS=1` pulls the X11/Mesa/Vulkan libs.
+  in-image (ready-to-run `craft`). `USE_EMACS=1` (the Makefile default) also installs
+  the Emacs binary; its packages are the vendored `entrypoint/dotfiles/.emacs.d/elpa`,
+  bind-mounted by `make shell` and byte-compiled by `init.el` on Emacs's first start
+  (never installed or compiled in the `Dockerfile`). `USE_GRAPHICS=1` pulls the
+  X11/Mesa/Vulkan libs.
 - `make shell` → shell in an ephemeral container with X11 + Wayland passthrough (run
   `craft` there); `make run` → run the installed `craft` directly.
 - `make build` → re-run the Meson build against the mounted tree (writes `./builddir`,

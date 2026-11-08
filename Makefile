@@ -6,12 +6,15 @@ USE_EMACS ?= 1
 CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
 CONTAINER_NAME = craft
 
-# USE_EMACS=1 (the default) bind-mounts the vendored .emacs.d/ into the container so
-# an interactive `make shell` can USE its clangd/lsp-mode C config + packages (:U chowns
-# to the container user, :z relabels for SELinux). USE_EMACS=0 skips the mount. To
-# REFRESH the vendored elpa packages, use `make update-emacs-packages`.
+# USE_EMACS=1 (the default) bind-mounts the vendored elpa/ package tree into the
+# container so an interactive `make shell` can USE the packages (:U chowns to the
+# container user, :z relabels for SELinux); init.el byte-compiles them into this mount
+# on Emacs's first start (the .elc files are gitignored). The rest of .emacs.d (init.el,
+# helm.el, preferences.el) is baked by the Dockerfile's dotfiles COPY, so an edit to
+# those needs `make image`. USE_EMACS=0 skips the mount. To REFRESH the vendored
+# packages, use `make update-emacs-packages`.
 ifeq ($(USE_EMACS),1)
-  ELPA_MOUNT = -v $(CURDIR)/entrypoint/dotfiles/.emacs.d/:/root/.emacs.d/:U,z
+  ELPA_MOUNT = -v $(CURDIR)/entrypoint/dotfiles/.emacs.d/elpa:/root/.emacs.d/elpa:U,z
 else
   ELPA_MOUNT =
 endif
@@ -116,21 +119,22 @@ image-import: ## Import an OCI image tar: make image-import FILE=foo.tar
 	$(CONTAINER_CMD) load -i $(FILE)
 
 # Refresh the vendored Emacs packages. Forces USE_EMACS=1 and rebuilds the image
-# first. Then, in the container, wipes ONLY the elpa/ subtree (init.el /
-# preferences.el / helm.el / install-melpa-packages.el are hand-written config,
-# left untouched) and reinstalls from MELPA into the host's bind-mounted
-# .emacs.d/elpa. Finally strips compiled *.elc/*.eln (machine-specific) and
-# force-stages the elpa tree. Needs network. Mirrors billsEmacsConfigs/c + gltron.
+# first. Then, in the container, wipes the elpa/ tree and reinstalls from MELPA into
+# the host's bind-mounted entrypoint/dotfiles/.emacs.d/elpa (the current
+# install-melpa-packages.el is mounted read-only, so edits to it take effect without a
+# rebuild). Finally strips compiled *.elc/*.eln (machine-specific; init.el recompiles
+# them on the next Emacs start) and force-stages the elpa tree. Needs network.
 .PHONY: update-emacs-packages
 update-emacs-packages: ## USE_EMACS=1: rebuild image, wipe+reinstall elpa, strip *.elc/*.eln, git add -f
 	$(MAKE) image USE_EMACS=1
 	$(CONTAINER_CMD) run --rm $(PODMAN_RUN_FLAGS) \
-		-v $(CURDIR)/entrypoint/dotfiles/.emacs.d/:/root/.emacs.d/:U,z \
+		-v $(CURDIR)/entrypoint/dotfiles/.emacs.d/elpa:/root/.emacs.d/elpa:U,z \
+		-v $(CURDIR)/entrypoint/dotfiles/.emacs.d/install-melpa-packages.el:/root/.emacs.d/install-melpa-packages.el:ro,z \
 		--entrypoint /bin/bash \
 		$(CONTAINER_NAME) \
-		-c 'mkdir -p /root/.emacs.d/elpa; find /root/.emacs.d/elpa -mindepth 1 -delete; \
+		-c 'set -e; find /root/.emacs.d/elpa -mindepth 1 -delete; \
 		    emacs --batch --load /root/.emacs.d/install-melpa-packages.el'
-	mkdir -p $(CURDIR)/entrypoint/dotfiles/.emacs.d/elpa && cd $(CURDIR)/entrypoint/dotfiles/.emacs.d/elpa && \
+	cd $(CURDIR)/entrypoint/dotfiles/.emacs.d/elpa && \
 		find . \( -iname '*.elc' -o -iname '*.eln' \) -delete && \
 		git add -A -f .
 	@echo "Done: reinstalled packages, stripped *.elc/*.eln, staged elpa -- review and commit."

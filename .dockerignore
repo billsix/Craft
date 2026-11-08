@@ -1,0 +1,16 @@
+# Trim the build context.
+#
+# The vendored Emacs package tree stays in git but is not baked into the image:
+# `make shell` bind-mounts it at /root/.emacs.d/elpa (ELPA_MOUNT in the Makefile) and
+# `make update-emacs-packages` refreshes it. The rest of .emacs.d is copied to /root.
+entrypoint/dotfiles/.emacs.d/elpa
+
+# VCS metadata, host build trees, image-export tarballs.
+.git
+builddir/
+debugBuild/
+debugBuildInstall/
+releaseBuild/
+releaseBuildInstall/
+sanitizeBuild-*/
+*.tar

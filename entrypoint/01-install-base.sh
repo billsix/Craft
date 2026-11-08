@@ -24,7 +24,6 @@ dnf install -y --skip-unavailable \
               clang \
               clang-tools-extra \
               cppcheck \
-              emacs \
               file \
               g++ \
               gcc \
